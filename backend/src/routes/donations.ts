@@ -104,6 +104,11 @@ router.post('/confirm-setup', requireAuth, async (req: Request, res: Response) =
     confirm: true,
   });
 
+  // Set as the customer's default payment method so off-session charges work
+  await stripe.customers.update(profile.stripe_customer_id, {
+    invoice_settings: { default_payment_method: payment_method_id },
+  });
+
   res.json({ client_secret: intent.client_secret });
 });
 
