@@ -32,9 +32,9 @@ export const stripeService = {
 
   async createSetupIntent(customerId: string): Promise<{ client_secret: string }> {
     const intent = await stripe.setupIntents.create({
-      customer:             customerId,
-      payment_method_types: ['card'],
-      usage:                'off_session',
+      customer:                  customerId,
+      usage:                     'off_session',
+      automatic_payment_methods: { enabled: true, allow_redirects: 'never' },
     });
     return { client_secret: intent.client_secret! };
   },

@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import StripePaymentSheet
 
 struct ProfileView: View {
@@ -96,45 +97,24 @@ struct ProfileView: View {
                                     .font(.caption).foregroundStyle(.secondary)
                             }
                             Spacer()
-                            // Replace card button
-                            if let sheet = paymentSheet {
-                                PaymentSheet.PaymentButton(
-                                    paymentSheet: sheet,
-                                    onCompletion: handlePaymentResult
-                                ) {
-                                    Text(i18n.language == .ja ? "変更" : "Change")
-                                        .font(.caption).foregroundStyle(Color("BrandOrange"))
-                                }
-                            } else {
-                                Button(i18n.language == .ja ? "変更" : "Change") {
-                                    Task { await preparePaymentSheet() }
-                                }
-                                .font(.caption).foregroundStyle(Color("BrandOrange"))
-                                .disabled(isPreparingSheet)
+                            Button(i18n.language == .ja ? "変更" : "Change") {
+                                Task { await prepareAndShowPaymentSheet() }
                             }
-                        }
-                    } else {
-                        if let sheet = paymentSheet {
-                            PaymentSheet.PaymentButton(
-                                paymentSheet: sheet,
-                                onCompletion: handlePaymentResult
-                            ) {
-                                Label(i18n.t(.profileAddCard), systemImage: "plus.circle")
-                                    .foregroundStyle(Color("BrandOrange"))
-                            }
-                        } else {
-                            Button {
-                                Task { await preparePaymentSheet() }
-                            } label: {
-                                HStack {
-                                    Label(i18n.t(.profileAddCard), systemImage: "plus.circle")
-                                        .foregroundStyle(Color("BrandOrange"))
-                                    Spacer()
-                                    if isPreparingSheet { ProgressView() }
-                                }
-                            }
+                            .font(.caption).foregroundStyle(Color("BrandOrange"))
                             .disabled(isPreparingSheet)
                         }
+                    } else {
+                        Button {
+                            Task { await prepareAndShowPaymentSheet() }
+                        } label: {
+                            HStack {
+                                Label(i18n.t(.profileAddCard), systemImage: "plus.circle")
+                                    .foregroundStyle(Color("BrandOrange"))
+                                Spacer()
+                                if isPreparingSheet { ProgressView() }
+                            }
+                        }
+                        .disabled(isPreparingSheet)
                     }
                 }
 
@@ -193,20 +173,18 @@ struct ProfileView: View {
 
     // ── Stripe PaymentSheet setup ─────────────────────────────────────────────
 
-    private func preparePaymentSheet() async {
+    private func prepareAndShowPaymentSheet() async {
         isPreparingSheet = true
         defer { isPreparingSheet = false }
 
         let intent: SetupIntentResponse
         do {
             intent = try await APIClient.shared.createSetupIntent()
-            print("[PaymentSheet] got client_secret, length:", intent.clientSecret.count)
         } catch {
             print("[PaymentSheet] createSetupIntent failed:", error)
             return
         }
 
-        // Configure Stripe publishable key (set once, ideally at app launch)
         StripeAPI.defaultPublishableKey = AppConfig.stripePublishableKey
 
         var config = PaymentSheet.Configuration()
@@ -215,10 +193,19 @@ struct ProfileView: View {
         config.returnURL = "charityathletes://stripe-return"
         config.defaultBillingDetails.address.country = "JP"
 
-        paymentSheet = PaymentSheet(
+        let sheet = PaymentSheet(
             setupIntentClientSecret: intent.clientSecret,
             configuration: config
         )
+        paymentSheet = sheet
+
+        // Present imperatively so it opens immediately after preparing
+        guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let root = scene.windows.first?.rootViewController else { return }
+
+        await MainActor.run {
+            sheet.present(from: root, completion: handlePaymentResult)
+        }
     }
 
     private func handlePaymentResult(_ result: PaymentSheetResult) {

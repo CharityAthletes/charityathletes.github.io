@@ -16,6 +16,9 @@ import webRoutes       from './routes/web';
 const app  = express();
 const PORT = process.env.PORT ?? 3000;
 
+// Trust Railway's reverse proxy so rate-limiter and IP detection work correctly
+app.set('trust proxy', 1);
+
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {

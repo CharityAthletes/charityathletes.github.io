@@ -1,4 +1,31 @@
 import SwiftUI
+import UIKit
+
+// Renders two SF Symbols side-by-side into a single UIImage for use in tab bar
+private func activitiesTabIcon() -> UIImage {
+    let config = UIImage.SymbolConfiguration(pointSize: 11, weight: .medium)
+    let bike   = UIImage(systemName: "bicycle",    withConfiguration: config)!.withRenderingMode(.alwaysTemplate)
+    let runner = UIImage(systemName: "figure.run", withConfiguration: config)!.withRenderingMode(.alwaysTemplate)
+
+    let gap: CGFloat = 3
+    let totalWidth  = bike.size.width + gap + runner.size.width
+    let totalHeight = max(bike.size.height, runner.size.height)
+
+    let renderer = UIGraphicsImageRenderer(size: CGSize(width: totalWidth, height: totalHeight))
+    let combined = renderer.image { ctx in
+        let tint = UIColor.label   // adapts to light/dark mode
+        tint.setFill()
+
+        // Draw bicycle left, runner right
+        let bikeY   = (totalHeight - bike.size.height)   / 2
+        let runnerX = bike.size.width + gap
+        let runnerY = (totalHeight - runner.size.height) / 2
+
+        bike.draw(at: CGPoint(x: 0, y: bikeY))
+        runner.draw(at: CGPoint(x: runnerX, y: runnerY))
+    }
+    return combined.withRenderingMode(.alwaysTemplate)
+}
 
 @main
 struct CharityAthletesApp: App {
@@ -92,7 +119,13 @@ struct AthleteTabView: View {
             CampaignListView()
                 .tabItem { Label(i18n.t(.tabCampaigns), systemImage: "heart.fill") }
             ActivityListView()
-                .tabItem { Label(i18n.t(.tabActivities), systemImage: "bicycle") }
+                .tabItem {
+                    Label {
+                        Text(i18n.t(.tabActivities))
+                    } icon: {
+                        Image(uiImage: activitiesTabIcon())
+                    }
+                }
             ProfileView()
                 .tabItem { Label(i18n.t(.tabProfile), systemImage: "person.fill") }
         }
