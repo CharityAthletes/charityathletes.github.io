@@ -206,6 +206,14 @@ function renderPage(campaign: any, stripeKey: string, apiBase: string, campaignI
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${campaign.title_ja} | チャリアス</title>
+  <meta property="og:type"        content="website">
+  <meta property="og:title"       content="${campaign.title_ja} | チャリアス (Charity Athletes)">
+  <meta property="og:description" content="${campaign.description_ja || campaign.description_en || 'チャリアスのチャリティキャンペーンを応援してください！'}">
+  <meta property="og:url"         content="https://charityathletes-production.up.railway.app/c/${campaignId}">
+  <meta property="og:image"       content="${np?.logo_url || 'https://charityathletes-production.up.railway.app/og-default.png'}">
+  <meta name="twitter:card"       content="summary_large_image">
+  <meta name="twitter:title"      content="${campaign.title_ja} | チャリアス">
+  <meta name="twitter:description" content="${campaign.description_ja || campaign.description_en || ''}">
   <script src="https://js.stripe.com/v3/"></script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}

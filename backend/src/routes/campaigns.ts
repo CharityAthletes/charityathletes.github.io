@@ -159,6 +159,22 @@ router.post('/:id/join', requireAuth, async (req: Request, res: Response) => {
   res.status(201).json(data);
 });
 
+// DELETE /campaigns/:id/join — leave a campaign
+router.delete('/:id/join', requireAuth, async (req: Request, res: Response) => {
+  const { error } = await db
+    .from('campaign_participations')
+    .delete()
+    .eq('campaign_id', req.params.id)
+    .eq('user_id', req.userId!);
+
+  if (error) return res.status(500).json({ error: error.message });
+
+  // Decrement participant count (floor at 0)
+  await db.rpc('decrement_campaign_participants', { p_campaign_id: req.params.id });
+
+  res.json({ ok: true });
+});
+
 // POST /campaigns/:id/donate  — manual one-time donation checkout
 const donateSchema = z.object({ amount_jpy: z.number().int().min(100) });
 
