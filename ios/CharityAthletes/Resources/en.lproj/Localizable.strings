@@ -1,0 +1,118 @@
+/* Tabs */
+"tab.dashboard"  = "Home";
+"tab.campaigns"  = "Campaigns";
+"tab.activities" = "Activities";
+"tab.profile"    = "Profile";
+
+/* Onboarding */
+"onboarding.tagline"     = "Ride, run, swim —\nchange the world";
+"onboarding.get_started" = "Get Started";
+"onboarding.sign_in"     = "Sign In";
+
+/* Auth */
+"auth.email"          = "Email";
+"auth.password"       = "Password";
+"auth.display_name"   = "Display Name";
+"auth.register"       = "Create Account";
+"auth.login"          = "Sign In";
+"auth.switch_signup"  = "Don't have an account?";
+"auth.switch_login"   = "Already have an account?";
+
+/* Dashboard */
+"dashboard.title"            = "Home";
+"dashboard.total_donated"    = "Total Donated";
+"dashboard.total_distance"   = "Total Distance";
+"dashboard.connect_strava"   = "Connect Strava";
+"dashboard.connect_hint"     = "Auto-sync your activities";
+"dashboard.active_campaigns" = "Active Campaigns";
+
+/* Campaigns */
+"campaigns.title"       = "Campaigns";
+"campaigns.empty"       = "No campaigns right now";
+"campaign.join"         = "Join";
+"campaign.donate"       = "Donate";
+"campaign.raised"       = "Raised";
+"campaign.goal"         = "Goal";
+"campaign.participants" = "Participants";
+"campaign.leaderboard"  = "Leaderboard";
+"campaign.flat_label"   = "Flat donation per activity";
+"campaign.per_km_label" = "Per-km donation rate";
+"campaign.join_title"   = "Join Campaign";
+"campaign.join_confirm" = "Confirm";
+
+/* Activities */
+"activities.title"    = "Activities";
+"activities.empty"    = "No activities yet";
+"activity.distance"   = "Distance";
+"activity.duration"   = "Duration";
+"activity.elevation"  = "Elevation";
+
+/* Donations */
+"donations.title"   = "Donations";
+"donation.flat"     = "Flat donation";
+"donation.per_km"   = "Per-km donation";
+"donation.total"    = "Total";
+"donation.pending"  = "Pending";
+"donation.complete" = "Completed";
+"donation.failed"   = "Failed";
+
+/* Profile */
+"profile.title"            = "Profile";
+"profile.language"         = "Language";
+"profile.strava"           = "Strava";
+"profile.strava_connected" = "Connected";
+"profile.strava_connect"   = "Connect Strava";
+"profile.payment_method"   = "Payment Method";
+"profile.add_card"         = "Add Card";
+"profile.sign_out"         = "Sign Out";
+
+/* Nonprofit signup */
+"np_signup.title"         = "Nonprofit Registration";
+"np_signup.name_ja"       = "Organization name (Japanese)";
+"np_signup.name_en"       = "Organization name (English)";
+"np_signup.desc_ja"       = "Description (Japanese)";
+"np_signup.desc_en"       = "Description (English)";
+"np_signup.website"       = "Website URL";
+"np_signup.category"      = "Category";
+"np_signup.donorbox_id"   = "Donorbox Campaign ID";
+"np_signup.donorbox_email" = "Donorbox account email";
+"np_signup.submit"        = "Submit Application";
+"np_signup.success"       = "Application submitted. We'll review it and be in touch.";
+
+/* Nonprofit pending / rejected */
+"np_pending.title"    = "Under Review";
+"np_pending.message"  = "Your account is being reviewed. You'll gain access once approved.";
+"np_rejected.title"   = "Application Rejected";
+"np_rejected.message" = "Reason:";
+
+/* Nonprofit dashboard */
+"np_dash.title"             = "Dashboard";
+"np_dash.total_raised"      = "Total Raised";
+"np_dash.campaigns"         = "By Campaign";
+"np_dash.top_athletes"      = "Top Athletes";
+"np_dash.recent_donations"  = "Recent Donations";
+
+/* Admin */
+"admin.title"            = "Admin Panel";
+"admin.queue"            = "Approval Queue";
+"admin.stats"            = "Platform Stats";
+"admin.approve"          = "Approve";
+"admin.reject"           = "Reject";
+"admin.reject_reason"    = "Rejection reason";
+"admin.pending"          = "Pending";
+"admin.approved"         = "Approved";
+"admin.rejected"         = "Rejected";
+"admin.total_athletes"   = "Total Athletes";
+"admin.total_nonprofits" = "Total Nonprofits";
+"admin.active_campaigns" = "Active Campaigns";
+"admin.total_donated"    = "Total Donated";
+
+/* Common */
+"common.km"      = "km";
+"common.yen"     = "¥";
+"common.loading" = "Loading…";
+"common.error"   = "Something went wrong";
+"common.retry"   = "Retry";
+"common.close"   = "Close";
+"common.save"    = "Save";
+"common.cancel"  = "Cancel";

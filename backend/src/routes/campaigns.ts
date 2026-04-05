@@ -159,6 +159,56 @@ router.post('/:id/join', requireAuth, async (req: Request, res: Response) => {
   res.status(201).json(data);
 });
 
+// DELETE /campaigns/:id — creator deletes campaign (only if sole participant or no participants)
+router.delete('/:id', requireAuth, async (req: Request, res: Response) => {
+  // Verify ownership
+  const { data: campaign } = await db
+    .from('campaigns')
+    .select('id, created_by, participant_count')
+    .eq('id', req.params.id)
+    .single();
+
+  if (!campaign) return res.status(404).json({ error: 'Campaign not found' });
+  if (campaign.created_by !== req.userId) return res.status(403).json({ error: 'Not your campaign' });
+
+  // Count participants excluding the creator
+  const { count } = await db
+    .from('campaign_participations')
+    .select('*', { count: 'exact', head: true })
+    .eq('campaign_id', req.params.id)
+    .neq('user_id', req.userId!);
+
+  if ((count ?? 0) > 0) {
+    return res.status(400).json({
+      error: 'Other participants have joined. Use archive to end the campaign instead.',
+      canArchive: true,
+    });
+  }
+
+  // Remove creator's own participation if present, then delete campaign
+  await db.from('campaign_participations')
+    .delete().eq('campaign_id', req.params.id);
+
+  const { error } = await db.from('campaigns').delete().eq('id', req.params.id);
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ ok: true });
+});
+
+// PATCH /campaigns/:id/archive — creator ends campaign early
+router.patch('/:id/archive', requireAuth, async (req: Request, res: Response) => {
+  const { data: campaign } = await db
+    .from('campaigns').select('created_by').eq('id', req.params.id).single();
+
+  if (!campaign) return res.status(404).json({ error: 'Campaign not found' });
+  if (campaign.created_by !== req.userId) return res.status(403).json({ error: 'Not your campaign' });
+
+  const { error } = await db.from('campaigns')
+    .update({ is_active: false }).eq('id', req.params.id);
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ ok: true });
+});
+
 // DELETE /campaigns/:id/join — leave a campaign
 router.delete('/:id/join', requireAuth, async (req: Request, res: Response) => {
   const { error } = await db

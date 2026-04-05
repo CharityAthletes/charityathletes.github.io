@@ -1,0 +1,118 @@
+/* Tabs */
+"tab.dashboard"  = "ホーム";
+"tab.campaigns"  = "キャンペーン";
+"tab.activities" = "アクティビティ";
+"tab.profile"    = "プロフィール";
+
+/* Onboarding */
+"onboarding.tagline"    = "走って、漕いで、泳いで\n世界を変えよう";
+"onboarding.get_started" = "はじめる";
+"onboarding.sign_in"    = "ログイン";
+
+/* Auth */
+"auth.email"          = "メールアドレス";
+"auth.password"       = "パスワード";
+"auth.display_name"   = "表示名";
+"auth.register"       = "アカウント作成";
+"auth.login"          = "ログイン";
+"auth.switch_signup"  = "アカウントをお持ちでない方";
+"auth.switch_login"   = "すでにアカウントをお持ちの方";
+
+/* Dashboard */
+"dashboard.title"           = "ホーム";
+"dashboard.total_donated"   = "累計寄付額";
+"dashboard.total_distance"  = "累計距離";
+"dashboard.connect_strava"  = "Stravaを連携する";
+"dashboard.connect_hint"    = "活動を自動で記録・連携します";
+"dashboard.active_campaigns" = "参加中のキャンペーン";
+
+/* Campaigns */
+"campaigns.title"       = "キャンペーン";
+"campaigns.empty"       = "現在募集中のキャンペーンはありません";
+"campaign.join"         = "参加する";
+"campaign.donate"       = "寄付する";
+"campaign.raised"       = "集まった金額";
+"campaign.goal"         = "目標金額";
+"campaign.participants" = "参加者";
+"campaign.leaderboard"  = "ランキング";
+"campaign.flat_label"   = "活動ごとの寄付";
+"campaign.per_km_label" = "距離に応じた寄付 (1kmあたり)";
+"campaign.join_title"   = "キャンペーンに参加";
+"campaign.join_confirm" = "参加を確定する";
+
+/* Activities */
+"activities.title"    = "活動履歴";
+"activities.empty"    = "まだ活動が記録されていません";
+"activity.distance"   = "距離";
+"activity.duration"   = "時間";
+"activity.elevation"  = "獲得標高";
+
+/* Donations */
+"donations.title"   = "寄付履歴";
+"donation.flat"     = "活動ごと寄付";
+"donation.per_km"   = "距離寄付";
+"donation.total"    = "合計";
+"donation.pending"  = "処理中";
+"donation.complete" = "完了";
+"donation.failed"   = "失敗";
+
+/* Profile */
+"profile.title"           = "プロフィール";
+"profile.language"        = "表示言語";
+"profile.strava"          = "Strava連携";
+"profile.strava_connected" = "連携済み";
+"profile.strava_connect"  = "Stravaを連携する";
+"profile.payment_method"  = "お支払い方法";
+"profile.add_card"        = "カードを登録する";
+"profile.sign_out"        = "ログアウト";
+
+/* Nonprofit signup */
+"np_signup.title"         = "団体アカウント登録";
+"np_signup.name_ja"       = "団体名（日本語）";
+"np_signup.name_en"       = "団体名（英語）";
+"np_signup.desc_ja"       = "活動説明（日本語）";
+"np_signup.desc_en"       = "活動説明（英語）";
+"np_signup.website"       = "ウェブサイトURL";
+"np_signup.category"      = "カテゴリ";
+"np_signup.donorbox_id"   = "DonorboxキャンペーンID";
+"np_signup.donorbox_email" = "Donorboxアカウントのメール";
+"np_signup.submit"        = "申請する";
+"np_signup.success"       = "申請を受け付けました。審査後にご連絡します。";
+
+/* Nonprofit pending / rejected */
+"np_pending.title"    = "審査中";
+"np_pending.message"  = "アカウントは現在審査中です。承認されるとアプリを利用できます。";
+"np_rejected.title"   = "申請が却下されました";
+"np_rejected.message" = "却下理由：";
+
+/* Nonprofit dashboard */
+"np_dash.title"             = "ダッシュボード";
+"np_dash.total_raised"      = "累計寄付受領額";
+"np_dash.campaigns"         = "キャンペーン別";
+"np_dash.top_athletes"      = "トップアスリート";
+"np_dash.recent_donations"  = "最近の寄付";
+
+/* Admin */
+"admin.title"           = "管理パネル";
+"admin.queue"           = "申請キュー";
+"admin.stats"           = "プラットフォーム統計";
+"admin.approve"         = "承認";
+"admin.reject"          = "却下";
+"admin.reject_reason"   = "却下理由";
+"admin.pending"         = "審査中";
+"admin.approved"        = "承認済み";
+"admin.rejected"        = "却下済み";
+"admin.total_athletes"  = "アスリート数";
+"admin.total_nonprofits" = "登録団体数";
+"admin.active_campaigns" = "進行中キャンペーン";
+"admin.total_donated"   = "累計寄付額";
+
+/* Common */
+"common.km"      = "km";
+"common.yen"     = "円";
+"common.loading" = "読み込み中...";
+"common.error"   = "エラーが発生しました";
+"common.retry"   = "再試行";
+"common.close"   = "閉じる";
+"common.save"    = "保存";
+"common.cancel"  = "キャンセル";

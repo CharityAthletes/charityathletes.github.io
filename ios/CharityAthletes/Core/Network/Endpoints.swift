@@ -1,0 +1,80 @@
+enum Endpoint {
+    // Auth / identity
+    case me, stravaAuth, stravaLogin
+    case nonprofitRegister
+
+    // Athlete
+    case nonprofits
+    case campaigns, myCampaigns, createdCampaigns, createCampaign, campaign(String), leaderboard(String)
+    case joinCampaign(String), unjoinCampaign(String), deleteCampaign(String), archiveCampaign(String), donateCampaign(String)
+    case donations, donationSummary, setupPayment, paymentMethod
+    case activities
+
+    // Nonprofit
+    case nonprofitProfile
+    case nonprofitDashboard
+    case nonprofitCampaigns
+
+    // Admin
+    case adminStats
+    case adminNonprofits(String?)        // optional ?status= filter
+    case adminNonprofitDetail(String)
+    case adminApproveNonprofit(String)
+    case adminRejectNonprofit(String)
+    case adminUsers
+
+    var path: String {
+        switch self {
+        case .me:                            return "/auth/me"
+        case .stravaAuth:                    return "/auth/strava"
+        case .stravaLogin:                   return "/auth/strava/login"
+        case .nonprofitRegister:             return "/auth/nonprofit/register"
+
+        case .nonprofits:                    return "/nonprofits"
+        case .campaigns:                     return "/campaigns"
+        case .myCampaigns:                   return "/campaigns/mine"
+        case .createdCampaigns:              return "/campaigns/created"
+        case .createCampaign:                return "/campaigns"
+        case .campaign(let id):              return "/campaigns/\(id)"
+        case .leaderboard(let id):           return "/campaigns/\(id)/leaderboard"
+        case .joinCampaign(let id):          return "/campaigns/\(id)/join"
+        case .unjoinCampaign(let id):        return "/campaigns/\(id)/join"
+        case .deleteCampaign(let id):        return "/campaigns/\(id)"
+        case .archiveCampaign(let id):       return "/campaigns/\(id)/archive"
+        case .donateCampaign(let id):        return "/campaigns/\(id)/donate"
+        case .donations:                     return "/donations"
+        case .donationSummary:               return "/donations/summary"
+        case .setupPayment:                  return "/donations/setup-payment"
+        case .paymentMethod:                 return "/donations/payment-method"
+        case .activities:                    return "/activities"
+
+        case .nonprofitProfile:              return "/nonprofit/profile"
+        case .nonprofitDashboard:            return "/nonprofit/dashboard"
+        case .nonprofitCampaigns:            return "/nonprofit/campaigns"
+
+        case .adminStats:                    return "/admin/stats"
+        case .adminNonprofits(let status):
+            return status != nil ? "/admin/nonprofits?status=\(status!)" : "/admin/nonprofits"
+        case .adminNonprofitDetail(let id):  return "/admin/nonprofits/\(id)"
+        case .adminApproveNonprofit(let id): return "/admin/nonprofits/\(id)/approve"
+        case .adminRejectNonprofit(let id):  return "/admin/nonprofits/\(id)/reject"
+        case .adminUsers:                    return "/admin/users"
+        }
+    }
+
+    var method: String {
+        switch self {
+        case .unjoinCampaign, .deleteCampaign:
+            return "DELETE"
+        case .archiveCampaign:
+            return "PATCH"
+        case .nonprofitRegister,
+             .createCampaign,
+             .joinCampaign, .donateCampaign, .setupPayment,
+             .adminApproveNonprofit, .adminRejectNonprofit:
+            return "POST"
+        default:
+            return "GET"
+        }
+    }
+}
