@@ -404,7 +404,8 @@ function selectRate(rate, btn) {
     // Show calc preview so donor knows what to expect
     if (calcBox) {
       calcBox.style.display = 'block';
-      const km = maxKm ? Math.min(currentKm, maxKm) : currentKm;
+      const safeKm = (isNaN(currentKm) || currentKm == null) ? 0 : currentKm;
+      const km = maxKm ? Math.min(safeKm, maxKm) : safeKm;
       document.getElementById('calc-km').textContent    = km.toFixed(1);
       document.getElementById('calc-rate').textContent  = '?';
       document.getElementById('calc-total').textContent = '¥?';
@@ -445,9 +446,9 @@ async function loadData() {
   try {
     const res  = await fetch(API + '/c/' + CAMPAIGN_ID + '/data');
     const data = await res.json();
-    currentKm  = data.totalKm;
+    currentKm  = isNaN(data.totalKm) ? 0 : (data.totalKm || 0);
 
-    document.getElementById('stat-km').textContent     = data.totalKm.toFixed(1) + ' km';
+    document.getElementById('stat-km').textContent     = currentKm.toFixed(1) + ' km';
     document.getElementById('stat-donors').textContent = data.donorCount + '人';
     document.getElementById('stat-total').textContent  = '¥' + data.estimatedTotal.toLocaleString();
 
@@ -479,10 +480,12 @@ function updateCalc() {
   const calcBox = document.getElementById('calc-box');
   if (!calcBox || currentRate === 0) { if(calcBox) calcBox.style.display='none'; return; }
   calcBox.style.display = 'block';
-  const km = maxKm ? Math.min(currentKm, maxKm) : currentKm;
+  const safeKm = (isNaN(currentKm) || currentKm == null) ? 0 : currentKm;
+  const km = maxKm ? Math.min(safeKm, maxKm) : safeKm;
+  const total = isNaN(km * currentRate) ? 0 : Math.round(km * currentRate);
   document.getElementById('calc-km').textContent   = km.toFixed(1);
   document.getElementById('calc-rate').textContent = currentRate;
-  document.getElementById('calc-total').textContent = '¥' + Math.round(km * currentRate).toLocaleString();
+  document.getElementById('calc-total').textContent = '¥' + total.toLocaleString();
 }
 
 async function submitPledge() {
