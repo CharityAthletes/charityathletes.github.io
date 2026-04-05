@@ -1,0 +1,87 @@
+import { Router, Request, Response } from 'express';
+import { db } from '../config/supabase';
+import { stripeService } from '../services/stripeService';
+import { requireAuth } from '../middleware/auth';
+
+const router = Router();
+
+// GET /donations — user's history (most recent 50)
+router.get('/', requireAuth, async (req: Request, res: Response) => {
+  const { data, error } = await db
+    .from('donations')
+    .select(`
+      id, flat_amount_jpy, per_km_amount_jpy, total_amount_jpy,
+      distance_km, status, trigger_type, created_at,
+      campaigns(title_ja, title_en, nonprofits(name_ja, name_en)),
+      activities(name, sport_type, distance_meters)
+    `)
+    .eq('user_id', req.userId)
+    .order('created_at', { ascending: false })
+    .limit(50);
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
+});
+
+// GET /donations/summary — totals for the current user
+router.get('/summary', requireAuth, async (req: Request, res: Response) => {
+  const { data, error } = await db
+    .from('user_profiles')
+    .select('total_distance_km, total_donated_jpy')
+    .eq('user_id', req.userId)
+    .single();
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
+});
+
+// GET /donations/payment-method — returns saved card brand + last4
+router.get('/payment-method', requireAuth, async (req: Request, res: Response) => {
+  const { data: profile } = await db
+    .from('user_profiles')
+    .select('stripe_customer_id')
+    .eq('user_id', req.userId!)
+    .single();
+
+  if (!profile?.stripe_customer_id) return res.json({ card: null });
+
+  try {
+    const { stripeService } = await import('../services/stripeService');
+    const pms = await (await import('../config/stripe')).stripe.paymentMethods.list({
+      customer: profile.stripe_customer_id,
+      type: 'card',
+    });
+    const pm = pms.data[0];
+    if (!pm?.card) return res.json({ card: null });
+    res.json({ card: { brand: pm.card.brand, last4: pm.card.last4, expMonth: pm.card.exp_month, expYear: pm.card.exp_year } });
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// POST /donations/setup-payment — returns Stripe SetupIntent client_secret
+router.post('/setup-payment', requireAuth, async (req: Request, res: Response) => {
+  const { data: authUser } = await db.auth.admin.getUserById(req.userId!);
+  const { data: profile } = await db
+    .from('user_profiles')
+    .select('display_name')
+    .eq('user_id', req.userId)
+    .single();
+
+  const customerId = await stripeService.getOrCreateCustomer(
+    req.userId!,
+    authUser.user?.email ?? '',
+    profile?.display_name ?? ''
+  );
+
+  // Store customer id on participation rows that are missing it
+  await db.from('campaign_participations')
+    .update({ stripe_customer_id: customerId })
+    .eq('user_id', req.userId!)
+    .is('stripe_customer_id', null);
+
+  const intent = await stripeService.createSetupIntent(customerId);
+  res.json(intent);
+});
+
+export default router;
