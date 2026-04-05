@@ -376,4 +376,6 @@ struct CheckoutSession: Decodable {
 
 struct SetupIntentResponse: Decodable {
     let clientSecret: String
+    let ephemeralKey: String
+    let customerId: String
 }

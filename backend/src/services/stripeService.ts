@@ -30,13 +30,23 @@ export const stripeService = {
 
   // ── Save card (SetupIntent) ───────────────────────────────────────────────
 
-  async createSetupIntent(customerId: string): Promise<{ client_secret: string }> {
-    const intent = await stripe.setupIntents.create({
-      customer:                  customerId,
-      usage:                     'off_session',
-      automatic_payment_methods: { enabled: true, allow_redirects: 'never' },
-    });
-    return { client_secret: intent.client_secret! };
+  async createSetupIntent(customerId: string): Promise<{ client_secret: string; ephemeral_key: string; customer_id: string }> {
+    const [intent, ephemeralKey] = await Promise.all([
+      stripe.setupIntents.create({
+        customer:                  customerId,
+        usage:                     'off_session',
+        automatic_payment_methods: { enabled: true, allow_redirects: 'never' },
+      }),
+      stripe.ephemeralKeys.create(
+        { customer: customerId },
+        { apiVersion: '2023-10-16' }
+      ),
+    ]);
+    return {
+      client_secret:  intent.client_secret!,
+      ephemeral_key:  ephemeralKey.secret!,
+      customer_id:    customerId,
+    };
   },
 
   // ── Off-session charge (activity-triggered donation) ─────────────────────

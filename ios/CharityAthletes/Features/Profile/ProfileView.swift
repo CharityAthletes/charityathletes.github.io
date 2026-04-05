@@ -97,24 +97,38 @@ struct ProfileView: View {
                                     .font(.caption).foregroundStyle(.secondary)
                             }
                             Spacer()
-                            Button(i18n.language == .ja ? "変更" : "Change") {
-                                Task { await prepareAndShowPaymentSheet() }
+                            if let sheet = paymentSheet {
+                                PaymentSheet.PaymentButton(
+                                    paymentSheet: sheet,
+                                    onCompletion: handlePaymentResult
+                                ) {
+                                    Text(i18n.language == .ja ? "変更" : "Change")
+                                        .font(.caption).foregroundStyle(Color("BrandOrange"))
+                                }
+                            } else {
+                                ProgressView().scaleEffect(0.7)
                             }
-                            .font(.caption).foregroundStyle(Color("BrandOrange"))
-                            .disabled(isPreparingSheet)
                         }
                     } else {
-                        Button {
-                            Task { await prepareAndShowPaymentSheet() }
-                        } label: {
+                        if let sheet = paymentSheet {
+                            PaymentSheet.PaymentButton(
+                                paymentSheet: sheet,
+                                onCompletion: handlePaymentResult
+                            ) {
+                                HStack {
+                                    Label(i18n.t(.profileAddCard), systemImage: "plus.circle")
+                                        .foregroundStyle(Color("BrandOrange"))
+                                    Spacer()
+                                }
+                            }
+                        } else {
                             HStack {
                                 Label(i18n.t(.profileAddCard), systemImage: "plus.circle")
-                                    .foregroundStyle(Color("BrandOrange"))
+                                    .foregroundStyle(Color("BrandOrange").opacity(0.5))
                                 Spacer()
-                                if isPreparingSheet { ProgressView() }
+                                ProgressView().scaleEffect(0.7)
                             }
                         }
-                        .disabled(isPreparingSheet)
                     }
                 }
 
@@ -140,10 +154,12 @@ struct ProfileView: View {
             .task {
                 await auth.refreshMe()
                 await loadSavedCard()
+                await preparePaymentSheet()
             }
             .refreshable {
                 await auth.refreshMe()
                 await loadSavedCard()
+                await preparePaymentSheet()
             }
             .confirmationDialog(
                 i18n.language == .ja ? "ログアウトしますか？" : "Sign out?",
@@ -173,50 +189,46 @@ struct ProfileView: View {
 
     // ── Stripe PaymentSheet setup ─────────────────────────────────────────────
 
-    private func prepareAndShowPaymentSheet() async {
+    private func preparePaymentSheet() async {
+        guard paymentSheet == nil else { return }
         isPreparingSheet = true
         defer { isPreparingSheet = false }
 
-        let intent: SetupIntentResponse
         do {
-            intent = try await APIClient.shared.createSetupIntent()
+            let intent = try await APIClient.shared.createSetupIntent()
+            StripeAPI.defaultPublishableKey = AppConfig.stripePublishableKey
+
+            var config = PaymentSheet.Configuration()
+            config.merchantDisplayName = "チャリアス / Charity Athletes"
+            config.allowsDelayedPaymentMethods = false
+            config.returnURL = "charityathletes://stripe-return"
+            config.defaultBillingDetails.address.country = "JP"
+            config.customer = PaymentSheet.CustomerConfiguration(
+                id: intent.customerId,
+                ephemeralKeySecret: intent.ephemeralKey
+            )
+
+            paymentSheet = PaymentSheet(
+                setupIntentClientSecret: intent.clientSecret,
+                configuration: config
+            )
         } catch {
-            print("[PaymentSheet] createSetupIntent failed:", error)
-            return
-        }
-
-        StripeAPI.defaultPublishableKey = AppConfig.stripePublishableKey
-
-        var config = PaymentSheet.Configuration()
-        config.merchantDisplayName = "チャリアス / Charity Athletes"
-        config.allowsDelayedPaymentMethods = false
-        config.returnURL = "charityathletes://stripe-return"
-        config.defaultBillingDetails.address.country = "JP"
-
-        let sheet = PaymentSheet(
-            setupIntentClientSecret: intent.clientSecret,
-            configuration: config
-        )
-        paymentSheet = sheet
-
-        // Present imperatively so it opens immediately after preparing
-        guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-              let root = scene.windows.first?.rootViewController else { return }
-
-        await MainActor.run {
-            sheet.present(from: root, completion: handlePaymentResult)
+            print("[PaymentSheet] prepare failed:", error)
         }
     }
 
     private func handlePaymentResult(_ result: PaymentSheetResult) {
         paymentResult = result
         showPaymentResult = true
+        paymentSheet = nil  // reset so it re-prepares fresh next time
         if case .completed = result {
             Task {
                 await auth.refreshMe()
                 await loadSavedCard()
+                await preparePaymentSheet()
             }
-            paymentSheet = nil
+        } else {
+            Task { await preparePaymentSheet() }
         }
     }
 
