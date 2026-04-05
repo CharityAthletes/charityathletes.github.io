@@ -1,5 +1,44 @@
 import Foundation
 
+// ─── Charity Directory ────────────────────────────────────────────────────────
+
+struct Charity: Decodable, Identifiable {
+    let id: String
+    let nameEn: String
+    let nameJa: String?
+    let descriptionEn: String?
+    let descriptionJa: String?
+    let category: String?
+    let websiteUrl: String?
+    let donorboxUrl: String?
+    let avatarInitials: String?
+    let isFeatured: Bool?
+
+    var displayName: String { nameJa ?? nameEn }
+    var initials: String { avatarInitials ?? String(nameEn.prefix(2)).uppercased() }
+
+    var categoryColor: (bg: String, text: String) {
+        switch category ?? "" {
+        case "Community":      return ("#EEEDFE", "#534AB7")
+        case "Education":      return ("#E6F1FB", "#185FA5")
+        case "Health":         return ("#FBEAF0", "#993556")
+        case "Environment":    return ("#EAF3DE", "#3B6D11")
+        case "Animal Welfare": return ("#FAEEDA", "#854F0B")
+        case "Disaster Relief":return ("#FAECE7", "#993C1D")
+        default:               return ("#F0F0F0", "#555555")
+        }
+    }
+}
+
+struct CharityRequestBody: Encodable {
+    let orgName: String
+    let donorboxUrl: String
+    let websiteUrl: String?
+    let category: String
+    let reason: String?
+    let submittedBy: String?
+}
+
 // ─── Saved Card ───────────────────────────────────────────────────────────────
 
 struct SavedCard: Decodable {

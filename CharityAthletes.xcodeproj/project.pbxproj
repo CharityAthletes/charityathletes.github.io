@@ -1,0 +1,511 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		06EB824EB0A5A9B9A53B87CE /* AdminStatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA723ACB1FFCEA03FF300374 /* AdminStatsView.swift */; };
+		079360B55089C8A33B8E8C59 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5276F3C45C33C5ADED9FA19B /* DashboardView.swift */; };
+		1438B4DD3B782DB461CD481C /* NonprofitSignupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E1C96D9A4822317E1BF4540 /* NonprofitSignupView.swift */; };
+		3D7DDDB4CB4414F4943CFDB2 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0CC13DCB0C1B66A64EB24A4 /* AuthManager.swift */; };
+		4F0ED94542F624CE50453B84 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = F245AE9D3100ED90DFC64B50 /* Localizable.strings */; };
+		4F3A42BEFF42744703AE2ACF /* CharityAthletesApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 686715B63A59B4262127EBA6 /* CharityAthletesApp.swift */; };
+		7742F0ACB3E71EE886DB6847 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D96696FF9ACCBE8ECB641C1D /* ProfileView.swift */; };
+		80E3E97C60E5233E92F97F80 /* I18n.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA63DF739AF0698FCDF8DC7A /* I18n.swift */; };
+		B0B33548F1D0650BD6B93B9B /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FC1A9DE964CA2D4E304F43F /* APIClient.swift */; };
+		BA97C0CAE930EA5CB463FE00 /* CampaignListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBF80F63113EE7DF0E6210D0 /* CampaignListView.swift */; };
+		C99D0C941DB3412ACA8B9A99 /* CreateCampaignView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 131F3E1AD325EFA29603666A /* CreateCampaignView.swift */; };
+		CC7403A05ED2C7738853B439 /* AdminQueueView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DAE5014D89E4622405884B1 /* AdminQueueView.swift */; };
+		D24D27ACC820C9C2552D6D79 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 87B0216558714C4C04BE6EA7 /* Supabase */; };
+		D4FA4687F7E78343FDA23216 /* ActivityListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A801522369E7FA617044A13 /* ActivityListView.swift */; };
+		E0DDE28C5730D9919B2AE58E /* DonationListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C59837FD6264A90A64DB44B /* DonationListView.swift */; };
+		E366D74A9B79D76A96C581EF /* CampaignDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B90FDF2C0F6B3C17D3E6511E /* CampaignDetailView.swift */; };
+		E56E991E2C781673D1CFAE65 /* NonprofitDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ED7D098380533625AF5B96A /* NonprofitDashboardView.swift */; };
+		AA11BB22CC33DD44EE55FF66 /* AppLogo.png in Resources */ = {isa = PBXBuildFile; fileRef = AA11BB22CC33DD44EE55FF67 /* AppLogo.png */; };
+		CC44AA11BB22DD33EE55FF77 /* CharityDirectoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC44AA11BB22DD33EE55FF78 /* CharityDirectoryView.swift */; };
+		EB419AE064F42384BA9A2F4A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ACFFC76104DE87A2A11E296C /* Assets.xcassets */; };
+		EBEA9EB832E988F7DF272D31 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29C369CE0AFDDB55402A583B /* Models.swift */; };
+		F2C01E40A34C3DDE3120D53C /* Endpoints.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0BE9712727B9CE1E2B2EF61 /* Endpoints.swift */; };
+		F769388481B3BFA48A09C1FD /* SupabaseClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 685016F4459736251BFCBCBF /* SupabaseClient.swift */; };
+		F89F45A6412AAAC8D0D69431 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4CC3561266ADD4F741AC35A /* OnboardingView.swift */; };
+		FB902D85E3FF7B155DEC64E8 /* Keychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49D6D5CFCC02F95B03AB9EA9 /* Keychain.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		131F3E1AD325EFA29603666A /* CreateCampaignView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateCampaignView.swift; sourceTree = "<group>"; };
+		1E1C96D9A4822317E1BF4540 /* NonprofitSignupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NonprofitSignupView.swift; sourceTree = "<group>"; };
+		1FC1A9DE964CA2D4E304F43F /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
+		23A5AF14C443934003CB623A /* CharityAthletes.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CharityAthletes.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		29C369CE0AFDDB55402A583B /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		38B038FE1C3C6E70C74B3954 /* CharityAthletes.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = CharityAthletes.entitlements; sourceTree = "<group>"; };
+		3DAE5014D89E4622405884B1 /* AdminQueueView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminQueueView.swift; sourceTree = "<group>"; };
+		44FC51C0DF026184DB94AF3F /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
+		49D6D5CFCC02F95B03AB9EA9 /* Keychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keychain.swift; sourceTree = "<group>"; };
+		5276F3C45C33C5ADED9FA19B /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
+		5A801522369E7FA617044A13 /* ActivityListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityListView.swift; sourceTree = "<group>"; };
+		5C59837FD6264A90A64DB44B /* DonationListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DonationListView.swift; sourceTree = "<group>"; };
+		685016F4459736251BFCBCBF /* SupabaseClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseClient.swift; sourceTree = "<group>"; };
+		686715B63A59B4262127EBA6 /* CharityAthletesApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CharityAthletesApp.swift; sourceTree = "<group>"; };
+		8ED7D098380533625AF5B96A /* NonprofitDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NonprofitDashboardView.swift; sourceTree = "<group>"; };
+		8F5232577C5DA52C1D37C9DC /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
+		A0BE9712727B9CE1E2B2EF61 /* Endpoints.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Endpoints.swift; sourceTree = "<group>"; };
+		AA11BB22CC33DD44EE55FF67 /* AppLogo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = AppLogo.png; sourceTree = "<group>"; };
+		CC44AA11BB22DD33EE55FF78 /* CharityDirectoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CharityDirectoryView.swift; sourceTree = "<group>"; };
+		ACFFC76104DE87A2A11E296C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		B0A48A68103DFB404B9825B7 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		B90FDF2C0F6B3C17D3E6511E /* CampaignDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampaignDetailView.swift; sourceTree = "<group>"; };
+		C8DF9C602349229650080DB6 /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Localizable.strings; sourceTree = "<group>"; };
+		D96696FF9ACCBE8ECB641C1D /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		DA63DF739AF0698FCDF8DC7A /* I18n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = I18n.swift; sourceTree = "<group>"; };
+		DBF80F63113EE7DF0E6210D0 /* CampaignListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampaignListView.swift; sourceTree = "<group>"; };
+		E4CC3561266ADD4F741AC35A /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		EA723ACB1FFCEA03FF300374 /* AdminStatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminStatsView.swift; sourceTree = "<group>"; };
+		F0CC13DCB0C1B66A64EB24A4 /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		BE122EE252BC1A61D9FD99B1 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D24D27ACC820C9C2552D6D79 /* Supabase in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		05E46DFC1954D733972EFBFD = {
+			isa = PBXGroup;
+			children = (
+				9C5D3DC33D1DBAEDF47BEFC5 /* ios */,
+				A543E393D17517896AD742DF /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		0BC9C4E0A591F7D99946EEE9 /* Dashboard */ = {
+			isa = PBXGroup;
+			children = (
+				5276F3C45C33C5ADED9FA19B /* DashboardView.swift */,
+			);
+			path = Dashboard;
+			sourceTree = "<group>";
+		};
+		0F1A30C5DB20817F77E68DBB /* Nonprofit */ = {
+			isa = PBXGroup;
+			children = (
+				8ED7D098380533625AF5B96A /* NonprofitDashboardView.swift */,
+			);
+			path = Nonprofit;
+			sourceTree = "<group>";
+		};
+		14BDE5EE728A3EC659DD6227 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				29C369CE0AFDDB55402A583B /* Models.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		1B5FAB94684484FD550C3CA8 /* Activities */ = {
+			isa = PBXGroup;
+			children = (
+				5A801522369E7FA617044A13 /* ActivityListView.swift */,
+			);
+			path = Activities;
+			sourceTree = "<group>";
+		};
+		300C3A5AFAB02471BB6125F8 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				686715B63A59B4262127EBA6 /* CharityAthletesApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		396F49B4C6591C68EFA859F2 /* Storage */ = {
+			isa = PBXGroup;
+			children = (
+				49D6D5CFCC02F95B03AB9EA9 /* Keychain.swift */,
+			);
+			path = Storage;
+			sourceTree = "<group>";
+		};
+		5BED9C4C23FA128C7E01416B /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				44FC51C0DF026184DB94AF3F /* Debug.xcconfig */,
+				8F5232577C5DA52C1D37C9DC /* Release.xcconfig */,
+			);
+			path = Config;
+			sourceTree = "<group>";
+		};
+		69BAFD5C45F3DA0EB3AAAE10 /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				1E1C96D9A4822317E1BF4540 /* NonprofitSignupView.swift */,
+				E4CC3561266ADD4F741AC35A /* OnboardingView.swift */,
+			);
+			path = Onboarding;
+			sourceTree = "<group>";
+		};
+		6C057B5CFB7432CA2C13405F /* Profile */ = {
+			isa = PBXGroup;
+			children = (
+				D96696FF9ACCBE8ECB641C1D /* ProfileView.swift */,
+			);
+			path = Profile;
+			sourceTree = "<group>";
+		};
+		75D25BC92B79B19C9F28BB22 /* Network */ = {
+			isa = PBXGroup;
+			children = (
+				1FC1A9DE964CA2D4E304F43F /* APIClient.swift */,
+				A0BE9712727B9CE1E2B2EF61 /* Endpoints.swift */,
+			);
+			path = Network;
+			sourceTree = "<group>";
+		};
+		80F1FD007455F5E5B4649AEB /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				F245AE9D3100ED90DFC64B50 /* Localizable.strings */,
+				ACFFC76104DE87A2A11E296C /* Assets.xcassets */,
+				AA11BB22CC33DD44EE55FF67 /* AppLogo.png */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		966B70EC608C60C12C40159E /* CharityAthletes */ = {
+			isa = PBXGroup;
+			children = (
+				300C3A5AFAB02471BB6125F8 /* App */,
+				F166F473D8C25782CE94A1FF /* Core */,
+				EBDA162218DBB31F36FAEAF1 /* Features */,
+				14BDE5EE728A3EC659DD6227 /* Models */,
+				80F1FD007455F5E5B4649AEB /* Resources */,
+				38B038FE1C3C6E70C74B3954 /* CharityAthletes.entitlements */,
+			);
+			path = CharityAthletes;
+			sourceTree = "<group>";
+		};
+		9C5D3DC33D1DBAEDF47BEFC5 /* ios */ = {
+			isa = PBXGroup;
+			children = (
+				966B70EC608C60C12C40159E /* CharityAthletes */,
+				5BED9C4C23FA128C7E01416B /* Config */,
+			);
+			path = ios;
+			sourceTree = "<group>";
+		};
+		A543E393D17517896AD742DF /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				23A5AF14C443934003CB623A /* CharityAthletes.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		B915D3AEE8ECCF6C9FB42083 /* Admin */ = {
+			isa = PBXGroup;
+			children = (
+				3DAE5014D89E4622405884B1 /* AdminQueueView.swift */,
+				EA723ACB1FFCEA03FF300374 /* AdminStatsView.swift */,
+			);
+			path = Admin;
+			sourceTree = "<group>";
+		};
+		C947001D37074267BFF34B83 /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+				F0CC13DCB0C1B66A64EB24A4 /* AuthManager.swift */,
+				685016F4459736251BFCBCBF /* SupabaseClient.swift */,
+			);
+			path = Auth;
+			sourceTree = "<group>";
+		};
+		E4D5CA079527FA873C29038D /* Campaigns */ = {
+			isa = PBXGroup;
+			children = (
+				B90FDF2C0F6B3C17D3E6511E /* CampaignDetailView.swift */,
+				DBF80F63113EE7DF0E6210D0 /* CampaignListView.swift */,
+				131F3E1AD325EFA29603666A /* CreateCampaignView.swift */,
+			);
+			path = Campaigns;
+			sourceTree = "<group>";
+		};
+		E8133379D6BB4CA8FD2A755B /* Localization */ = {
+			isa = PBXGroup;
+			children = (
+				DA63DF739AF0698FCDF8DC7A /* I18n.swift */,
+			);
+			path = Localization;
+			sourceTree = "<group>";
+		};
+		CC44AA11BB22DD33EE55FF79 /* Charities */ = {
+			isa = PBXGroup;
+			children = (
+				CC44AA11BB22DD33EE55FF78 /* CharityDirectoryView.swift */,
+			);
+			path = Charities;
+			sourceTree = "<group>";
+		};
+		EBDA162218DBB31F36FAEAF1 /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				1B5FAB94684484FD550C3CA8 /* Activities */,
+				B915D3AEE8ECCF6C9FB42083 /* Admin */,
+				E4D5CA079527FA873C29038D /* Campaigns */,
+				CC44AA11BB22DD33EE55FF79 /* Charities */,
+				0BC9C4E0A591F7D99946EEE9 /* Dashboard */,
+				ED50060BD1B02E29F03872D8 /* Donations */,
+				0F1A30C5DB20817F77E68DBB /* Nonprofit */,
+				69BAFD5C45F3DA0EB3AAAE10 /* Onboarding */,
+				6C057B5CFB7432CA2C13405F /* Profile */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		ED50060BD1B02E29F03872D8 /* Donations */ = {
+			isa = PBXGroup;
+			children = (
+				5C59837FD6264A90A64DB44B /* DonationListView.swift */,
+			);
+			path = Donations;
+			sourceTree = "<group>";
+		};
+		F166F473D8C25782CE94A1FF /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				C947001D37074267BFF34B83 /* Auth */,
+				E8133379D6BB4CA8FD2A755B /* Localization */,
+				75D25BC92B79B19C9F28BB22 /* Network */,
+				396F49B4C6591C68EFA859F2 /* Storage */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		333473CAEB3F19F520222D0D /* CharityAthletes */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 663499DE81E6C1C0E1F61C00 /* Build configuration list for PBXNativeTarget "CharityAthletes" */;
+			buildPhases = (
+				D18E75C217D1C62F7C14AEA7 /* Sources */,
+				82882D8A436338ABF4276182 /* Resources */,
+				BE122EE252BC1A61D9FD99B1 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = CharityAthletes;
+			packageProductDependencies = (
+				87B0216558714C4C04BE6EA7 /* Supabase */,
+			);
+			productName = CharityAthletes;
+			productReference = 23A5AF14C443934003CB623A /* CharityAthletes.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		7C52BAC51A4E984992FE852C /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1600;
+			};
+			buildConfigurationList = 1A7420576E341CC35E6D61F4 /* Build configuration list for PBXProject "CharityAthletes" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+				ja,
+			);
+			mainGroup = 05E46DFC1954D733972EFBFD;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				1E1171A02C29E345EE0D0048 /* XCRemoteSwiftPackageReference "supabase-swift" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = A543E393D17517896AD742DF /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				333473CAEB3F19F520222D0D /* CharityAthletes */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		82882D8A436338ABF4276182 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA11BB22CC33DD44EE55FF66 /* AppLogo.png in Resources */,
+				EB419AE064F42384BA9A2F4A /* Assets.xcassets in Resources */,
+				4F0ED94542F624CE50453B84 /* Localizable.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		D18E75C217D1C62F7C14AEA7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B0B33548F1D0650BD6B93B9B /* APIClient.swift in Sources */,
+				D4FA4687F7E78343FDA23216 /* ActivityListView.swift in Sources */,
+				CC7403A05ED2C7738853B439 /* AdminQueueView.swift in Sources */,
+				06EB824EB0A5A9B9A53B87CE /* AdminStatsView.swift in Sources */,
+				3D7DDDB4CB4414F4943CFDB2 /* AuthManager.swift in Sources */,
+				E366D74A9B79D76A96C581EF /* CampaignDetailView.swift in Sources */,
+				BA97C0CAE930EA5CB463FE00 /* CampaignListView.swift in Sources */,
+				4F3A42BEFF42744703AE2ACF /* CharityAthletesApp.swift in Sources */,
+				CC44AA11BB22DD33EE55FF77 /* CharityDirectoryView.swift in Sources */,
+				C99D0C941DB3412ACA8B9A99 /* CreateCampaignView.swift in Sources */,
+				079360B55089C8A33B8E8C59 /* DashboardView.swift in Sources */,
+				E0DDE28C5730D9919B2AE58E /* DonationListView.swift in Sources */,
+				F2C01E40A34C3DDE3120D53C /* Endpoints.swift in Sources */,
+				80E3E97C60E5233E92F97F80 /* I18n.swift in Sources */,
+				FB902D85E3FF7B155DEC64E8 /* Keychain.swift in Sources */,
+				EBEA9EB832E988F7DF272D31 /* Models.swift in Sources */,
+				E56E991E2C781673D1CFAE65 /* NonprofitDashboardView.swift in Sources */,
+				1438B4DD3B782DB461CD481C /* NonprofitSignupView.swift in Sources */,
+				F89F45A6412AAAC8D0D69431 /* OnboardingView.swift in Sources */,
+				7742F0ACB3E71EE886DB6847 /* ProfileView.swift in Sources */,
+				F769388481B3BFA48A09C1FD /* SupabaseClient.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		F245AE9D3100ED90DFC64B50 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				B0A48A68103DFB404B9825B7 /* en */,
+				C8DF9C602349229650080DB6 /* ja */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		799B56456F67198F15390410 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 44FC51C0DF026184DB94AF3F /* Debug.xcconfig */;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = BrandOrange;
+				CODE_SIGN_ENTITLEMENTS = ios/CharityAthletes/CharityAthletes.entitlements;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 8BWX627Z83;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_TESTABILITY = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ios/CharityAthletes/Resources/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.charityathletes.app;
+				PRODUCT_NAME = CharityAthletes;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		A4BF2DE1F22825C5546751BF /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 8F5232577C5DA52C1D37C9DC /* Release.xcconfig */;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = BrandOrange;
+				CODE_SIGN_ENTITLEMENTS = ios/CharityAthletes/CharityAthletes.entitlements;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 8BWX627Z83;
+				ENABLE_BITCODE = NO;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ios/CharityAthletes/Resources/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.charityathletes.app;
+				PRODUCT_NAME = CharityAthletes;
+				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = 1;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		C57AEAA6FED04DF2742A2781 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				SDKROOT = iphoneos;
+			};
+			name = Release;
+		};
+		D3F56125DE8DC1DF16041C08 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				SDKROOT = iphoneos;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1A7420576E341CC35E6D61F4 /* Build configuration list for PBXProject "CharityAthletes" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D3F56125DE8DC1DF16041C08 /* Debug */,
+				C57AEAA6FED04DF2742A2781 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		663499DE81E6C1C0E1F61C00 /* Build configuration list for PBXNativeTarget "CharityAthletes" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				799B56456F67198F15390410 /* Debug */,
+				A4BF2DE1F22825C5546751BF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		1E1171A02C29E345EE0D0048 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		87B0216558714C4C04BE6EA7 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1E1171A02C29E345EE0D0048 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 7C52BAC51A4E984992FE852C /* Project object */;
+}

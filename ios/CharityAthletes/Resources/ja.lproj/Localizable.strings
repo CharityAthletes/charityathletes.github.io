@@ -2,6 +2,7 @@
 "tab.dashboard"  = "ホーム";
 "tab.campaigns"  = "キャンペーン";
 "tab.activities" = "アクティビティ";
+"tab.charities"  = "団体一覧";
 "tab.profile"    = "プロフィール";
 
 /* Onboarding */

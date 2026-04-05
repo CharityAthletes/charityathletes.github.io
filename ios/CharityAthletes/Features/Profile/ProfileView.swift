@@ -1,17 +1,233 @@
 import SwiftUI
 import UIKit
-import StripePaymentSheet
+
+// MARK: - CardInputView
+
+/// Custom card-entry sheet that posts card data directly to Stripe's REST API
+/// (bypassing the PaymentSheet SDK entirely), then calls our backend confirm-setup.
+private struct CardInputView: View {
+    @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject var i18n: I18n
+
+    let onSaved: () -> Void
+
+    // ── Form state ────────────────────────────────────────────────────────────
+    @State private var cardNumber = ""
+    @State private var expiry    = ""
+    @State private var cvc       = ""
+
+    @State private var isSubmitting = false
+    @State private var errorMessage: String?
+    @FocusState private var focusedField: Field?
+
+    private enum Field { case number, expiry, cvc }
+
+    // ── Derived ───────────────────────────────────────────────────────────────
+    private var cardDigits:   String { cardNumber.filter(\.isNumber) }
+    private var expiryDigits: String { expiry.filter(\.isNumber) }
+    private var isValid: Bool {
+        cardDigits.count == 16 && expiryDigits.count == 4 && cvc.count >= 3
+    }
+
+    // ── View ──────────────────────────────────────────────────────────────────
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section(i18n.language == .ja ? "カード番号" : "Card Number") {
+                    TextField("4242 4242 4242 4242", text: Binding(
+                        get: { cardNumber },
+                        set: { cardNumber = formatCardNumber($0) }
+                    ))
+                    .keyboardType(.numberPad)
+                    .focused($focusedField, equals: .number)
+                    .font(.system(.body, design: .monospaced))
+                    .onChange(of: cardDigits) { _, d in
+                        if d.count >= 16 { focusedField = .expiry }
+                    }
+                }
+
+                Section(i18n.language == .ja ? "有効期限 / CVC" : "Expiry / CVC") {
+                    HStack(spacing: 0) {
+                        TextField("MM/YY", text: Binding(
+                            get: { expiry },
+                            set: { expiry = formatExpiry($0) }
+                        ))
+                        .keyboardType(.numberPad)
+                        .focused($focusedField, equals: .expiry)
+                        .frame(maxWidth: .infinity)
+                        .onChange(of: expiryDigits) { _, d in
+                            if d.count >= 4 { focusedField = .cvc }
+                        }
+
+                        Divider().padding(.horizontal, 8)
+
+                        TextField("CVC", text: Binding(
+                            get: { cvc },
+                            set: { cvc = String($0.filter(\.isNumber).prefix(4)) }
+                        ))
+                        .keyboardType(.numberPad)
+                        .focused($focusedField, equals: .cvc)
+                        .frame(maxWidth: .infinity)
+                    }
+                }
+
+                if let err = errorMessage {
+                    Section {
+                        Label(err, systemImage: "exclamationmark.circle.fill")
+                            .foregroundStyle(.red)
+                            .font(.caption)
+                    }
+                }
+
+                Section {
+                    Button {
+                        focusedField = nil
+                        Task { await submit() }
+                    } label: {
+                        HStack {
+                            Spacer()
+                            if isSubmitting {
+                                ProgressView()
+                            } else {
+                                Text(i18n.language == .ja ? "カードを保存" : "Save Card")
+                                    .bold()
+                                    .foregroundStyle(isValid ? Color("BrandOrange") : .gray)
+                            }
+                            Spacer()
+                        }
+                    }
+                    .disabled(isSubmitting || !isValid)
+                }
+            }
+            .navigationTitle(i18n.language == .ja ? "カードを追加" : "Add Card")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(i18n.language == .ja ? "キャンセル" : "Cancel") { dismiss() }
+                }
+            }
+            .onAppear { focusedField = .number }
+        }
+    }
+
+    // ── Formatting ────────────────────────────────────────────────────────────
+
+    private func formatCardNumber(_ raw: String) -> String {
+        let d = String(raw.filter(\.isNumber).prefix(16))
+        var out = ""
+        for (i, ch) in d.enumerated() {
+            if i > 0 && i % 4 == 0 { out += " " }
+            out.append(ch)
+        }
+        return out
+    }
+
+    private func formatExpiry(_ raw: String) -> String {
+        let d = String(raw.filter(\.isNumber).prefix(4))
+        guard d.count > 2 else { return d }
+        return String(d.prefix(2)) + "/" + String(d.dropFirst(2))
+    }
+
+    // ── Submission ────────────────────────────────────────────────────────────
+
+    private func submit() async {
+        errorMessage = nil
+        isSubmitting = true
+        defer { isSubmitting = false }
+
+        do {
+            // 1. Ensure Stripe customer exists on backend
+            _ = try? await APIClient.shared.createSetupIntent()
+
+            // 2. Parse expiry
+            let parts = expiryDigits
+            guard parts.count == 4,
+                  let month     = Int(parts.prefix(2)),
+                  let yearShort = Int(parts.suffix(2)) else {
+                throw CardInputError.invalidExpiry
+            }
+            let year = 2000 + yearShort
+
+            // 3. Create PaymentMethod directly via Stripe REST API
+            //    Card data goes client → Stripe only; never through our servers.
+            let pmId = try await createStripePaymentMethod(
+                number: cardDigits,
+                expMonth: month,
+                expYear: year,
+                cvc: cvc
+            )
+
+            // 4. Confirm setup on our backend (attaches PM, sets as default)
+            try await APIClient.shared.confirmSetup(paymentMethodId: pmId)
+
+            await MainActor.run {
+                onSaved()
+                dismiss()
+            }
+
+        } catch let e as CardInputError {
+            await MainActor.run { errorMessage = e.message(ja: i18n.language == .ja) }
+        } catch {
+            await MainActor.run { errorMessage = error.localizedDescription }
+        }
+    }
+
+    private func createStripePaymentMethod(
+        number: String,
+        expMonth: Int,
+        expYear: Int,
+        cvc: String
+    ) async throws -> String {
+        guard let url = URL(string: "https://api.stripe.com/v1/payment_methods") else {
+            throw CardInputError.network
+        }
+        var req = URLRequest(url: url)
+        req.httpMethod = "POST"
+        req.setValue("Bearer \(AppConfig.stripePublishableKey)",
+                     forHTTPHeaderField: "Authorization")
+        req.setValue("application/x-www-form-urlencoded",
+                     forHTTPHeaderField: "Content-Type")
+        let body = "type=card&card[number]=\(number)&card[exp_month]=\(expMonth)&card[exp_year]=\(expYear)&card[cvc]=\(cvc)"
+        req.httpBody = body.data(using: .utf8)
+
+        let (data, resp) = try await URLSession.shared.data(for: req)
+        guard let http = resp as? HTTPURLResponse else { throw CardInputError.network }
+
+        if !(200..<300).contains(http.statusCode) {
+            struct StripeErr: Decodable {
+                struct Inner: Decodable { let message: String }
+                let error: Inner
+            }
+            let msg = (try? JSONDecoder().decode(StripeErr.self, from: data))?.error.message
+                      ?? "Card error \(http.statusCode)"
+            throw CardInputError.stripe(msg)
+        }
+
+        struct PMResponse: Decodable { let id: String }
+        return try JSONDecoder().decode(PMResponse.self, from: data).id
+    }
+
+    private enum CardInputError: Error {
+        case invalidExpiry, network, stripe(String)
+        func message(ja: Bool) -> String {
+            switch self {
+            case .invalidExpiry: return ja ? "有効期限が正しくありません" : "Invalid expiry date"
+            case .network:       return ja ? "ネットワークエラー"         : "Network error"
+            case .stripe(let m): return m
+            }
+        }
+    }
+}
+
+// MARK: - ProfileView
 
 struct ProfileView: View {
     @EnvironmentObject var auth: AuthManager
     @EnvironmentObject var i18n: I18n
     @State private var showSignOutConfirm = false
-    @State private var paymentSheet: PaymentSheet?
-    @State private var isPreparingSheet = false
-    @State private var paymentResult: PaymentSheetResult?
-    @State private var showPaymentResult = false
+    @State private var showCardInput      = false
     @State private var stravaError: String?
-    @State private var showStravaError = false
+    @State private var showStravaError    = false
     @State private var savedCard: SavedCard?
 
     var body: some View {
@@ -97,37 +313,17 @@ struct ProfileView: View {
                                     .font(.caption).foregroundStyle(.secondary)
                             }
                             Spacer()
-                            if let sheet = paymentSheet {
-                                PaymentSheet.PaymentButton(
-                                    paymentSheet: sheet,
-                                    onCompletion: handlePaymentResult
-                                ) {
-                                    Text(i18n.language == .ja ? "変更" : "Change")
-                                        .font(.caption).foregroundStyle(Color("BrandOrange"))
-                                }
-                            } else {
-                                ProgressView().scaleEffect(0.7)
+                            Button(i18n.language == .ja ? "変更" : "Change") {
+                                showCardInput = true
                             }
+                            .font(.caption).foregroundStyle(Color("BrandOrange"))
                         }
                     } else {
-                        if let sheet = paymentSheet {
-                            PaymentSheet.PaymentButton(
-                                paymentSheet: sheet,
-                                onCompletion: handlePaymentResult
-                            ) {
-                                HStack {
-                                    Label(i18n.t(.profileAddCard), systemImage: "plus.circle")
-                                        .foregroundStyle(Color("BrandOrange"))
-                                    Spacer()
-                                }
-                            }
-                        } else {
-                            HStack {
-                                Label(i18n.t(.profileAddCard), systemImage: "plus.circle")
-                                    .foregroundStyle(Color("BrandOrange").opacity(0.5))
-                                Spacer()
-                                ProgressView().scaleEffect(0.7)
-                            }
+                        Button {
+                            showCardInput = true
+                        } label: {
+                            Label(i18n.t(.profileAddCard), systemImage: "plus.circle")
+                                .foregroundStyle(Color("BrandOrange"))
                         }
                     }
                 }
@@ -154,12 +350,19 @@ struct ProfileView: View {
             .task {
                 await auth.refreshMe()
                 await loadSavedCard()
-                await preparePaymentSheet()
             }
             .refreshable {
                 await auth.refreshMe()
                 await loadSavedCard()
-                await preparePaymentSheet()
+            }
+            .sheet(isPresented: $showCardInput) {
+                CardInputView {
+                    Task {
+                        await auth.refreshMe()
+                        await loadSavedCard()
+                    }
+                }
+                .environmentObject(i18n)
             }
             .confirmationDialog(
                 i18n.language == .ja ? "ログアウトしますか？" : "Sign out?",
@@ -171,14 +374,6 @@ struct ProfileView: View {
                 }
                 Button(i18n.t(.commonCancel), role: .cancel) {}
             }
-            .alert(
-                paymentResultTitle,
-                isPresented: $showPaymentResult
-            ) {
-                Button(i18n.t(.commonClose)) { paymentResult = nil }
-            } message: {
-                Text(paymentResultMessage)
-            }
             .alert("Strava Error", isPresented: $showStravaError) {
                 Button(i18n.t(.commonClose)) { stravaError = nil }
             } message: {
@@ -187,82 +382,10 @@ struct ProfileView: View {
         }
     }
 
-    // ── Stripe PaymentSheet setup ─────────────────────────────────────────────
-
-    private func preparePaymentSheet() async {
-        guard paymentSheet == nil else { return }
-        isPreparingSheet = true
-        defer { isPreparingSheet = false }
-
-        // Ensure customer exists on backend first
-        guard (try? await APIClient.shared.createSetupIntent()) != nil else {
-            print("[PaymentSheet] customer setup failed")
-            return
-        }
-
-        StripeAPI.defaultPublishableKey = AppConfig.stripePublishableKey
-
-        var config = PaymentSheet.Configuration()
-        config.merchantDisplayName = "チャリアス / Charity Athletes"
-        config.allowsDelayedPaymentMethods = false
-        config.returnURL = "charityathletes://stripe-return"
-        config.defaultBillingDetails.address.country = "JP"
-
-        // Deferred flow: create+confirm SetupIntent only after user submits card
-        let intentConfig = PaymentSheet.IntentConfiguration(
-            mode: .setup(currency: nil, setupFutureUsage: .offSession)
-        ) { paymentMethod, _, intentCreationCallback in
-            Task {
-                do {
-                    struct B: Encodable { let paymentMethodId: String }
-                    struct R: Decodable { let clientSecret: String }
-                    let r: R = try await APIClient.shared.request(
-                        .confirmSetup, body: B(paymentMethodId: paymentMethod.stripeId)
-                    )
-                    intentCreationCallback(.success(r.clientSecret))
-                } catch {
-                    intentCreationCallback(.failure(error))
-                }
-            }
-        }
-
-        paymentSheet = PaymentSheet(intentConfiguration: intentConfig, configuration: config)
-    }
-
-    private func handlePaymentResult(_ result: PaymentSheetResult) {
-        paymentResult = result
-        showPaymentResult = true
-        paymentSheet = nil  // reset so it re-prepares fresh next time
-        if case .completed = result {
-            Task {
-                await auth.refreshMe()
-                await loadSavedCard()
-                await preparePaymentSheet()
-            }
-        } else {
-            Task { await preparePaymentSheet() }
-        }
-    }
-
     private func loadSavedCard() async {
-        guard auth.profile?.stripeCustomerId != nil else { return }
         if let response = try? await APIClient.shared.getPaymentMethod() {
             savedCard = response.card
         }
-    }
-
-    private var paymentResultTitle: String {
-        switch paymentResult {
-        case .completed:  return i18n.language == .ja ? "カードを登録しました" : "Card saved"
-        case .failed:     return i18n.t(.commonError)
-        case .canceled:   return i18n.t(.commonCancel)
-        case .none:       return ""
-        }
-    }
-
-    private var paymentResultMessage: String {
-        if case .failed(let err) = paymentResult { return err.localizedDescription }
-        return ""
     }
 }
 
@@ -270,7 +393,6 @@ struct ProfileView: View {
 
 extension AppConfig {
     static var stripePublishableKey: String {
-        // xcconfig strips content after // and may load stale values — hardcode until xcconfig is fixed
         return "pk_test_51ET8NyGpfRXqkavb9HUKY9p5pJyha9BqRYjFBa5ymmoVSMfdh0maNRrg7hUf5ha35iJRNEP4tm5DdXWebvfJraiw00Xt5PKkTL"
     }
 }

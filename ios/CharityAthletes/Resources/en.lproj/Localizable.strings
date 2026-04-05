@@ -2,6 +2,7 @@
 "tab.dashboard"  = "Home";
 "tab.campaigns"  = "Campaigns";
 "tab.activities" = "Activities";
+"tab.charities"  = "Charities";
 "tab.profile"    = "Profile";
 
 /* Onboarding */

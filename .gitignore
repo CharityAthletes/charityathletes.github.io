@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.env
+*.env.local
+.DS_Store
+xcuserdata/
+*.xcworkspace/xcuserdata
+DerivedData/
+*.ipa
+Pods/
+
+# xcconfig files contain real API keys — never commit
+ios/Config/Debug.xcconfig
+ios/Config/Release.xcconfig

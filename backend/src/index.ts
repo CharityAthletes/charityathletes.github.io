@@ -12,7 +12,9 @@ import webhookRoutes   from './routes/webhooks';
 import nonprofitRoutes from './routes/nonprofit';
 import nonprofitsRoutes from './routes/nonprofits';
 import adminRoutes     from './routes/admin';
+import charitiesRoutes from './routes/charities';
 import webRoutes       from './routes/web';
+import { renderDirectoryPage } from './routes/directory';
 
 const app  = express();
 const PORT = process.env.PORT ?? 3000;
@@ -51,8 +53,19 @@ app.use('/donations', donationRoutes);
 app.use('/webhooks',  webhookRoutes);
 app.use('/nonprofit', nonprofitRoutes);
 app.use('/nonprofits', nonprofitsRoutes);
-app.use('/admin',     adminRoutes);
-app.use('/c',         webRoutes);
+app.use('/admin',       adminRoutes);
+app.use('/charities',   charitiesRoutes);
+app.use('/c',           webRoutes);
+
+// Web: public charity directory page
+app.get('/directory', async (req, res) => {
+  const { db } = await import('./config/supabase');
+  const { data } = await db.from('charities').select('*').eq('is_active', true)
+    .order('is_featured', { ascending: false }).order('name_en');
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-store');
+  res.send(renderDirectoryPage(data ?? []));
+});
 
 app.get('/health', (_, res) => res.json({ ok: true, ts: new Date().toISOString() }));
 app.use((_, res) => res.status(404).json({ error: 'Not found' }));

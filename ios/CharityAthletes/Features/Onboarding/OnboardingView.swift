@@ -16,10 +16,15 @@ struct OnboardingView: View {
             VStack(spacing: 0) {
                 Spacer()
 
-                Image(systemName: "bicycle")
-                    .font(.system(size: 88, weight: .thin))
-                    .foregroundStyle(.white)
-                    .padding(.bottom, 24)
+                if let uiImg = UIImage(named: "AppLogo") {
+                    Image(uiImage: uiImg)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 140, height: 140)
+                        .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
+                        .shadow(color: .black.opacity(0.25), radius: 16, x: 0, y: 6)
+                        .padding(.bottom, 24)
+                }
 
                 Text("チャリアス")
                     .font(.system(size: 36, weight: .bold))

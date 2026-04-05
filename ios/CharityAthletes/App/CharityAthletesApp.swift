@@ -95,14 +95,31 @@ struct RootView: View {
 struct SplashView: View {
     var body: some View {
         ZStack {
-            Color("BrandOrange").ignoresSafeArea()
-            VStack(spacing: 12) {
-                Image(systemName: "bicycle")
-                    .font(.system(size: 72))
-                    .foregroundStyle(.white)
+            LinearGradient(
+                colors: [Color(red: 0.05, green: 0.15, blue: 0.35),
+                         Color(red: 0.02, green: 0.28, blue: 0.22)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+
+            VStack(spacing: 20) {
+                if let uiImg = UIImage(named: "AppLogo") {
+                    Image(uiImage: uiImg)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 160, height: 160)
+                        .clipShape(RoundedRectangle(cornerRadius: 36, style: .continuous))
+                        .shadow(color: .black.opacity(0.4), radius: 20, x: 0, y: 8)
+                }
+
                 Text("チャリアス")
                     .font(.largeTitle.bold())
                     .foregroundStyle(.white)
+
+                Text("Charity Athletes")
+                    .font(.subheadline)
+                    .foregroundStyle(.white.opacity(0.7))
             }
         }
     }
@@ -126,6 +143,8 @@ struct AthleteTabView: View {
                         Image(uiImage: activitiesTabIcon())
                     }
                 }
+            CharityDirectoryView()
+                .tabItem { Label(i18n.t(.tabCharities), systemImage: "heart.circle.fill") }
             ProfileView()
                 .tabItem { Label(i18n.t(.tabProfile), systemImage: "person.fill") }
         }

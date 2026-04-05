@@ -15,6 +15,10 @@ enum Endpoint {
     case nonprofitDashboard
     case nonprofitCampaigns
 
+    // Charities
+    case charities(String?, String?) // (query, category)
+    case charityRequest
+
     // Admin
     case adminStats
     case adminNonprofits(String?)        // optional ?status= filter
@@ -53,6 +57,13 @@ enum Endpoint {
         case .nonprofitDashboard:            return "/nonprofit/dashboard"
         case .nonprofitCampaigns:            return "/nonprofit/campaigns"
 
+        case .charities(let q, let cat):
+            var parts: [String] = []
+            if let q = q, !q.isEmpty { parts.append("q=\(q.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? q)") }
+            if let cat = cat, !cat.isEmpty { parts.append("category=\(cat.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? cat)") }
+            return parts.isEmpty ? "/charities" : "/charities?\(parts.joined(separator: "&"))"
+        case .charityRequest:                return "/charities/request"
+
         case .adminStats:                    return "/admin/stats"
         case .adminNonprofits(let status):
             return status != nil ? "/admin/nonprofits?status=\(status!)" : "/admin/nonprofits"
@@ -72,7 +83,8 @@ enum Endpoint {
         case .nonprofitRegister,
              .createCampaign,
              .joinCampaign, .donateCampaign, .setupPayment, .confirmSetup,
-             .adminApproveNonprofit, .adminRejectNonprofit:
+             .adminApproveNonprofit, .adminRejectNonprofit,
+             .charityRequest:
             return "POST"
         default:
             return "GET"

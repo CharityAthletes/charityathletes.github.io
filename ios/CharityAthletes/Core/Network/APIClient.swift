@@ -150,6 +150,13 @@ final class APIClient {
     func createSetupIntent() async throws -> SetupIntentResponse {
         try await request(.setupPayment, body: Empty())
     }
+
+    func confirmSetup(paymentMethodId: String) async throws {
+        struct B: Encodable { let paymentMethodId: String }
+        struct R: Decodable { let clientSecret: String }
+        let _: R = try await request(.confirmSetup, body: B(paymentMethodId: paymentMethodId))
+    }
+
     func getPaymentMethod() async throws -> PaymentMethodResponse { try await request(.paymentMethod) }
 
     // ── Nonprofit ─────────────────────────────────────────────────────────────
@@ -159,6 +166,15 @@ final class APIClient {
     func getNonprofitCampaigns() async throws -> [Campaign]     { try await request(.nonprofitCampaigns) }
 
     // ── Admin ─────────────────────────────────────────────────────────────────
+
+    func getCharities(query: String? = nil, category: String? = nil) async throws -> [Charity] {
+        try await request(.charities(query, category))
+    }
+
+    func submitCharityRequest(_ body: CharityRequestBody) async throws {
+        struct R: Decodable { let ok: Bool }
+        let _: R = try await request(.charityRequest, body: body)
+    }
 
     func getAdminStats() async throws -> PlatformStats { try await request(.adminStats) }
 

@@ -28,6 +28,7 @@ enum L: String {
     case tabDashboard  = "tab.dashboard"
     case tabCampaigns  = "tab.campaigns"
     case tabActivities = "tab.activities"
+    case tabCharities  = "tab.charities"
     case tabProfile    = "tab.profile"
 
     // Onboarding
