@@ -210,7 +210,7 @@ function renderPage(campaign: any, stripeKey: string, apiBase: string, campaignI
   <meta property="og:title"       content="${campaign.title_ja} | チャリアス (Charity Athletes)">
   <meta property="og:description" content="${campaign.description_ja || campaign.description_en || 'チャリアスのチャリティキャンペーンを応援してください！'}">
   <meta property="og:url"         content="https://charityathletes-production.up.railway.app/c/${campaignId}">
-  <meta property="og:image"       content="${np?.logo_url || 'https://charityathletes-production.up.railway.app/og-default.png'}">
+  <meta property="og:image"       content="${np?.logo_url || 'https://charityathletes-production.up.railway.app/static/logo.png'}">
   <meta name="twitter:card"       content="summary_large_image">
   <meta name="twitter:title"      content="${campaign.title_ja} | チャリアス">
   <meta name="twitter:description" content="${campaign.description_ja || campaign.description_en || ''}">
@@ -263,7 +263,11 @@ function renderPage(campaign: any, stripeKey: string, apiBase: string, campaignI
 <body>
 
 <div class="hero">
-  <div style="font-size:12px;opacity:.7;margin-bottom:12px">🚴 チャリアス / Charity Athletes</div>
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+    <img src="/static/logo.png" alt="チャリアス"
+         style="width:44px;height:44px;border-radius:10px;object-fit:cover;flex-shrink:0">
+    <span style="font-size:14px;font-weight:600;opacity:.9">チャリアス / Charity Athletes</span>
+  </div>
   <h1>${campaign.title_ja}</h1>
   ${campaign.title_en !== campaign.title_ja ? `<div class="sub">${campaign.title_en}</div>` : ''}
   <div class="meta" style="display:flex;align-items:center;gap:12px;margin-top:16px">
@@ -367,7 +371,8 @@ ${campaign.description_ja ? `
   </div>
 </div>
 
-<div style="text-align:center;padding:24px;font-size:12px;color:#86868b">
+<div style="text-align:center;padding:24px;font-size:12px;color:#86868b;display:flex;align-items:center;justify-content:center;gap:8px">
+  <img src="/static/logo.png" alt="" style="width:20px;height:20px;border-radius:5px;opacity:.6">
   Powered by <strong>チャリアス</strong> · Charity Athletes
 </div>
 
