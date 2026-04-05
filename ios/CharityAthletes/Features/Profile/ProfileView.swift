@@ -194,27 +194,39 @@ struct ProfileView: View {
         isPreparingSheet = true
         defer { isPreparingSheet = false }
 
-        do {
-            let intent = try await APIClient.shared.createSetupIntent()
-            StripeAPI.defaultPublishableKey = AppConfig.stripePublishableKey
-
-            var config = PaymentSheet.Configuration()
-            config.merchantDisplayName = "チャリアス / Charity Athletes"
-            config.allowsDelayedPaymentMethods = false
-            config.returnURL = "charityathletes://stripe-return"
-            config.defaultBillingDetails.address.country = "JP"
-            config.customer = PaymentSheet.CustomerConfiguration(
-                id: intent.customerId,
-                ephemeralKeySecret: intent.ephemeralKey
-            )
-
-            paymentSheet = PaymentSheet(
-                setupIntentClientSecret: intent.clientSecret,
-                configuration: config
-            )
-        } catch {
-            print("[PaymentSheet] prepare failed:", error)
+        // Ensure customer exists on backend first
+        guard (try? await APIClient.shared.createSetupIntent()) != nil else {
+            print("[PaymentSheet] customer setup failed")
+            return
         }
+
+        StripeAPI.defaultPublishableKey = AppConfig.stripePublishableKey
+
+        var config = PaymentSheet.Configuration()
+        config.merchantDisplayName = "チャリアス / Charity Athletes"
+        config.allowsDelayedPaymentMethods = false
+        config.returnURL = "charityathletes://stripe-return"
+        config.defaultBillingDetails.address.country = "JP"
+
+        // Deferred flow: create+confirm SetupIntent only after user submits card
+        let intentConfig = PaymentSheet.IntentConfiguration(
+            mode: .setup(currency: nil, setupFutureUsage: .offSession)
+        ) { paymentMethod, _, intentCreationCallback in
+            Task {
+                do {
+                    struct B: Encodable { let paymentMethodId: String }
+                    struct R: Decodable { let clientSecret: String }
+                    let r: R = try await APIClient.shared.request(
+                        .confirmSetup, body: B(paymentMethodId: paymentMethod.stripeId)
+                    )
+                    intentCreationCallback(.success(r.clientSecret))
+                } catch {
+                    intentCreationCallback(.failure(error))
+                }
+            }
+        }
+
+        paymentSheet = PaymentSheet(intentConfiguration: intentConfig, configuration: config)
     }
 
     private func handlePaymentResult(_ result: PaymentSheetResult) {

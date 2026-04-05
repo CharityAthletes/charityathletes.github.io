@@ -7,7 +7,7 @@ enum Endpoint {
     case nonprofits
     case campaigns, myCampaigns, createdCampaigns, createCampaign, campaign(String), leaderboard(String)
     case joinCampaign(String), unjoinCampaign(String), deleteCampaign(String), archiveCampaign(String), donateCampaign(String)
-    case donations, donationSummary, setupPayment, paymentMethod
+    case donations, donationSummary, setupPayment, confirmSetup, paymentMethod
     case activities
 
     // Nonprofit
@@ -45,6 +45,7 @@ enum Endpoint {
         case .donations:                     return "/donations"
         case .donationSummary:               return "/donations/summary"
         case .setupPayment:                  return "/donations/setup-payment"
+        case .confirmSetup:                  return "/donations/confirm-setup"
         case .paymentMethod:                 return "/donations/payment-method"
         case .activities:                    return "/activities"
 
@@ -70,7 +71,7 @@ enum Endpoint {
             return "PATCH"
         case .nonprofitRegister,
              .createCampaign,
-             .joinCampaign, .donateCampaign, .setupPayment,
+             .joinCampaign, .donateCampaign, .setupPayment, .confirmSetup,
              .adminApproveNonprofit, .adminRejectNonprofit:
             return "POST"
         default:

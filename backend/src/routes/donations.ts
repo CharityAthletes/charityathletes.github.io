@@ -59,7 +59,7 @@ router.get('/payment-method', requireAuth, async (req: Request, res: Response) =
   }
 });
 
-// POST /donations/setup-payment — returns Stripe SetupIntent client_secret
+// POST /donations/setup-payment — returns SetupIntent client_secret + ephemeral key
 router.post('/setup-payment', requireAuth, async (req: Request, res: Response) => {
   const { data: authUser } = await db.auth.admin.getUserById(req.userId!);
   const { data: profile } = await db
@@ -74,14 +74,37 @@ router.post('/setup-payment', requireAuth, async (req: Request, res: Response) =
     profile?.display_name ?? ''
   );
 
-  // Store customer id on participation rows that are missing it
-  await db.from('campaign_participations')
+  await db.from('user_profiles')
     .update({ stripe_customer_id: customerId })
-    .eq('user_id', req.userId!)
-    .is('stripe_customer_id', null);
+    .eq('user_id', req.userId!);
 
   const intent = await stripeService.createSetupIntent(customerId);
   res.json(intent);
+});
+
+// POST /donations/confirm-setup — deferred flow: create+confirm SetupIntent with payment method
+router.post('/confirm-setup', requireAuth, async (req: Request, res: Response) => {
+  const { payment_method_id } = req.body;
+  if (!payment_method_id) return res.status(400).json({ error: 'payment_method_id required' });
+
+  const { data: profile } = await db
+    .from('user_profiles')
+    .select('stripe_customer_id')
+    .eq('user_id', req.userId!)
+    .single();
+
+  if (!profile?.stripe_customer_id) return res.status(400).json({ error: 'No Stripe customer' });
+
+  const { stripe } = await import('../config/stripe');
+  const intent = await stripe.setupIntents.create({
+    customer: profile.stripe_customer_id,
+    payment_method: payment_method_id,
+    usage: 'off_session',
+    automatic_payment_methods: { enabled: true, allow_redirects: 'never' },
+    confirm: true,
+  });
+
+  res.json({ client_secret: intent.client_secret });
 });
 
 export default router;
