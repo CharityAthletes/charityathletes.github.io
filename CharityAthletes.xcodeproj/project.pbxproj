@@ -14,6 +14,7 @@
 		4F0ED94542F624CE50453B84 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = F245AE9D3100ED90DFC64B50 /* Localizable.strings */; };
 		4F3A42BEFF42744703AE2ACF /* CharityAthletesApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 686715B63A59B4262127EBA6 /* CharityAthletesApp.swift */; };
 		7742F0ACB3E71EE886DB6847 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D96696FF9ACCBE8ECB641C1D /* ProfileView.swift */; };
+		FA11BB22CC33DD44EE55FF66 /* HowItWorksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA11BB22CC33DD44EE55FF67 /* HowItWorksView.swift */; };
 		80E3E97C60E5233E92F97F80 /* I18n.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA63DF739AF0698FCDF8DC7A /* I18n.swift */; };
 		B0B33548F1D0650BD6B93B9B /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FC1A9DE964CA2D4E304F43F /* APIClient.swift */; };
 		BA97C0CAE930EA5CB463FE00 /* CampaignListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBF80F63113EE7DF0E6210D0 /* CampaignListView.swift */; };
@@ -61,6 +62,7 @@
 		B90FDF2C0F6B3C17D3E6511E /* CampaignDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampaignDetailView.swift; sourceTree = "<group>"; };
 		C8DF9C602349229650080DB6 /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Localizable.strings; sourceTree = "<group>"; };
 		D96696FF9ACCBE8ECB641C1D /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		FA11BB22CC33DD44EE55FF67 /* HowItWorksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HowItWorksView.swift; sourceTree = "<group>"; };
 		DA63DF739AF0698FCDF8DC7A /* I18n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = I18n.swift; sourceTree = "<group>"; };
 		DBF80F63113EE7DF0E6210D0 /* CampaignListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampaignListView.swift; sourceTree = "<group>"; };
 		E4CC3561266ADD4F741AC35A /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
@@ -158,6 +160,7 @@
 			isa = PBXGroup;
 			children = (
 				D96696FF9ACCBE8ECB641C1D /* ProfileView.swift */,
+				FA11BB22CC33DD44EE55FF67 /* HowItWorksView.swift */,
 			);
 			path = Profile;
 			sourceTree = "<group>";
@@ -385,6 +388,7 @@
 				1438B4DD3B782DB461CD481C /* NonprofitSignupView.swift in Sources */,
 				F89F45A6412AAAC8D0D69431 /* OnboardingView.swift in Sources */,
 				7742F0ACB3E71EE886DB6847 /* ProfileView.swift in Sources */,
+				FA11BB22CC33DD44EE55FF66 /* HowItWorksView.swift in Sources */,
 				F769388481B3BFA48A09C1FD /* SupabaseClient.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

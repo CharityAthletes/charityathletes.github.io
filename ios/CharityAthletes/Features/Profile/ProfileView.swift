@@ -283,6 +283,19 @@ struct ProfileView: View {
                     if auth.isStravaConnected {
                         Label(i18n.t(.profileStravaConnected), systemImage: "checkmark.circle.fill")
                             .foregroundStyle(.green)
+                        Button(role: .destructive) {
+                            Task {
+                                do {
+                                    try await auth.disconnectStrava()
+                                } catch {
+                                    stravaError = error.localizedDescription
+                                    showStravaError = true
+                                }
+                            }
+                        } label: {
+                            Label(i18n.language == .ja ? "Stravaを切断" : "Disconnect Strava",
+                                  systemImage: "link.badge.minus")
+                        }
                     } else {
                         Button {
                             Task {
@@ -334,6 +347,17 @@ struct ProfileView: View {
                         DonationListView()
                     } label: {
                         Label(i18n.t(.donationsTitle), systemImage: "yensign.circle")
+                    }
+                }
+
+                // ── Help ───────────────────────────────────────────────────────
+                Section {
+                    NavigationLink {
+                        HowItWorksView()
+                            .environmentObject(i18n)
+                    } label: {
+                        Label(i18n.language == .ja ? "使い方" : "How It Works",
+                              systemImage: "questionmark.circle")
                     }
                 }
 
