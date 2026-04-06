@@ -36,8 +36,12 @@ final class CampaignDetailVM: ObservableObject {
     }
 
     func loadDonorPledges() async {
-        do { donorPledges = try await APIClient.shared.getCampaignPledges(id: campaign.id) }
-        catch { }
+        do {
+            donorPledges = try await APIClient.shared.getCampaignPledges(id: campaign.id)
+            print("[DonorPledges] loaded \(donorPledges.count) pledges for campaign \(campaign.id)")
+        } catch {
+            print("[DonorPledges] error: \(error)")
+        }
     }
 
     func join() async {
@@ -250,14 +254,16 @@ struct CampaignDetailView: View {
             }
         }
         .refreshable {
-            async let _ = vm.loadCampaign()
-            async let _ = vm.loadLeaderboard()
-            async let _ = vm.loadDonorPledges()
+            async let a: Void = vm.loadCampaign()
+            async let b: Void = vm.loadLeaderboard()
+            async let c: Void = vm.loadDonorPledges()
+            _ = await (a, b, c)
         }
         .task {
-            async let _ = vm.loadCampaign()
-            async let _ = vm.loadLeaderboard()
-            async let _ = vm.loadDonorPledges()
+            async let a: Void = vm.loadCampaign()
+            async let b: Void = vm.loadLeaderboard()
+            async let c: Void = vm.loadDonorPledges()
+            _ = await (a, b, c)
         }
         .onChange(of: auth.profile?.userId) { _, userId in
             guard userId != nil else { return }
