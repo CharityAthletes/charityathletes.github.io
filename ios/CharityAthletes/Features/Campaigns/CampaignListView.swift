@@ -69,7 +69,7 @@ struct CampaignListView: View {
                             Section {
                                 ForEach(allJoined) { c in
                                     NavigationLink { CampaignDetailView(campaign: c, isJoined: true) } label: {
-                                        CampaignRow(campaign: c, joined: true, showPrivateBadge: !c.isPublic)
+                                        CampaignRow(campaign: c, joined: true, isCreated: createdIds.contains(c.id), showPrivateBadge: !c.isPublic)
                                     }
                                     .listRowBackground(Color.clear)
                                     .listRowSeparator(.hidden)
@@ -88,7 +88,7 @@ struct CampaignListView: View {
                             Section {
                                 ForEach(createdNotJoined) { c in
                                     NavigationLink { CampaignDetailView(campaign: c, isJoined: false) } label: {
-                                        CampaignRow(campaign: c, joined: false, showPrivateBadge: !c.isPublic)
+                                        CampaignRow(campaign: c, joined: false, isCreated: true, showPrivateBadge: !c.isPublic)
                                     }
                                     .listRowBackground(Color.clear)
                                     .listRowSeparator(.hidden)
@@ -152,6 +152,7 @@ struct CampaignListView: View {
 struct CampaignRow: View {
     let campaign: Campaign
     var joined: Bool = false
+    var isCreated: Bool = false
     var showPrivateBadge: Bool = false
     @ObservedObject private var i18n = I18n.shared
 
@@ -186,6 +187,15 @@ struct CampaignRow: View {
                             .foregroundStyle(Color("BrandOrange"))
                             .padding(.horizontal, 8).padding(.vertical, 3)
                             .background(Color("BrandOrange").opacity(0.12))
+                            .clipShape(Capsule())
+                    }
+                    if isCreated {
+                        Label(i18n.language == .ja ? "作成者" : "My Campaign",
+                              systemImage: "star.fill")
+                            .font(.caption2.bold())
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 8).padding(.vertical, 3)
+                            .background(Color("BrandOrange"))
                             .clipShape(Capsule())
                     }
                     SportBadges(sportTypes: campaign.sportTypes)
