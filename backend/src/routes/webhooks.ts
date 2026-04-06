@@ -63,6 +63,8 @@ router.post('/stripe', async (req: Request, res: Response) => {
     return res.status(400).send('Webhook signature verification failed');
   }
 
+  console.log('[Webhook/Stripe] received event type:', event.type);
+
   try {
     if (event.type === 'payment_intent.succeeded') {
       const pi = event.data.object as { id: string };
