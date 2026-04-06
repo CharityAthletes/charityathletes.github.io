@@ -138,6 +138,19 @@ struct CreateCampaignRequest: Encodable {
     let isPublic: Bool
 }
 
+// ─── Update Campaign Request ──────────────────────────────────────────────────
+
+struct UpdateCampaignRequest: Encodable {
+    var titleJa: String?
+    var titleEn: String?
+    var descriptionJa: String?
+    var descriptionEn: String?
+    var endDate: String?
+    var goalAmountJpy: Int?
+    var isPublic: Bool?
+    var maxDistanceKm: Int?
+}
+
 // ─── Campaign ─────────────────────────────────────────────────────────────────
 
 struct Campaign: Decodable, Identifiable {

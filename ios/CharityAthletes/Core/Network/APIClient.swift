@@ -85,6 +85,11 @@ final class APIClient {
 
     func getMe() async throws -> MeResponse { try await request(.me) }
 
+    func disconnectStrava() async throws {
+        struct R: Decodable { let ok: Bool }
+        let _: R = try await request(.stravaDisconnect)
+    }
+
     func stravaAuthURL() async throws -> URL {
         struct R: Decodable { let url: String }
         let r: R = try await request(.stravaAuth)
@@ -140,6 +145,10 @@ final class APIClient {
         let _: R = try await request(.archiveCampaign(id))
     }
 
+    func updateCampaign(id: String, body: UpdateCampaignRequest) async throws -> Campaign {
+        try await request(.updateCampaign(id), body: body)
+    }
+
     func manualDonate(campaignId: String, amountJpy: Int) async throws -> CheckoutSession {
         struct B: Encodable { let amountJpy: Int }
         return try await request(.donateCampaign(campaignId), body: B(amountJpy: amountJpy))
@@ -166,6 +175,12 @@ final class APIClient {
     func getNonprofitCampaigns() async throws -> [Campaign]     { try await request(.nonprofitCampaigns) }
 
     // ── Admin ─────────────────────────────────────────────────────────────────
+
+    func syncStrava() async throws -> Int {
+        struct R: Decodable { let ok: Bool; let synced: Int }
+        let r: R = try await request(.stravaSync)
+        return r.synced
+    }
 
     func getCharities(query: String? = nil, category: String? = nil) async throws -> [Charity] {
         try await request(.charities(query, category))

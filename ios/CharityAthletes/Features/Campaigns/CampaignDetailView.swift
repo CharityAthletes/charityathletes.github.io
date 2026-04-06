@@ -7,16 +7,17 @@ final class CampaignDetailVM: ObservableObject {
     @Published var showUnjoinConfirm = false
     @Published var showDeleteConfirm = false
     @Published var showArchiveConfirm = false
+    @Published var showEditSheet = false
     @Published var isLoading = false
     @Published var joined = false
     @Published var deleted = false
     @Published var error: String?
 
-    let campaign: Campaign
+    @Published var campaign: Campaign
 
     init(campaign: Campaign, isJoined: Bool = false) {
         self.campaign = campaign
-        self.joined = isJoined
+        self.joined   = isJoined
     }
 
     func loadLeaderboard() async {
@@ -161,6 +162,13 @@ struct CampaignDetailView: View {
                     )
                     if isCreator {
                         Menu {
+                            Button {
+                                vm.showEditSheet = true
+                            } label: {
+                                Label(i18n.language == .ja ? "キャンペーンを編集" : "Edit Campaign",
+                                      systemImage: "pencil")
+                            }
+                            Divider()
                             if c.participantCount <= 1 {
                                 Button(role: .destructive) {
                                     vm.showDeleteConfirm = true
@@ -189,6 +197,12 @@ struct CampaignDetailView: View {
         }
         .sheet(isPresented: $vm.showJoinSheet) {
             JoinCampaignSheet(vm: vm)
+        }
+        .sheet(isPresented: $vm.showEditSheet) {
+            EditCampaignView(campaign: vm.campaign) { [weak vm] updated in
+                vm?.campaign = updated
+            }
+            .environmentObject(i18n)
         }
         .confirmationDialog(
             i18n.language == .ja ? "キャンペーンを退会しますか？" : "Leave this campaign?",
