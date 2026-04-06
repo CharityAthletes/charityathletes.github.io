@@ -386,13 +386,8 @@ private struct SocialShareSection: View {
                     color: .black
                 )
 
-                // Facebook
-                socialLink(
-                    urlString: "https://www.facebook.com/sharer/sharer.php?u=\(encoded.url)",
-                    label: "Facebook",
-                    labelText: "f",
-                    color: Color(red: 0.23, green: 0.35, blue: 0.60)
-                )
+                // Facebook — copies link to clipboard then opens app (FB strips pre-filled content on mobile)
+                facebookButton
 
                 // LinkedIn
                 socialLink(
@@ -407,8 +402,8 @@ private struct SocialShareSection: View {
             }
 
             Text(i18n.language == .ja
-                 ? "💡 Instagramはアプリが開きます。リンクをコピーしてストーリーズ等に貼り付けてください。"
-                 : "💡 Instagram will open the app. Copy your link first and paste it into your story or bio.")
+                 ? "💡 FacebookとInstagramはリンクがコピーされてアプリが開きます。投稿に貼り付けてください。"
+                 : "💡 Facebook & Instagram: your link is copied to clipboard and the app opens — just paste it into your post.")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -424,6 +419,20 @@ private struct SocialShareSection: View {
             Link(destination: url) {
                 SocialPill(labelText: labelText, platformLabel: label, color: color)
             }
+        }
+    }
+
+    private var facebookButton: some View {
+        Button {
+            // Facebook strips pre-filled content on mobile — copy link then open app
+            UIPasteboard.general.string = donorURL
+            let fbApp = URL(string: "fb://")!
+            let fbWeb = URL(string: "https://www.facebook.com")!
+            let target = UIApplication.shared.canOpenURL(fbApp) ? fbApp : fbWeb
+            UIApplication.shared.open(target)
+        } label: {
+            SocialPill(labelText: "f", platformLabel: "Facebook",
+                       color: Color(red: 0.23, green: 0.35, blue: 0.60))
         }
     }
 
