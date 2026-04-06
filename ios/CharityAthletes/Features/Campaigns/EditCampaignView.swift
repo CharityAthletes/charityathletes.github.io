@@ -8,6 +8,7 @@ final class EditCampaignVM: ObservableObject {
     @Published var descriptionEn: String
     @Published var endDate: Date
     @Published var goalAmountJpy: String
+    @Published var maxDistanceKm: String
     @Published var isPublic: Bool
 
     @Published var isSaving = false
@@ -24,6 +25,7 @@ final class EditCampaignVM: ObservableObject {
         self.descriptionEn  = campaign.descriptionEn
         self.endDate        = campaign.endDate
         self.goalAmountJpy  = campaign.goalAmountJpy > 0 ? String(campaign.goalAmountJpy) : ""
+        self.maxDistanceKm  = campaign.maxDistanceKm.map { String($0) } ?? ""
         self.isPublic       = campaign.isPublic
     }
 
@@ -35,13 +37,14 @@ final class EditCampaignVM: ObservableObject {
         fmt.formatOptions = [.withInternetDateTime]
 
         let body = UpdateCampaignRequest(
-            titleJa:       titleJa.isEmpty ? nil : titleJa,
-            titleEn:       titleEn.isEmpty ? nil : titleEn,
-            descriptionJa: descriptionJa,
-            descriptionEn: descriptionEn,
-            endDate:       fmt.string(from: endDate),
-            goalAmountJpy: Int(goalAmountJpy),
-            isPublic:      isPublic
+            titleJa:        titleJa.isEmpty ? nil : titleJa,
+            titleEn:        titleEn.isEmpty ? nil : titleEn,
+            descriptionJa:  descriptionJa,
+            descriptionEn:  descriptionEn,
+            endDate:        fmt.string(from: endDate),
+            goalAmountJpy:  Int(goalAmountJpy),
+            isPublic:       isPublic,
+            maxDistanceKm:  maxDistanceKm.isEmpty ? nil : Int(maxDistanceKm)
         )
 
         do {
@@ -108,6 +111,20 @@ struct EditCampaignView: View {
                         Text("¥")
                         TextField("0", text: $vm.goalAmountJpy)
                             .keyboardType(.numberPad)
+                    }
+                }
+
+                Section(
+                    header: Text(i18n.language == .ja ? "距離上限（km）" : "Distance Cap (km)"),
+                    footer: Text(i18n.language == .ja
+                        ? "ドナーへの請求に使う距離の上限。空白にすると上限なし。"
+                        : "Maximum km used to calculate per-km donor charges. Leave blank for no cap.")
+                        .font(.caption)
+                ) {
+                    HStack {
+                        TextField(i18n.language == .ja ? "例: 100" : "e.g. 100", text: $vm.maxDistanceKm)
+                            .keyboardType(.numberPad)
+                        Text("km").foregroundStyle(.secondary)
                     }
                 }
 
