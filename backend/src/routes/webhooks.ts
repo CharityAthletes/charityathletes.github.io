@@ -39,6 +39,9 @@ router.post('/strava', (req: Request, res: Response) => {
       if (event.aspect_type === 'create') {
         const result = await stravaService.syncActivity(event.owner_id, event.object_id);
         if (result) await processActivityDonations(result.activityId);
+      } else if (event.aspect_type === 'update') {
+        // Re-sync so edits to name, sport type, distance, etc. are reflected immediately
+        await stravaService.syncActivity(event.owner_id, event.object_id);
       } else if (event.aspect_type === 'delete') {
         await stravaService.markActivityDeleted(event.object_id);
       }

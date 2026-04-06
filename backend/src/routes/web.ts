@@ -18,22 +18,25 @@ router.get('/:id', async (req: Request, res: Response) => {
   if (error) console.error('[Web] campaign query error:', error);
   if (!campaign) return res.status(404).send(`<h1>Campaign not found</h1><p>${error?.message ?? ''}</p>`);
 
-  // Fetch athlete profile separately
-  let athlete = null;
-  if (campaign.created_by) {
-    const { data } = await db.from('user_profiles').select('display_name, avatar_url').eq('user_id', campaign.created_by).single();
-    athlete = data;
-  }
-  (campaign as any).user_profiles = athlete;
+  // ?a=userId — show a specific joined athlete's page; defaults to campaign creator
+  const athleteId = (req.query.a as string) || campaign.created_by;
+
+  const { data: athleteProfile } = await db
+    .from('user_profiles')
+    .select('display_name, avatar_url')
+    .eq('user_id', athleteId)
+    .single();
+  (campaign as any).user_profiles = athleteProfile;
 
   const stripeKey = process.env.STRIPE_PUBLISHABLE_KEY ?? '';
+  const proto    = req.headers['x-forwarded-proto'] ?? req.protocol ?? 'https';
   const apiBase  = process.env.APP_URL?.startsWith('http')
     ? process.env.APP_URL
-    : `http://${req.headers.host}`;
+    : `${proto}://${req.headers.host}`;
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.setHeader('Cache-Control', 'no-store');
-  res.send(renderPage(campaign, stripeKey, apiBase, req.params.id));
+  res.send(renderPage(campaign, stripeKey, apiBase, req.params.id, athleteId));
 });
 
 // ── GET /c/:id/data — JSON for the page ──────────────────────────────────────
@@ -41,24 +44,45 @@ router.get('/:id', async (req: Request, res: Response) => {
 router.get('/:id/data', async (req: Request, res: Response) => {
   const { data: campaign } = await db
     .from('campaigns')
-    .select('*, nonprofits(name_ja, name_en), user_profiles!campaigns_created_by_fkey(display_name)')
+    .select('*, nonprofits(name_ja, name_en)')
     .eq('id', req.params.id).single();
 
   if (!campaign) return res.status(404).json({ error: 'Not found' });
 
+  // Expand sport_type aliases so e.g. "Ride" also matches "VirtualRide", "EBikeRide", "GravelRide"
+  const sportTypeAliases: Record<string, string[]> = {
+    Ride:  ['Ride', 'MountainBikeRide', 'GravelRide', 'EBikeRide', 'EMountainBikeRide', 'Handcycle', 'VelomobileRide', 'VirtualRide'],
+    Run:   ['Run', 'TrailRun', 'VirtualRun', 'Wheelchair'],
+    Walk:  ['Walk', 'Hike', 'Wheelchair'],
+    Swim:  ['Swim', 'OpenWaterSwim'],
+  };
+  const expandedTypes = (campaign.sport_types ?? []).flatMap(
+    (t: string) => sportTypeAliases[t] ?? [t]
+  );
+
+  // ?a=userId — show a specific athlete's activities; defaults to creator
+  const athleteId = (req.query.a as string) || campaign.created_by;
+
+  // Build activities query — only filter by sport_type when types are actually configured
+  let activityQuery = db.from('activities')
+    .select('id, name, sport_type, distance_meters, start_date, moving_time_seconds, strava_activity_id')
+    .eq('user_id', athleteId)
+    .gte('start_date', campaign.start_date ?? '')
+    .order('start_date', { ascending: false })
+    .limit(20);
+  if (campaign.end_date) activityQuery = activityQuery.lte('start_date', campaign.end_date);
+  if (expandedTypes.length > 0) activityQuery = activityQuery.in('sport_type', expandedTypes);
+
+  // Pledges: scope to this athlete when ?a= is present; otherwise all campaign pledges
+  let pledgesQuery = db.from('donor_pledges')
+    .select('flat_amount_jpy, per_km_rate_jpy, status')
+    .eq('campaign_id', req.params.id)
+    .in('status', ['confirmed', 'charged']);
+  if (req.query.a) pledgesQuery = pledgesQuery.eq('athlete_user_id', athleteId);
+
   const [{ data: activities }, { data: pledges }] = await Promise.all([
-    db.from('activities')
-      .select('id, name, sport_type, distance_meters, start_date, moving_time_seconds')
-      .eq('user_id', campaign.created_by)
-      .in('sport_type', campaign.sport_types ?? [])
-      .gte('start_date', campaign.start_date ?? '')
-      .lte('start_date', campaign.end_date ?? new Date().toISOString())
-      .order('start_date', { ascending: false })
-      .limit(20),
-    db.from('donor_pledges')
-      .select('flat_amount_jpy, per_km_rate_jpy, status')
-      .eq('campaign_id', req.params.id)
-      .in('status', ['confirmed', 'charged']),
+    activityQuery,
+    pledgesQuery,
   ]);
 
   const totalKm = (activities ?? []).reduce((s, a) => s + (a.distance_meters / 1000), 0);
@@ -79,10 +103,12 @@ router.get('/:id/data', async (req: Request, res: Response) => {
 // Per-km pledge  → SetupIntent    → card saved, charged after campaign ends
 
 const pledgeSchema = z.object({
-  donor_name:      z.string().min(1),
-  donor_email:     z.string().email(),
-  flat_amount_jpy: z.number().int().min(100).nullable().default(null),
-  per_km_rate_jpy: z.number().int().min(1).nullable().default(null),
+  donor_name:       z.string().min(1),
+  donor_email:      z.string().email(),
+  flat_amount_jpy:  z.number().int().min(100).nullable().default(null),
+  per_km_rate_jpy:  z.number().int().min(1).nullable().default(null),
+  is_anonymous:     z.boolean().default(false),
+  athlete_user_id:  z.string().uuid().nullable().default(null),
 }).refine(d => d.flat_amount_jpy != null || d.per_km_rate_jpy != null, {
   message: 'At least one pledge type required',
 }).refine(d => !(d.flat_amount_jpy != null && d.per_km_rate_jpy != null), {
@@ -93,7 +119,7 @@ router.post('/:id/pledge', async (req: Request, res: Response) => {
   const parsed = pledgeSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
-  const { donor_name, donor_email, flat_amount_jpy, per_km_rate_jpy } = parsed.data;
+  const { donor_name, donor_email, flat_amount_jpy, per_km_rate_jpy, is_anonymous, athlete_user_id } = parsed.data;
   const isFlat = flat_amount_jpy != null;
 
   // Create Stripe customer
@@ -121,6 +147,8 @@ router.post('/:id/pledge', async (req: Request, res: Response) => {
       per_km_rate_jpy:          null,
       stripe_customer_id:       customer.id,
       stripe_payment_intent_id: paymentIntent.id,
+      is_anonymous,
+      athlete_user_id,
       status:                   'pending',
     });
     if (error) return res.status(500).json({ error: error.message });
@@ -147,6 +175,8 @@ router.post('/:id/pledge', async (req: Request, res: Response) => {
       per_km_rate_jpy,
       stripe_customer_id:      customer.id,
       stripe_setup_intent_id:  setupIntent.id,
+      is_anonymous,
+      athlete_user_id,
       status:                  'pending',
     });
     if (error) return res.status(500).json({ error: error.message });
@@ -175,6 +205,14 @@ router.post('/:id/pledge/confirm', async (req: Request, res: Response) => {
         charged_at:                new Date().toISOString(),
       })
       .eq('stripe_payment_intent_id', intent_id);
+
+    // Recalculate and update campaign raised amount from all charged pledges
+    const { data: charged } = await db.from('donor_pledges')
+      .select('charged_amount_jpy')
+      .eq('campaign_id', req.params.id)
+      .eq('status', 'charged');
+    const totalRaised = (charged ?? []).reduce((s: number, p: any) => s + (p.charged_amount_jpy ?? 0), 0);
+    await db.from('campaigns').update({ raised_amount_jpy: totalRaised }).eq('id', req.params.id);
   } else {
     // Per-km pledge — card saved, will be charged at campaign end
     const si = await stripe.setupIntents.retrieve(intent_id);
@@ -195,7 +233,7 @@ export default router;
 
 // ── HTML renderer ─────────────────────────────────────────────────────────────
 
-function renderPage(campaign: any, stripeKey: string, apiBase: string, campaignId: string): string {
+function renderPage(campaign: any, stripeKey: string, apiBase: string, campaignId: string, athleteId: string = ''): string {
   const np   = campaign.nonprofits;
   const athlete = campaign.user_profiles;
   const endDate = new Date(campaign.end_date).toLocaleDateString('ja-JP', { year:'numeric', month:'long', day:'numeric' });
@@ -249,7 +287,8 @@ function renderPage(campaign: any, stripeKey: string, apiBase: string, campaignI
     .success-box{background:#e8f9ee;border:1px solid #34c759;border-radius:12px;padding:20px;text-align:center;display:none}
     .success-box h3{color:#1a8736;font-size:18px;margin-bottom:8px}
     .success-box p{color:#444;font-size:14px}
-    .error-msg{color:#ff3b30;font-size:13px;margin-top:8px;display:none}
+    .error-msg{color:#fff;font-size:14px;font-weight:600;margin-top:10px;display:none;background:#ff3b30;border-radius:10px;padding:12px 14px;line-height:1.5}
+    .test-banner{background:#ff9500;color:#fff;border-radius:10px;padding:12px 14px;font-size:13px;margin-bottom:14px;line-height:1.6}
     .calc-box{background:#fff5f0;border-radius:10px;padding:12px;margin-top:12px;font-size:14px}
     .calc-box strong{color:#FF6B35;font-size:18px}
     .type-tabs{display:flex;gap:8px;margin:12px 0}
@@ -279,29 +318,54 @@ function renderPage(campaign: any, stripeKey: string, apiBase: string, campaignI
     <div>
       ${athlete?.display_name ? `<div style="font-weight:600;font-size:15px">${athlete.display_name}</div>` : ''}
       ${np ? `<div style="font-size:13px;opacity:.85;margin-top:2px">🏢 ${np.name_ja}</div>` : ''}
-      <div style="font-size:12px;opacity:.75;margin-top:2px">📅 ${endDate}まで</div>
+      <div style="font-size:12px;opacity:.75;margin-top:2px">📅 ${endDate}まで / Ends ${new Date(campaign.end_date).toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' })}</div>
     </div>
   </div>
 </div>
 
 <div class="stat-row">
-  <div class="stat"><div class="val" id="stat-km">…</div><div class="lbl">合計距離</div></div>
-  <div class="stat"><div class="val" id="stat-donors">…</div><div class="lbl">サポーター</div></div>
-  <div class="stat"><div class="val" id="stat-total">…</div><div class="lbl">寄付見込額</div></div>
+  <div class="stat"><div class="val" id="stat-km">…</div><div class="lbl">走行距離 / My Distance</div></div>
+  <div class="stat"><div class="val" id="stat-donors">…</div><div class="lbl">サポーター / Donors</div></div>
+  <div class="stat"><div class="val" id="stat-total">…</div><div class="lbl">寄付見込額 / Est. Total</div></div>
 </div>
 
 <div class="card" style="margin-top:28px">
   <div class="section-title">活動履歴 / Activities</div>
-  <div id="activities"><div id="loading">読み込み中…</div></div>
+  <div id="activities"><div id="loading">読み込み中… / Loading…</div></div>
 </div>
 
-${campaign.description_ja ? `
+${(campaign.description_ja || campaign.description_en) ? `
 <div class="card">
-  <div class="section-title">キャンペーンについて</div>
-  <p style="font-size:14px;line-height:1.6;color:#444">${campaign.description_ja}</p>
+  <div class="section-title">キャンペーンについて / About</div>
+  ${campaign.description_ja ? `<p style="font-size:14px;line-height:1.6;color:#444">${campaign.description_ja}</p>` : ''}
   ${campaign.description_en && campaign.description_en !== campaign.description_ja
     ? `<p style="font-size:13px;line-height:1.6;color:#86868b;margin-top:8px">${campaign.description_en}</p>` : ''}
 </div>` : ''}
+
+<div class="card" id="how-it-works-card">
+  <button type="button" onclick="toggleHowItWorks()" style="width:100%;background:none;border:none;padding:0;cursor:pointer;text-align:left">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div class="section-title" style="margin-bottom:0">💡 使い方 / How It Works</div>
+      <span id="hiw-chevron" style="font-size:18px;color:#86868b;transition:transform .25s">▾</span>
+    </div>
+  </button>
+  <div id="how-it-works" style="display:none;margin-top:14px">
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;gap:12px;align-items:flex-start">
+        <div style="background:#FF6B35;color:#fff;font-weight:700;font-size:13px;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">1</div>
+        <div><div style="font-weight:600;font-size:14px">🏃 このアスリートが走る・漕ぐ・泳ぐ</div><div style="font-size:13px;color:#86868b;margin-top:2px">This page shows <strong>this athlete's</strong> activities and distance. Strava tracks every km automatically.</div></div>
+      </div>
+      <div style="display:flex;gap:12px;align-items:flex-start">
+        <div style="background:#FF6B35;color:#fff;font-weight:700;font-size:13px;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">2</div>
+        <div><div style="font-weight:600;font-size:14px">💳 あなたが寄付を申し込む</div><div style="font-size:13px;color:#86868b;margin-top:2px">Pledge a flat amount or a per-km rate (e.g. ¥10 per km). You can donate anonymously if you prefer.</div></div>
+      </div>
+      <div style="display:flex;gap:12px;align-items:flex-start">
+        <div style="background:#FF6B35;color:#fff;font-weight:700;font-size:13px;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">3</div>
+        <div><div style="font-weight:600;font-size:14px">✅ 寄付が届く</div><div style="font-size:13px;color:#86868b;margin-top:2px">Flat donations charge immediately. Per-km pledges charge at campaign end based on <strong>this athlete's</strong> total distance — not the combined total of all participants.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div class="card">
   <div class="section-title">寄付を申し込む / Pledge to Donate</div>
@@ -331,8 +395,8 @@ ${campaign.description_ja ? `
     ${campaign.has_per_km_donation ? `
     <div class="donation-panel${!campaign.has_flat_donation ? ' active' : ''}" id="panel-perkm">
       <div style="font-size:12px;color:#86868b;margin-bottom:8px">
-        🕐 キャンペーン終了後に請求されます — アスリートの距離 × あなたのレート${campaign.max_distance_km ? `（上限 ${campaign.max_distance_km} km）` : ''}<br>
-        Charged after campaign ends · athlete's distance × your rate${campaign.max_distance_km ? ` (max ${campaign.max_distance_km} km cap)` : ''}
+        🕐 キャンペーン終了後に請求されます — <strong>このアスリート</strong>の走行距離 × あなたのレート${campaign.max_distance_km ? `（上限 ${campaign.max_distance_km} km）` : ''}<br>
+        Charged after campaign ends · <strong>this athlete's</strong> distance × your rate${campaign.max_distance_km ? ` (max ${campaign.max_distance_km} km cap)` : ''}
       </div>
       <div class="rate-grid">
         ${(campaign.suggested_per_km_jpy ?? [10,20,50]).map((r: number) =>
@@ -352,17 +416,29 @@ ${campaign.description_ja ? `
       </div>
     </div>` : ''}
 
+    <label style="display:flex;align-items:center;gap:10px;margin-top:20px;cursor:pointer;font-size:14px;color:#444;user-select:none">
+      <input type="checkbox" id="anon-check" style="width:18px;height:18px;accent-color:#FF6B35;cursor:pointer;flex-shrink:0">
+      <span>匿名で寄付する / Donate anonymously<br><span style="font-size:11px;color:#86868b">キャンペーン作成者にお名前は表示されません / Your name won't be shown to the campaign creator</span></span>
+    </label>
+
     <label style="margin-top:20px">カード情報 / Payment Card</label>
+    ${stripeKey.startsWith('pk_test_') ? `
+    <div class="test-banner">
+      🧪 <strong>テストモード / Test Mode</strong><br>
+      実際のカードは使用できません。以下のテストカードをご利用ください：<br>
+      Real cards won't work. Use this test card:<br>
+      <strong>4242 4242 4242 4242</strong> · Exp: 任意の将来の日付 / any future date · CVC: 任意3桁 / any 3 digits
+    </div>` : ''}
     <div class="stripe-element" id="card-element"></div>
     <div class="error-msg" id="card-error"></div>
 
     <div style="font-size:11px;color:#86868b;margin-top:10px;line-height:1.5">
       🔒 カード情報はStripeにより安全に処理されます。<br>
-      定額寄付はすぐに請求されます。距離連動はキャンペーン終了後に請求されます。<br>
-      Flat donations are charged immediately. Per-km pledges are charged after the campaign ends.
+      定額寄付はすぐに請求されます。距離連動はキャンペーン終了後にこのアスリートの走行距離をもとに請求されます。<br>
+      Flat donations are charged immediately. Per-km pledges are charged after the campaign ends based on this athlete's distance.
     </div>
 
-    <button type="button" class="btn" id="pledge-btn" onclick="submitPledge()">寄付を申し込む / Pledge</button>
+    <button type="button" class="btn" id="pledge-btn">寄付を申し込む / Pledge</button>
   </form>
 
   <div class="success-box" id="success-box">
@@ -377,8 +453,18 @@ ${campaign.description_ja ? `
 </div>
 
 <script>
+// ── How it works toggle ────────────────────────────────────────────────────
+function toggleHowItWorks() {
+  var el = document.getElementById('how-it-works');
+  var ch = document.getElementById('hiw-chevron');
+  var open = el.style.display === 'block';
+  el.style.display = open ? 'none' : 'block';
+  ch.style.transform = open ? '' : 'rotate(180deg)';
+}
+
 // ── Constants ──────────────────────────────────────────────────────────────
 const CAMPAIGN_ID = '${campaignId}';
+const ATHLETE_ID  = '${athleteId}';
 const API = '${apiBase}';
 
 // ── State (declared BEFORE Stripe init so functions always have access) ────
@@ -444,35 +530,37 @@ function selectType(type, btn) {
 // Load live data
 async function loadData() {
   try {
-    const res  = await fetch(API + '/c/' + CAMPAIGN_ID + '/data');
+    const res  = await fetch(API + '/c/' + CAMPAIGN_ID + '/data' + (ATHLETE_ID ? '?a=' + ATHLETE_ID : ''));
     const data = await res.json();
     currentKm  = isNaN(data.totalKm) ? 0 : (data.totalKm || 0);
 
     document.getElementById('stat-km').textContent     = currentKm.toFixed(1) + ' km';
-    document.getElementById('stat-donors').textContent = data.donorCount + '人';
+    document.getElementById('stat-donors').textContent = data.donorCount;
     document.getElementById('stat-total').textContent  = '¥' + data.estimatedTotal.toLocaleString();
 
     const actEl = document.getElementById('activities');
     if (!data.activities.length) {
-      actEl.innerHTML = '<p style="color:#86868b;font-size:14px;text-align:center;padding:16px">まだ活動がありません</p>';
+      actEl.innerHTML = '<p style="color:#86868b;font-size:14px;text-align:center;padding:16px">まだ活動がありません<br>No activities yet during this campaign</p>';
     } else {
       actEl.innerHTML = data.activities.map(a => {
         const km   = (a.distance_meters / 1000).toFixed(1);
         const date = new Date(a.start_date).toLocaleDateString('ja-JP', {month:'short', day:'numeric'});
-        const icon = a.sport_type.includes('Ride') ? '🚴' : a.sport_type === 'Run' ? '🏃' : '🏊';
-        return '<div class="activity-row">'
-          + '<div class="activity-icon">' + icon + '</div>'
+        const icon = a.sport_type.includes('Ride') ? '🚴' : a.sport_type.includes('Run') ? '🏃' : a.sport_type.includes('Swim') ? '🏊' : '🚶';
+        const stravaUrl = a.strava_activity_id ? 'https://www.strava.com/activities/' + a.strava_activity_id : null;
+        const inner = '<div class="activity-icon">' + icon + '</div>'
           + '<div class="activity-info">'
-          + '<div class="activity-name">' + a.name + '</div>'
+          + '<div class="activity-name">' + a.name + (stravaUrl ? ' <span style="font-size:11px;color:#FC4C02">Strava ↗</span>' : '') + '</div>'
           + '<div class="activity-meta">' + date + '</div>'
           + '</div>'
-          + '<div class="activity-dist">' + km + ' km</div>'
-          + '</div>';
+          + '<div class="activity-dist">' + km + ' km</div>';
+        return stravaUrl
+          ? '<a href="' + stravaUrl + '" target="_blank" rel="noopener" class="activity-row" style="text-decoration:none;color:inherit">' + inner + '</a>'
+          : '<div class="activity-row">' + inner + '</div>';
       }).join('');
     }
     updateCalc();
   } catch(e) {
-    document.getElementById('loading').textContent = '読み込み失敗';
+    document.getElementById('loading').textContent = '読み込み失敗 / Failed to load';
   }
 }
 
@@ -492,8 +580,10 @@ async function submitPledge() {
   const name  = document.getElementById('donor-name').value.trim();
   const email = document.getElementById('donor-email').value.trim();
 
-  if (!name)  return alert('お名前を入力してください');
-  if (!email) return alert('メールアドレスを入力してください');
+  if (!name)  return alert('お名前を入力してください / Please enter your name');
+  if (!email) return alert('メールアドレスを入力してください / Please enter your email');
+  const emailOk = email.indexOf('@') > 0 && email.lastIndexOf('.') > email.indexOf('@') + 1 && !email.includes(' ');
+  if (!emailOk) return alert('有効なメールアドレスを入力してください（例: taro@example.com）\\nPlease enter a valid email address (e.g. taro@example.com)');
 
   let flat = null;
   let rate = null;
@@ -501,17 +591,17 @@ async function submitPledge() {
   if (currentType === 'flat') {
     const flatEl = document.getElementById('flat-amount');
     flat = flatEl ? (parseInt(flatEl.value) || null) : null;
-    if (!flat || flat < 100) return alert('¥100以上の金額を入力してください');
+    if (!flat || flat < 100) return alert('¥100以上の金額を入力してください / Please enter ¥100 or more');
   } else {
     rate = currentRate;
-    if (!rate || rate < 1) return alert('1km あたりのレートを選択してください');
+    if (!rate || rate < 1) return alert('1km あたりのレートを選択してください / Please select a per-km rate');
   }
 
   if (!stripe || !cardEl) return alert('カード決済システムを読み込めませんでした。ページを再読み込みしてください。 Card system failed to load. Please refresh the page.');
 
   const btn = document.getElementById('pledge-btn');
   btn.disabled = true;
-  btn.textContent = '処理中…';
+  btn.textContent = '処理中… / Processing…';
 
   const errEl = document.getElementById('card-error');
   errEl.style.display = 'none';
@@ -522,10 +612,12 @@ async function submitPledge() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        donor_name:      name,
-        donor_email:     email,
-        flat_amount_jpy: flat,
-        per_km_rate_jpy: rate,
+        donor_name:       name,
+        donor_email:      email,
+        flat_amount_jpy:  flat,
+        per_km_rate_jpy:  rate,
+        is_anonymous:     !!(document.getElementById('anon-check') && document.getElementById('anon-check').checked),
+        athlete_user_id:  ATHLETE_ID || null,
       }),
     });
     const pledgeData = await pledgeRes.json();
@@ -566,8 +658,11 @@ async function submitPledge() {
     successBox.style.display = 'block';
     loadData();
   } catch(e) {
-    errEl.textContent = e.message;
+    const msg = e.message || String(e);
+    console.error('[Pledge error]', msg);
+    errEl.textContent = msg;
     errEl.style.display = 'block';
+    alert('エラー / Error: ' + msg);
     btn.disabled = false;
     btn.textContent = '寄付を申し込む / Pledge';
   }
@@ -596,11 +691,15 @@ if (typeof Stripe === 'undefined') {
   } catch(e) {
     console.error('Stripe init failed:', e);
     const el = document.getElementById('card-element');
-    if (el) el.innerHTML = '<p style="color:#ff3b30;font-size:13px;padding:4px">カード決済の読み込みに失敗しました。ページを再読み込みください。</p>';
+    if (el) el.innerHTML = '<p style="color:#ff3b30;font-size:13px;padding:4px">カード決済の読み込みに失敗しました。ページを再読み込みください。<br>Card payment failed to load. Please refresh the page.</p>';
   }
 }
 
-// All button clicks via event delegation
+// Wire pledge button
+var pledgeBtn = document.getElementById('pledge-btn');
+if (pledgeBtn) pledgeBtn.addEventListener('click', function() { submitPledge(); });
+
+// All other button clicks via event delegation
 document.addEventListener('click', function(e) {
   var tab = e.target.closest('[data-type]');
   if (tab) { selectType(tab.dataset.type, tab); return; }
