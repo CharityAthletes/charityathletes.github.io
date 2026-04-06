@@ -417,6 +417,6 @@ struct ProfileView: View {
 
 extension AppConfig {
     static var stripePublishableKey: String {
-        return "pk_test_51ET8NyGpfRXqkavb9HUKY9p5pJyha9BqRYjFBa5ymmoVSMfdh0maNRrg7hUf5ha35iJRNEP4tm5DdXWebvfJraiw00Xt5PKkTL"
+        return "pk_live_4rAL2Q26f4qp3BegstagOruP00kKYSdftC"
     }
 }

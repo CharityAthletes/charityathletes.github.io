@@ -3,11 +3,16 @@ import SwiftUI
 @MainActor
 final class CampaignDetailVM: ObservableObject {
     @Published var leaderboard: [LeaderboardEntry] = []
+    @Published var donorPledges: [DonorPledge] = []
     @Published var showJoinSheet = false
     @Published var showUnjoinConfirm = false
     @Published var showDeleteConfirm = false
     @Published var showArchiveConfirm = false
     @Published var showEditSheet = false
+    @Published var showFinalizeConfirm = false
+    @Published var showFinalizeResult = false
+    @Published var finalizeResult: FinalizeResult?
+    @Published var showSupportSheet = false
     @Published var isLoading = false
     @Published var joined = false
     @Published var deleted = false
@@ -22,6 +27,13 @@ final class CampaignDetailVM: ObservableObject {
 
     func loadLeaderboard() async {
         do { leaderboard = try await APIClient.shared.getLeaderboard(campaignId: campaign.id) }
+        catch { }
+    }
+
+    func loadDonorPledges(currentUserId: String) async {
+        let isCreator = campaign.createdBy == currentUserId
+        guard isCreator || joined else { return }
+        do { donorPledges = try await APIClient.shared.getCampaignPledges(id: campaign.id) }
         catch { }
     }
 
@@ -59,6 +71,16 @@ final class CampaignDetailVM: ObservableObject {
         do {
             try await APIClient.shared.archiveCampaign(id: campaign.id)
             deleted = true  // dismiss the view
+        } catch let e { error = e.localizedDescription }
+    }
+
+    func finalize() async {
+        isLoading = true; error = nil
+        defer { isLoading = false }
+        do {
+            let result = try await APIClient.shared.finalizeCampaign(id: campaign.id)
+            finalizeResult = result
+            showFinalizeResult = true
         } catch let e { error = e.localizedDescription }
     }
 }
@@ -110,7 +132,7 @@ struct CampaignDetailView: View {
                 Text(i18n.pick(ja: c.descriptionJa, en: c.descriptionEn))
                     .font(.body).foregroundStyle(.secondary)
 
-                // CTA
+                // CTA — Join (participate as athlete)
                 if !vm.joined {
                     Button {
                         vm.showJoinSheet = true
@@ -140,12 +162,38 @@ struct CampaignDetailView: View {
                     }
                 }
 
-                // Social share
-                SocialShareSection(campaign: c)
+                // Support button — donate as a donor (shown for everyone)
+                Button {
+                    vm.showSupportSheet = true
+                } label: {
+                    Label(
+                        i18n.language == .ja ? "このキャンペーンを応援する" : "Support This Campaign",
+                        systemImage: "heart"
+                    )
+                    .font(.headline)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color(.secondarySystemBackground))
+                    .foregroundStyle(Color("BrandOrange"))
+                    .clipShape(RoundedRectangle(cornerRadius: 14))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 14)
+                            .stroke(Color("BrandOrange"), lineWidth: 1.5)
+                    )
+                }
+
+                // Social share — include athlete ID so donor page shows this athlete's activities
+                let shareAthleteId = (isCreator || vm.joined) ? auth.profile?.userId : nil
+                SocialShareSection(campaign: c, athleteId: shareAthleteId)
 
                 // Leaderboard
                 if !vm.leaderboard.isEmpty {
                     LeaderboardSection(entries: vm.leaderboard)
+                }
+
+                // Donor list — creator sees all; joined athletes see their own donors
+                if isCreator || vm.joined {
+                    DonorPledgeSection(pledges: vm.donorPledges, isCreator: isCreator)
                 }
             }
             .padding()
@@ -167,6 +215,13 @@ struct CampaignDetailView: View {
                             } label: {
                                 Label(i18n.language == .ja ? "キャンペーンを編集" : "Edit Campaign",
                                       systemImage: "pencil")
+                            }
+                            Divider()
+                            Button {
+                                vm.showFinalizeConfirm = true
+                            } label: {
+                                Label(i18n.language == .ja ? "キャンペーンを確定・請求" : "Finalize & Charge Donors",
+                                      systemImage: "checkmark.seal")
                             }
                             Divider()
                             if c.participantCount <= 1 {
@@ -191,7 +246,10 @@ struct CampaignDetailView: View {
                 }
             }
         }
-        .task { await vm.loadLeaderboard() }
+        .task {
+            async let _ = vm.loadLeaderboard()
+            async let _ = vm.loadDonorPledges(currentUserId: auth.profile?.userId ?? "")
+        }
         .onChange(of: vm.deleted) { _, deleted in
             if deleted { dismiss() }
         }
@@ -202,6 +260,13 @@ struct CampaignDetailView: View {
             EditCampaignView(campaign: vm.campaign) { [weak vm] updated in
                 vm?.campaign = updated
             }
+            .environmentObject(i18n)
+        }
+        .sheet(isPresented: $vm.showSupportSheet) {
+            SupportCampaignSheet(
+                campaign: vm.campaign,
+                donorName: auth.profile?.displayName ?? ""
+            )
             .environmentObject(i18n)
         }
         .confirmationDialog(
@@ -243,6 +308,26 @@ struct CampaignDetailView: View {
             Text(i18n.language == .ja
                  ? "参加者がいるため削除できません。終了すると新しいアクティビティはカウントされなくなります。"
                  : "Can't delete because others have joined. Ending the campaign stops new activities from counting.")
+        }
+        .confirmationDialog(
+            i18n.language == .ja ? "キャンペーンを確定して請求しますか？" : "Finalize campaign and charge donors?",
+            isPresented: $vm.showFinalizeConfirm,
+            titleVisibility: .visible
+        ) {
+            Button(i18n.language == .ja ? "確定・請求する" : "Finalize & Charge", role: .destructive) {
+                Task { await vm.finalize() }
+            }
+            Button(i18n.t(.commonCancel), role: .cancel) {}
+        } message: {
+            Text(i18n.language == .ja
+                 ? "距離連動プレッジのドナーに実際の走行距離に基づいて請求されます。キャンペーンは終了します。この操作は取り消せません。"
+                 : "Per-km pledge donors will be charged based on actual distance covered. The campaign will be closed. This cannot be undone.")
+        }
+        .sheet(isPresented: $vm.showFinalizeResult) {
+            if let result = vm.finalizeResult {
+                FinalizeResultSheet(result: result)
+                    .environmentObject(i18n)
+            }
         }
     }
 }
@@ -353,9 +438,14 @@ struct JoinCampaignSheet: View {
 
 private struct SocialShareSection: View {
     let campaign: Campaign
+    let athleteId: String?
     @ObservedObject private var i18n = I18n.shared
 
-    private var donorURL: String { "\(AppConfig.backendURL)/c/\(campaign.id)" }
+    private var donorURL: String {
+        let base = "\(AppConfig.backendURL)/c/\(campaign.id)"
+        if let aid = athleteId, !aid.isEmpty { return "\(base)?a=\(aid)" }
+        return base
+    }
 
     private var shareMessage: String {
         let title = i18n.pick(ja: campaign.titleJa, en: campaign.titleEn)
@@ -496,5 +586,212 @@ private struct LeaderboardSection: View {
         .padding()
         .background(Color(.secondarySystemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 14))
+    }
+}
+
+// MARK: - Donor Pledge Section (creator only)
+
+private struct DonorPledgeSection: View {
+    let pledges: [DonorPledge]
+    let isCreator: Bool
+    @ObservedObject private var i18n = I18n.shared
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text(isCreator
+                     ? (i18n.language == .ja ? "全ドナー一覧" : "All Donors")
+                     : (i18n.language == .ja ? "あなたのドナー" : "Your Donors"))
+                    .font(.headline)
+                Spacer()
+                Text(i18n.language == .ja ? "\(pledges.count) 件" : "\(pledges.count) pledge(s)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            if pledges.isEmpty {
+                Text(i18n.language == .ja ? "まだドナーはいません" : "No donors yet")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.vertical, 8)
+            } else {
+                ForEach(pledges.indices, id: \.self) { idx in
+                    let p = pledges[idx]
+                    VStack(spacing: 0) {
+                        HStack(alignment: .top, spacing: 10) {
+                            Text(p.statusIcon)
+                                .font(.body)
+                                .frame(width: 24)
+
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(p.displayName)
+                                    .font(.subheadline.bold())
+                                    .lineLimit(1)
+                                if p.isPerKm {
+                                    Text("¥\(p.perKmRateJpy ?? 0)/km")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                } else {
+                                    Text(i18n.language == .ja ? "定額寄付" : "Flat donation")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+
+                            Spacer()
+
+                            VStack(alignment: .trailing, spacing: 2) {
+                                if let charged = p.chargedAmountJpy, charged > 0 {
+                                    Text("¥\(charged.formatted())")
+                                        .font(.subheadline.bold())
+                                        .foregroundStyle(Color("BrandOrange"))
+                                } else if !p.isPerKm, let flat = p.flatAmountJpy {
+                                    Text("¥\(flat.formatted())")
+                                        .font(.subheadline.bold())
+                                        .foregroundStyle(Color("BrandOrange"))
+                                } else {
+                                    Text(localizedStatus(p.status))
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                        }
+                        .padding(.vertical, 8)
+
+                        if idx < pledges.count - 1 {
+                            Divider().padding(.leading, 34)
+                        }
+                    }
+                }
+            }
+        }
+        .padding()
+        .background(Color(.secondarySystemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+    }
+
+    private func localizedStatus(_ status: String) -> String {
+        switch status {
+        case "confirmed": return i18n.language == .ja ? "確定済み" : "Confirmed"
+        case "pending":   return i18n.language == .ja ? "保留中" : "Pending"
+        case "charged":   return i18n.language == .ja ? "請求済み" : "Charged"
+        case "skipped":   return i18n.language == .ja ? "スキップ" : "Skipped"
+        case "failed":    return i18n.language == .ja ? "失敗" : "Failed"
+        default:          return status
+        }
+    }
+}
+
+// MARK: - Finalize Result Sheet
+
+struct FinalizeResultSheet: View {
+    let result: FinalizeResult
+    @EnvironmentObject var i18n: I18n
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 28) {
+                Spacer()
+
+                Image(systemName: "checkmark.seal.fill")
+                    .font(.system(size: 72))
+                    .foregroundStyle(Color("BrandOrange"))
+
+                Text(i18n.language == .ja ? "キャンペーン確定完了" : "Campaign Finalized")
+                    .font(.title2.bold())
+
+                VStack(spacing: 16) {
+                    ResultRow(
+                        icon: "figure.run",
+                        label: i18n.language == .ja ? "合計距離" : "Total Distance",
+                        value: String(format: "%.1f km", result.totalKm)
+                    )
+                    Divider()
+                    ResultRow(
+                        icon: "creditcard.fill",
+                        label: i18n.language == .ja ? "請求成功" : "Successfully Charged",
+                        value: i18n.language == .ja ? "\(result.charged) 件" : "\(result.charged) donor(s)",
+                        valueColor: .green
+                    )
+                    if result.skipped > 0 {
+                        Divider()
+                        ResultRow(
+                            icon: "exclamationmark.circle",
+                            label: i18n.language == .ja ? "スキップ（¥50未満）" : "Skipped (< ¥50)",
+                            value: i18n.language == .ja ? "\(result.skipped) 件" : "\(result.skipped) donor(s)",
+                            valueColor: .secondary
+                        )
+                    }
+                    if result.failed > 0 {
+                        Divider()
+                        ResultRow(
+                            icon: "xmark.circle",
+                            label: i18n.language == .ja ? "請求失敗" : "Failed",
+                            value: i18n.language == .ja ? "\(result.failed) 件" : "\(result.failed) donor(s)",
+                            valueColor: .red
+                        )
+                    }
+                    Divider()
+                    ResultRow(
+                        icon: "yensign.circle.fill",
+                        label: i18n.language == .ja ? "合計請求額" : "Total Charged",
+                        value: "¥\(result.totalChargedJpy.formatted())",
+                        valueColor: Color("BrandOrange"),
+                        bold: true
+                    )
+                }
+                .padding()
+                .background(Color(.secondarySystemBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 14))
+                .padding(.horizontal)
+
+                Spacer()
+
+                Button {
+                    dismiss()
+                } label: {
+                    Text(i18n.language == .ja ? "閉じる" : "Done")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color("BrandOrange"))
+                        .foregroundStyle(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                }
+                .padding(.horizontal)
+                .padding(.bottom)
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(i18n.language == .ja ? "閉じる" : "Done") { dismiss() }
+                }
+            }
+        }
+    }
+}
+
+private struct ResultRow: View {
+    let icon: String
+    let label: String
+    let value: String
+    var valueColor: Color = .primary
+    var bold: Bool = false
+
+    var body: some View {
+        HStack {
+            Image(systemName: icon)
+                .foregroundStyle(Color("BrandOrange"))
+                .frame(width: 28)
+            Text(label)
+                .foregroundStyle(.secondary)
+            Spacer()
+            Text(value)
+                .fontWeight(bold ? .bold : .regular)
+                .foregroundStyle(valueColor)
+        }
+        .font(.subheadline)
     }
 }

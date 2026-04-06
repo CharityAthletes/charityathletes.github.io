@@ -111,6 +111,32 @@ export const stripeService = {
     return { url: session.url! };
   },
 
+  // ── Charge a specific saved payment method (used for per-km billing) ────────
+
+  async chargeWithMethod(params: {
+    customerId:      string;
+    paymentMethodId: string;
+    amountJpy:       number;
+    campaignId:      string;
+    donorName:       string;
+    description:     string;
+  }): Promise<Stripe.PaymentIntent> {
+    return stripe.paymentIntents.create({
+      amount:         params.amountJpy,
+      currency:       'jpy',
+      customer:       params.customerId,
+      payment_method: params.paymentMethodId,
+      off_session:    true,
+      confirm:        true,
+      description:    params.description,
+      metadata: {
+        campaign_id: params.campaignId,
+        donor_name:  params.donorName,
+        trigger:     'campaign_finalize',
+      },
+    });
+  },
+
   // ── Webhook ───────────────────────────────────────────────────────────────
 
   constructEvent(payload: Buffer, sig: string): Stripe.Event {

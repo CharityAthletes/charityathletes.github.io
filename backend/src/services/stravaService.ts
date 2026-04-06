@@ -67,19 +67,25 @@ export const stravaService = {
   // ── Activity sync ─────────────────────────────────────────────────────────
 
   /** Fetch one activity from Strava and upsert it; returns the local activity id. */
-  async syncActivity(athleteId: number, stravaActivityId: number): Promise<{ activityId: string; userId: string } | null> {
-    const { data: tokenRow } = await db
-      .from('strava_tokens')
-      .select('user_id')
-      .eq('athlete_id', athleteId)
-      .single();
+  async syncActivity(athleteId: number, stravaActivityId: number, userIdOverride?: string): Promise<{ activityId: string; userId: string } | null> {
+    let userId: string;
 
-    if (!tokenRow) {
-      console.warn(`[Strava] No user found for athlete ${athleteId}`);
-      return null;
+    if (userIdOverride) {
+      userId = userIdOverride;
+    } else {
+      const { data: tokenRow } = await db
+        .from('strava_tokens')
+        .select('user_id')
+        .eq('athlete_id', athleteId)
+        .single();
+
+      if (!tokenRow) {
+        console.warn(`[Strava] No user found for athlete ${athleteId}`);
+        return null;
+      }
+      userId = tokenRow.user_id as string;
     }
 
-    const userId = tokenRow.user_id as string;
     const accessToken = await this.getValidAccessToken(userId);
 
     const { data: raw } = await axios.get<StravaDetailedActivity>(

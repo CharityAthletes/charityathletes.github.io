@@ -3,11 +3,11 @@ import UIKit
 
 // Renders two SF Symbols side-by-side into a single UIImage for use in tab bar
 private func activitiesTabIcon() -> UIImage {
-    let config = UIImage.SymbolConfiguration(pointSize: 11, weight: .medium)
+    let config = UIImage.SymbolConfiguration(pointSize: 17, weight: .medium)
     let bike   = UIImage(systemName: "bicycle",    withConfiguration: config)!.withRenderingMode(.alwaysTemplate)
     let runner = UIImage(systemName: "figure.run", withConfiguration: config)!.withRenderingMode(.alwaysTemplate)
 
-    let gap: CGFloat = 3
+    let gap: CGFloat = 1
     let totalWidth  = bike.size.width + gap + runner.size.width
     let totalHeight = max(bike.size.height, runner.size.height)
 

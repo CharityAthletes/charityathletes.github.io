@@ -86,6 +86,7 @@ struct Activity: Decodable, Identifiable {
     let movingTimeSeconds: Int
     let totalElevationGain: Double
     let startDate: Date
+    let stravaActivityId: Int?
 
     var distanceKm: Double { distanceMeters / 1000 }
 
@@ -430,4 +431,52 @@ struct SetupIntentResponse: Decodable {
     let clientSecret: String
     let ephemeralKey: String
     let customerId: String
+}
+
+// ─── Campaign Participant ─────────────────────────────────────────────────────
+
+struct CampaignParticipant: Decodable, Identifiable {
+    let userId: String
+    let displayName: String
+    let avatarUrl: String?
+    var id: String { userId }
+}
+
+// ─── Donor Pledge (creator view) ─────────────────────────────────────────────
+
+struct DonorPledge: Decodable, Identifiable {
+    let id: String
+    let donorName: String
+    let isAnonymous: Bool
+    let flatAmountJpy: Int?
+    let perKmRateJpy: Int?
+    let status: String          // pending | confirmed | charged | skipped | failed
+    let chargedAmountJpy: Int?
+    let athleteUserId: String?
+    let createdAt: Date
+
+    var displayName: String { isAnonymous ? "Anonymous / 匿名" : donorName }
+    var isPerKm: Bool { perKmRateJpy != nil }
+
+    var statusIcon: String {
+        switch status {
+        case "charged":   return "✅"
+        case "confirmed": return "🕐"
+        case "pending":   return "⏳"
+        case "skipped":   return "⏭"
+        case "failed":    return "❌"
+        default:          return "•"
+        }
+    }
+}
+
+// ─── Finalize Campaign Result ─────────────────────────────────────────────────
+
+struct FinalizeResult: Decodable {
+    let ok: Bool
+    let totalKm: Double
+    let charged: Int
+    let skipped: Int
+    let failed: Int
+    let totalChargedJpy: Int
 }

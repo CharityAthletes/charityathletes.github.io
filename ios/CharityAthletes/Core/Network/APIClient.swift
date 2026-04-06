@@ -149,6 +149,24 @@ final class APIClient {
         try await request(.updateCampaign(id), body: body)
     }
 
+    func finalizeCampaign(id: String) async throws -> FinalizeResult {
+        try await request(.finalizeCampaign(id), body: Empty())
+    }
+
+    func pledgeCampaign(id: String, perKmRateJpy: Int, donorName: String, isAnonymous: Bool, athleteUserId: String?) async throws {
+        struct B: Encodable { let perKmRateJpy: Int; let donorName: String; let isAnonymous: Bool; let athleteUserId: String? }
+        struct R: Decodable { let ok: Bool }
+        let _: R = try await request(.pledgeCampaign(id), body: B(perKmRateJpy: perKmRateJpy, donorName: donorName, isAnonymous: isAnonymous, athleteUserId: athleteUserId))
+    }
+
+    func getCampaignPledges(id: String) async throws -> [DonorPledge] {
+        try await request(.campaignPledges(id))
+    }
+
+    func getCampaignParticipants(id: String) async throws -> [CampaignParticipant] {
+        try await request(.campaignParticipants(id))
+    }
+
     func manualDonate(campaignId: String, amountJpy: Int) async throws -> CheckoutSession {
         struct B: Encodable { let amountJpy: Int }
         return try await request(.donateCampaign(campaignId), body: B(amountJpy: amountJpy))

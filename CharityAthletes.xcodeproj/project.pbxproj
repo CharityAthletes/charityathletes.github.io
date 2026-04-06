@@ -20,6 +20,7 @@
 		BA97C0CAE930EA5CB463FE00 /* CampaignListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBF80F63113EE7DF0E6210D0 /* CampaignListView.swift */; };
 		C99D0C941DB3412ACA8B9A99 /* CreateCampaignView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 131F3E1AD325EFA29603666A /* CreateCampaignView.swift */; };
 		EC11AA22BB33CC44DD55EE66 /* EditCampaignView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC11AA22BB33CC44DD55EE67 /* EditCampaignView.swift */; };
+		AB22CC33DD44EE55FF66AA11 /* SupportCampaignSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB22CC33DD44EE55FF66AA12 /* SupportCampaignSheet.swift */; };
 		CC7403A05ED2C7738853B439 /* AdminQueueView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DAE5014D89E4622405884B1 /* AdminQueueView.swift */; };
 		D24D27ACC820C9C2552D6D79 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 87B0216558714C4C04BE6EA7 /* Supabase */; };
 		D4FA4687F7E78343FDA23216 /* ActivityListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A801522369E7FA617044A13 /* ActivityListView.swift */; };
@@ -39,6 +40,7 @@
 /* Begin PBXFileReference section */
 		131F3E1AD325EFA29603666A /* CreateCampaignView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateCampaignView.swift; sourceTree = "<group>"; };
 		EC11AA22BB33CC44DD55EE67 /* EditCampaignView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditCampaignView.swift; sourceTree = "<group>"; };
+		AB22CC33DD44EE55FF66AA12 /* SupportCampaignSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportCampaignSheet.swift; sourceTree = "<group>"; };
 		1E1C96D9A4822317E1BF4540 /* NonprofitSignupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NonprofitSignupView.swift; sourceTree = "<group>"; };
 		1FC1A9DE964CA2D4E304F43F /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
 		23A5AF14C443934003CB623A /* CharityAthletes.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CharityAthletes.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -239,6 +241,7 @@
 				DBF80F63113EE7DF0E6210D0 /* CampaignListView.swift */,
 				131F3E1AD325EFA29603666A /* CreateCampaignView.swift */,
 				EC11AA22BB33CC44DD55EE67 /* EditCampaignView.swift */,
+				AB22CC33DD44EE55FF66AA12 /* SupportCampaignSheet.swift */,
 			);
 			path = Campaigns;
 			sourceTree = "<group>";
@@ -378,6 +381,7 @@
 				CC44AA11BB22DD33EE55FF77 /* CharityDirectoryView.swift in Sources */,
 				C99D0C941DB3412ACA8B9A99 /* CreateCampaignView.swift in Sources */,
 				EC11AA22BB33CC44DD55EE66 /* EditCampaignView.swift in Sources */,
+				AB22CC33DD44EE55FF66AA11 /* SupportCampaignSheet.swift in Sources */,
 				079360B55089C8A33B8E8C59 /* DashboardView.swift in Sources */,
 				E0DDE28C5730D9919B2AE58E /* DonationListView.swift in Sources */,
 				F2C01E40A34C3DDE3120D53C /* Endpoints.swift in Sources */,

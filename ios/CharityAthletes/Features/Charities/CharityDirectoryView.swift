@@ -7,6 +7,7 @@ struct CharityDirectoryView: View {
 
     @State private var charities:  [Charity] = []
     @State private var isLoading   = true
+    @State private var errorMsg:   String?   = nil
     @State private var searchText  = ""
     @State private var selectedCat: String? = nil
     @State private var showRequest = false
@@ -70,6 +71,15 @@ struct CharityDirectoryView: View {
                     Spacer()
                     ProgressView()
                     Spacer()
+                } else if let err = errorMsg {
+                    Spacer()
+                    VStack(spacing: 8) {
+                        Image(systemName: "exclamationmark.triangle").font(.largeTitle)
+                            .foregroundStyle(.orange)
+                        Text(err).foregroundStyle(.secondary).font(.caption)
+                            .multilineTextAlignment(.center).padding(.horizontal)
+                    }
+                    Spacer()
                 } else if filtered.isEmpty {
                     Spacer()
                     VStack(spacing: 8) {
@@ -120,8 +130,12 @@ struct CharityDirectoryView: View {
 
     private func load() async {
         isLoading = true
-        if let result = try? await APIClient.shared.getCharities() {
-            charities = result
+        errorMsg = nil
+        do {
+            charities = try await APIClient.shared.getCharities()
+        } catch {
+            errorMsg = error.localizedDescription
+            print("[Charities] load error:", error)
         }
         isLoading = false
     }

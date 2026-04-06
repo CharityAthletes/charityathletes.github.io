@@ -6,7 +6,7 @@ enum Endpoint {
     // Athlete
     case nonprofits
     case campaigns, myCampaigns, createdCampaigns, createCampaign, campaign(String), leaderboard(String)
-    case joinCampaign(String), unjoinCampaign(String), deleteCampaign(String), archiveCampaign(String), updateCampaign(String), donateCampaign(String)
+    case joinCampaign(String), unjoinCampaign(String), deleteCampaign(String), archiveCampaign(String), updateCampaign(String), donateCampaign(String), finalizeCampaign(String), pledgeCampaign(String), campaignPledges(String), campaignParticipants(String)
     case donations, donationSummary, setupPayment, confirmSetup, paymentMethod
     case activities
     case stravaSync
@@ -49,6 +49,10 @@ enum Endpoint {
         case .archiveCampaign(let id):       return "/campaigns/\(id)/archive"
         case .updateCampaign(let id):        return "/campaigns/\(id)"
         case .donateCampaign(let id):        return "/campaigns/\(id)/donate"
+        case .finalizeCampaign(let id):      return "/campaigns/\(id)/finalize"
+        case .pledgeCampaign(let id):        return "/campaigns/\(id)/pledge"
+        case .campaignPledges(let id):       return "/campaigns/\(id)/pledges"
+        case .campaignParticipants(let id):  return "/campaigns/\(id)/participants"
         case .donations:                     return "/donations"
         case .donationSummary:               return "/donations/summary"
         case .setupPayment:                  return "/donations/setup-payment"
@@ -87,6 +91,7 @@ enum Endpoint {
         case .nonprofitRegister,
              .createCampaign,
              .joinCampaign, .donateCampaign, .setupPayment, .confirmSetup,
+             .finalizeCampaign, .pledgeCampaign,
              .adminApproveNonprofit, .adminRejectNonprofit,
              .charityRequest, .stravaSync:
             return "POST"

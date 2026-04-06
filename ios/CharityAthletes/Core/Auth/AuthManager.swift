@@ -198,6 +198,11 @@ final class AuthManager: ObservableObject {
         print("[StravaConnect] after refreshMe, isStravaConnected:", isStravaConnected, "stravaAthleteId:", profile?.stravaAthleteId as Any)
     }
 
+    func disconnectStrava() async throws {
+        try await APIClient.shared.disconnectStrava()
+        await refreshMe()
+    }
+
     /// Called after Strava login redirects back to the app (also used by deep link fallback)
     func handleStravaLogin(_ url: URL) async {
         print("[StravaLogin] handleStravaLogin called, url:", url.absoluteString.prefix(100))

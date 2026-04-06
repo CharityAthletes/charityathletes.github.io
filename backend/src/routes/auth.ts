@@ -154,6 +154,12 @@ router.get('/strava/callback', async (req: Request, res: Response) => {
       // ── Connect mode: link Strava to existing account ───────────────────────
       const userId = stateRow.user_id as string;
 
+      // Remove any existing token row for this athlete_id (another user may own it)
+      await db.from('strava_tokens')
+        .delete()
+        .eq('athlete_id', tokens.athlete.id)
+        .neq('user_id', userId);
+
       await db.from('strava_tokens').upsert({
         user_id:       userId,
         athlete_id:    tokens.athlete.id,
@@ -298,6 +304,39 @@ router.delete('/strava', requireAuth, async (req: Request, res: Response) => {
   await db.from('strava_tokens').delete().eq('user_id', req.userId);
   await db.from('user_profiles').update({ strava_athlete_id: null }).eq('user_id', req.userId);
   res.json({ ok: true });
+});
+
+// ── Manual Strava sync ────────────────────────────────────────────────────────
+// Fetches the last 30 activities from Strava and syncs any that are missing.
+
+router.post('/strava/sync', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const accessToken = await stravaService.getValidAccessToken(req.userId!);
+
+    const axios = (await import('axios')).default;
+    const { data: stravaActivities } = await axios.get(
+      'https://www.strava.com/api/v3/athlete/activities',
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        params: { per_page: 30, page: 1 },
+      }
+    );
+
+    let synced = 0;
+    for (const a of stravaActivities as Array<{ id: number }>) {
+      const result = await stravaService.syncActivity(
+        0,               // athleteId not needed — we pass userId directly below
+        a.id,
+        req.userId!      // override: pass userId so we skip the athlete_id lookup
+      );
+      if (result) synced++;
+    }
+
+    res.json({ ok: true, synced });
+  } catch (err: any) {
+    console.error('[Strava] Manual sync error', err);
+    res.status(500).json({ error: err.message ?? 'Sync failed' });
+  }
 });
 
 export default router;
