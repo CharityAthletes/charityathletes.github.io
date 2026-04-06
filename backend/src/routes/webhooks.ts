@@ -117,7 +117,7 @@ router.post('/stripe', async (req: Request, res: Response) => {
           .single();
 
         // Also insert into donor_pledges so it appears in the donor list
-        await db.from('donor_pledges').insert({
+        const { error: pledgeErr } = await db.from('donor_pledges').insert({
           campaign_id:              campaignId,
           donor_name:               profile?.display_name ?? 'Anonymous',
           donor_email:              '',
@@ -131,6 +131,8 @@ router.post('/stripe', async (req: Request, res: Response) => {
           charged_amount_jpy:       amountTotal,
           charged_at:               new Date().toISOString(),
         });
+        if (pledgeErr) console.error('[Webhook/Stripe] donor_pledges insert failed', pledgeErr);
+        else console.log('[Webhook/Stripe] donor_pledges insert succeeded');
 
         // Update campaign raised amount from all completed donations
         const { data: charged } = await db
