@@ -25,14 +25,17 @@ final class CampaignDetailVM: ObservableObject {
         self.joined   = isJoined
     }
 
+    func loadCampaign() async {
+        do { campaign = try await APIClient.shared.getCampaign(id: campaign.id) }
+        catch { }
+    }
+
     func loadLeaderboard() async {
         do { leaderboard = try await APIClient.shared.getLeaderboard(campaignId: campaign.id) }
         catch { }
     }
 
-    func loadDonorPledges(currentUserId: String) async {
-        let isCreator = campaign.createdBy == currentUserId
-        guard isCreator || joined else { return }
+    func loadDonorPledges() async {
         do { donorPledges = try await APIClient.shared.getCampaignPledges(id: campaign.id) }
         catch { }
     }
@@ -246,9 +249,19 @@ struct CampaignDetailView: View {
                 }
             }
         }
-        .task {
+        .refreshable {
+            async let _ = vm.loadCampaign()
             async let _ = vm.loadLeaderboard()
-            async let _ = vm.loadDonorPledges(currentUserId: auth.profile?.userId ?? "")
+            async let _ = vm.loadDonorPledges()
+        }
+        .task {
+            async let _ = vm.loadCampaign()
+            async let _ = vm.loadLeaderboard()
+            async let _ = vm.loadDonorPledges()
+        }
+        .onChange(of: auth.profile?.userId) { _, userId in
+            guard userId != nil else { return }
+            Task { await vm.loadDonorPledges() }
         }
         .onChange(of: vm.deleted) { _, deleted in
             if deleted { dismiss() }

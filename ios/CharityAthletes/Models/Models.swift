@@ -86,7 +86,7 @@ struct Activity: Decodable, Identifiable {
     let movingTimeSeconds: Int
     let totalElevationGain: Double
     let startDate: Date
-    let stravaActivityId: Int?
+    let stravaActivityId: String?
 
     var distanceKm: Double { distanceMeters / 1000 }
 
