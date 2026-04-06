@@ -82,35 +82,47 @@ router.post('/stripe', async (req: Request, res: Response) => {
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object as {
         id: string;
+        payment_intent: string | null;
         metadata: Record<string, string>;
         amount_total: number;
         customer: string;
       };
       const campaignId  = session.metadata.campaign_id;
+      const userId      = session.metadata.user_id;
       const amountTotal = session.amount_total ?? 0;
 
+      console.log('[Webhook/Stripe] checkout.session.completed', { campaignId, userId, amountTotal });
+
       // Manual donation completed via Checkout Session
-      await db.from('donations').insert({
-        user_id:      session.metadata.user_id,
-        campaign_id:  campaignId,
-        participation_id: session.metadata.participation_id ?? null,
-        flat_amount_jpy:  amountTotal,
-        per_km_amount_jpy: 0,
-        total_amount_jpy: amountTotal,
-        status:       'completed',
-        trigger_type: 'manual',
-        stripe_payment_intent_id: session.id,
-        stripe_status: 'succeeded',
+      const { error: insertErr } = await db.from('donations').insert({
+        user_id:                  userId,
+        campaign_id:              campaignId,
+        flat_amount_jpy:          amountTotal,
+        per_km_amount_jpy:        0,
+        status:                   'completed',
+        trigger_type:             'manual',
+        stripe_payment_intent_id: session.payment_intent ?? session.id,
       });
 
-      // Update campaign raised amount
-      const { data: charged } = await db
-        .from('donations')
-        .select('total_amount_jpy')
-        .eq('campaign_id', campaignId)
-        .eq('status', 'completed');
-      const totalRaised = (charged ?? []).reduce((s: number, d: any) => s + (d.total_amount_jpy ?? 0), 0);
-      await db.from('campaigns').update({ raised_amount_jpy: totalRaised }).eq('id', campaignId);
+      if (insertErr) {
+        console.error('[Webhook/Stripe] donation insert failed', insertErr);
+      } else {
+        // Update campaign raised amount from all completed donations
+        const { data: charged } = await db
+          .from('donations')
+          .select('flat_amount_jpy, per_km_amount_jpy')
+          .eq('campaign_id', campaignId)
+          .eq('status', 'completed');
+        const totalRaised = (charged ?? []).reduce(
+          (s: number, d: any) => s + (d.flat_amount_jpy ?? 0) + (d.per_km_amount_jpy ?? 0), 0
+        );
+        const { error: updateErr } = await db
+          .from('campaigns')
+          .update({ raised_amount_jpy: totalRaised })
+          .eq('id', campaignId);
+        if (updateErr) console.error('[Webhook/Stripe] campaign update failed', updateErr);
+        else console.log('[Webhook/Stripe] raised_amount_jpy updated to', totalRaised);
+      }
     }
   } catch (err) {
     console.error('[Webhook/Stripe] Processing error', err);
