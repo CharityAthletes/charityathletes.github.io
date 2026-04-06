@@ -87,27 +87,32 @@ router.post('/confirm-setup', requireAuth, async (req: Request, res: Response) =
   const { payment_method_id } = req.body;
   if (!payment_method_id) return res.status(400).json({ error: 'payment_method_id required' });
 
-  const { data: profile } = await db
-    .from('user_profiles')
-    .select('stripe_customer_id')
-    .eq('user_id', req.userId!)
-    .single();
+  try {
+    const { data: profile } = await db
+      .from('user_profiles')
+      .select('stripe_customer_id')
+      .eq('user_id', req.userId!)
+      .single();
 
-  if (!profile?.stripe_customer_id) return res.status(400).json({ error: 'No Stripe customer' });
+    if (!profile?.stripe_customer_id) return res.status(400).json({ error: 'No Stripe customer' });
 
-  const { stripe } = await import('../config/stripe');
+    const { stripe } = await import('../config/stripe');
 
-  // Attach the payment method to the customer (PM was created directly via Stripe API on device)
-  await stripe.paymentMethods.attach(payment_method_id, {
-    customer: profile.stripe_customer_id,
-  });
+    // Attach the payment method to the customer (PM was created directly via Stripe API on device)
+    await stripe.paymentMethods.attach(payment_method_id, {
+      customer: profile.stripe_customer_id,
+    });
 
-  // Set as the customer's default payment method so off-session charges work
-  await stripe.customers.update(profile.stripe_customer_id, {
-    invoice_settings: { default_payment_method: payment_method_id },
-  });
+    // Set as the customer's default payment method so off-session charges work
+    await stripe.customers.update(profile.stripe_customer_id, {
+      invoice_settings: { default_payment_method: payment_method_id },
+    });
 
-  res.json({ clientSecret: 'ok' });
+    res.json({ clientSecret: 'ok' });
+  } catch (e: any) {
+    console.error('[confirm-setup error]', e?.message);
+    res.status(500).json({ error: e?.message ?? 'Failed to save card' });
+  }
 });
 
 export default router;
