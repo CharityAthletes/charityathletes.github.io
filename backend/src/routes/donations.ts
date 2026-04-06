@@ -82,7 +82,7 @@ router.post('/setup-payment', requireAuth, async (req: Request, res: Response) =
   res.json(intent);
 });
 
-// POST /donations/confirm-setup — deferred flow: create+confirm SetupIntent with payment method
+// POST /donations/confirm-setup — attach a payment method to the customer and set as default
 router.post('/confirm-setup', requireAuth, async (req: Request, res: Response) => {
   const { payment_method_id } = req.body;
   if (!payment_method_id) return res.status(400).json({ error: 'payment_method_id required' });
@@ -96,12 +96,10 @@ router.post('/confirm-setup', requireAuth, async (req: Request, res: Response) =
   if (!profile?.stripe_customer_id) return res.status(400).json({ error: 'No Stripe customer' });
 
   const { stripe } = await import('../config/stripe');
-  const intent = await stripe.setupIntents.create({
+
+  // Attach the payment method to the customer (PM was created directly via Stripe API on device)
+  await stripe.paymentMethods.attach(payment_method_id, {
     customer: profile.stripe_customer_id,
-    payment_method: payment_method_id,
-    usage: 'off_session',
-    automatic_payment_methods: { enabled: true, allow_redirects: 'never' },
-    confirm: true,
   });
 
   // Set as the customer's default payment method so off-session charges work
@@ -109,7 +107,7 @@ router.post('/confirm-setup', requireAuth, async (req: Request, res: Response) =
     invoice_settings: { default_payment_method: payment_method_id },
   });
 
-  res.json({ client_secret: intent.client_secret });
+  res.json({ clientSecret: 'ok' });
 });
 
 export default router;
