@@ -108,7 +108,7 @@ struct Activity: Decodable, Identifiable {
 
 // ─── Nonprofit ────────────────────────────────────────────────────────────────
 
-struct Nonprofit: Decodable, Identifiable {
+struct Nonprofit: Decodable, Identifiable, Equatable {
     let id: String
     let nameJa: String
     let nameEn: String
@@ -153,7 +153,7 @@ struct UpdateCampaignRequest: Encodable {
 
 // ─── Campaign ─────────────────────────────────────────────────────────────────
 
-struct Campaign: Decodable, Identifiable {
+struct Campaign: Decodable, Identifiable, Equatable {
     let id: String
     let titleJa: String
     let titleEn: String
