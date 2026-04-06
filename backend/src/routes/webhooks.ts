@@ -109,6 +109,29 @@ router.post('/stripe', async (req: Request, res: Response) => {
       if (insertErr) {
         console.error('[Webhook/Stripe] donation insert failed', insertErr);
       } else {
+        // Look up donor name for the pledge record
+        const { data: profile } = await db
+          .from('user_profiles')
+          .select('display_name')
+          .eq('user_id', userId)
+          .single();
+
+        // Also insert into donor_pledges so it appears in the donor list
+        await db.from('donor_pledges').insert({
+          campaign_id:              campaignId,
+          donor_name:               profile?.display_name ?? 'Anonymous',
+          donor_email:              '',
+          flat_amount_jpy:          amountTotal,
+          per_km_rate_jpy:          null,
+          stripe_customer_id:       session.customer,
+          stripe_payment_method_id: session.payment_intent ?? session.id,
+          is_anonymous:             false,
+          athlete_user_id:          null,
+          status:                   'charged',
+          charged_amount_jpy:       amountTotal,
+          charged_at:               new Date().toISOString(),
+        });
+
         // Update campaign raised amount from all completed donations
         const { data: charged } = await db
           .from('donations')
