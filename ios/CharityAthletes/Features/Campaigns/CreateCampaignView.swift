@@ -44,8 +44,10 @@ final class CreateCampaignVM: ObservableObject {
     func loadNonprofits() async {
         do {
             nonprofits = try await APIClient.shared.getNonprofits()
-            if selectedNonprofitId.isEmpty, let first = nonprofits.first {
-                selectedNonprofitId = first.id
+            if selectedNonprofitId.isEmpty {
+                // Default to Cycling for Charity, fall back to first
+                let preferred = nonprofits.first { $0.nameEn.lowercased().contains("cycling") }
+                selectedNonprofitId = (preferred ?? nonprofits.first)?.id ?? ""
             }
         } catch {
             self.error = error.localizedDescription

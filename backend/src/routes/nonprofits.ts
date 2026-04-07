@@ -9,7 +9,7 @@ router.get('/', async (_req: Request, res: Response) => {
     .from('nonprofits')
     .select('id, name_ja, name_en, description_ja, description_en, logo_url, website_url')
     .eq('is_active', true)
-    .order('name_ja');
+    .order('name_en');
   if (error) return res.status(500).json({ error: error.message });
   res.json(data);
 });
