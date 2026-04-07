@@ -26,11 +26,14 @@ final class CreateCampaignVM: ObservableObject {
     @Published var error: String?
     @Published var created = false
 
-    private let isoFmt: ISO8601DateFormatter = {
-        let f = ISO8601DateFormatter()
-        f.formatOptions = [.withInternetDateTime]
-        return f
-    }()
+    // Format a date as local-day start/end matching Strava's start_date_local format (no tz offset)
+    private func localDayString(_ date: Date, endOfDay: Bool) -> String {
+        let c = Calendar.current.dateComponents([.year, .month, .day], from: date)
+        let y = c.year!, m = c.month!, d = c.day!
+        return endOfDay
+            ? String(format: "%04d-%02d-%02dT23:59:59Z", y, m, d)
+            : String(format: "%04d-%02d-%02dT00:00:00Z", y, m, d)
+    }
 
     func loadNonprofits() async {
         do {
@@ -68,8 +71,8 @@ final class CreateCampaignVM: ObservableObject {
             maxDistanceKm:    maxKm,
             suggestedPerKmJpy: rates,
             donorboxCampaignId: "",
-            startDate:        isoFmt.string(from: startDate),
-            endDate:          isoFmt.string(from: endDate),
+            startDate:        localDayString(startDate, endOfDay: false),
+            endDate:          localDayString(endDate, endOfDay: true),
             goalAmountJpy:    goal,
             isPublic:         isPublic
         )

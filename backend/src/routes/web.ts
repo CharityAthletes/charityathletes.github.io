@@ -67,10 +67,10 @@ router.get('/:id/data', async (req: Request, res: Response) => {
   let activityQuery = db.from('activities')
     .select('id, name, sport_type, distance_meters, start_date, moving_time_seconds, strava_activity_id')
     .eq('user_id', athleteId)
-    .gte('start_date', campaign.start_date ?? '')
-    .order('start_date', { ascending: false })
+    .gte('start_date_local', campaign.start_date ?? '')
+    .order('start_date_local', { ascending: false })
     .limit(20);
-  if (campaign.end_date) activityQuery = activityQuery.lte('start_date', campaign.end_date);
+  if (campaign.end_date) activityQuery = activityQuery.lte('start_date_local', campaign.end_date);
   if (expandedTypes.length > 0) activityQuery = activityQuery.in('sport_type', expandedTypes);
 
   // Pledges: scope to this athlete when ?a= is present; otherwise all campaign pledges

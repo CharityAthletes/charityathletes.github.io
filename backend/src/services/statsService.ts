@@ -41,8 +41,8 @@ export async function recalcDistanceStats(userId: string): Promise<void> {
       .select('distance_meters')
       .eq('user_id', userId)
       .is('deleted_at', null)
-      .gte('start_date', campaign.start_date)
-      .lte('start_date', campaign.end_date);
+      .gte('start_date_local', campaign.start_date)
+      .lte('start_date_local', campaign.end_date);
 
     const sportTypes: string[] = campaign.sport_types ?? [];
     if (sportTypes.length > 0) {

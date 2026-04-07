@@ -31,20 +31,25 @@ final class EditCampaignVM: ObservableObject {
         self.isPublic       = campaign.isPublic
     }
 
+    private func localDayString(_ date: Date, endOfDay: Bool) -> String {
+        let c = Calendar.current.dateComponents([.year, .month, .day], from: date)
+        let y = c.year!, m = c.month!, d = c.day!
+        return endOfDay
+            ? String(format: "%04d-%02d-%02dT23:59:59Z", y, m, d)
+            : String(format: "%04d-%02d-%02dT00:00:00Z", y, m, d)
+    }
+
     func save() async {
         isSaving = true; error = nil
         defer { isSaving = false }
-
-        let fmt = ISO8601DateFormatter()
-        fmt.formatOptions = [.withInternetDateTime]
 
         let body = UpdateCampaignRequest(
             titleJa:        titleJa.isEmpty ? nil : titleJa,
             titleEn:        titleEn.isEmpty ? nil : titleEn,
             descriptionJa:  descriptionJa,
             descriptionEn:  descriptionEn,
-            startDate:      fmt.string(from: startDate),
-            endDate:        fmt.string(from: endDate),
+            startDate:      localDayString(startDate, endOfDay: false),
+            endDate:        localDayString(endDate, endOfDay: true),
             goalAmountJpy:  Int(goalAmountJpy),
             isPublic:       isPublic,
             maxDistanceKm:  maxDistanceKm.isEmpty ? nil : Int(maxDistanceKm)

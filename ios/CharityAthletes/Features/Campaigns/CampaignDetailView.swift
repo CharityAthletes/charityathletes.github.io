@@ -105,6 +105,16 @@ struct CampaignDetailView: View {
     private var c: Campaign { vm.campaign }
     private var isCreator: Bool { c.createdBy == auth.profile?.userId }
 
+    private static let dateFmt: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "MMM d, yyyy"
+        return f
+    }()
+
+    private func dateRangeString(start: Date, end: Date) -> String {
+        "\(Self.dateFmt.string(from: start)) – \(Self.dateFmt.string(from: end))"
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
@@ -115,6 +125,10 @@ struct CampaignDetailView: View {
                         Text(i18n.pick(ja: np.nameJa, en: np.nameEn))
                             .font(.subheadline).foregroundStyle(.secondary)
                     }
+                    Label(dateRangeString(start: c.startDate, end: c.endDate),
+                          systemImage: "calendar")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
 
                 // Progress

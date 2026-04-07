@@ -415,8 +415,8 @@ router.post('/:id/finalize', requireAuth, async (req: Request, res: Response) =>
   let activityQuery = db.from('activities')
     .select('distance_meters')
     .eq('user_id', req.userId!)
-    .gte('start_date', campaign.start_date ?? '');
-  if (campaign.end_date) activityQuery = activityQuery.lte('start_date', campaign.end_date);
+    .gte('start_date_local', campaign.start_date ?? '');
+  if (campaign.end_date) activityQuery = activityQuery.lte('start_date_local', campaign.end_date);
   if (expandedTypes.length > 0) activityQuery = activityQuery.in('sport_type', expandedTypes);
 
   const { data: activities } = await activityQuery;
@@ -449,8 +449,8 @@ router.post('/:id/finalize', requireAuth, async (req: Request, res: Response) =>
       let aq = db.from('activities')
         .select('distance_meters')
         .eq('user_id', athleteId)
-        .gte('start_date', campaign.start_date ?? '');
-      if (campaign.end_date) aq = aq.lte('start_date', campaign.end_date);
+        .gte('start_date_local', campaign.start_date ?? '');
+      if (campaign.end_date) aq = aq.lte('start_date_local', campaign.end_date);
       if (expandedTypes.length > 0) aq = aq.in('sport_type', expandedTypes);
       const { data: aActs } = await aq;
       const rawKm = (aActs ?? []).reduce((s: number, a: any) => s + (a.distance_meters / 1000), 0);

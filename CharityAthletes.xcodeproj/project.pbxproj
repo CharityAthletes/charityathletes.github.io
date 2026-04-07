@@ -14,33 +14,31 @@
 		4F0ED94542F624CE50453B84 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = F245AE9D3100ED90DFC64B50 /* Localizable.strings */; };
 		4F3A42BEFF42744703AE2ACF /* CharityAthletesApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 686715B63A59B4262127EBA6 /* CharityAthletesApp.swift */; };
 		7742F0ACB3E71EE886DB6847 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D96696FF9ACCBE8ECB641C1D /* ProfileView.swift */; };
-		FA11BB22CC33DD44EE55FF66 /* HowItWorksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA11BB22CC33DD44EE55FF67 /* HowItWorksView.swift */; };
 		80E3E97C60E5233E92F97F80 /* I18n.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA63DF739AF0698FCDF8DC7A /* I18n.swift */; };
+		AA11BB22CC33DD44EE55FF66 /* AppLogo.png in Resources */ = {isa = PBXBuildFile; fileRef = AA11BB22CC33DD44EE55FF67 /* AppLogo.png */; };
+		AB22CC33DD44EE55FF66AA11 /* SupportCampaignSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB22CC33DD44EE55FF66AA12 /* SupportCampaignSheet.swift */; };
 		B0B33548F1D0650BD6B93B9B /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FC1A9DE964CA2D4E304F43F /* APIClient.swift */; };
 		BA97C0CAE930EA5CB463FE00 /* CampaignListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBF80F63113EE7DF0E6210D0 /* CampaignListView.swift */; };
 		C99D0C941DB3412ACA8B9A99 /* CreateCampaignView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 131F3E1AD325EFA29603666A /* CreateCampaignView.swift */; };
-		EC11AA22BB33CC44DD55EE66 /* EditCampaignView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC11AA22BB33CC44DD55EE67 /* EditCampaignView.swift */; };
-		AB22CC33DD44EE55FF66AA11 /* SupportCampaignSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB22CC33DD44EE55FF66AA12 /* SupportCampaignSheet.swift */; };
+		CC44AA11BB22DD33EE55FF77 /* CharityDirectoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC44AA11BB22DD33EE55FF78 /* CharityDirectoryView.swift */; };
 		CC7403A05ED2C7738853B439 /* AdminQueueView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DAE5014D89E4622405884B1 /* AdminQueueView.swift */; };
 		D24D27ACC820C9C2552D6D79 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 87B0216558714C4C04BE6EA7 /* Supabase */; };
 		D4FA4687F7E78343FDA23216 /* ActivityListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A801522369E7FA617044A13 /* ActivityListView.swift */; };
 		E0DDE28C5730D9919B2AE58E /* DonationListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C59837FD6264A90A64DB44B /* DonationListView.swift */; };
 		E366D74A9B79D76A96C581EF /* CampaignDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B90FDF2C0F6B3C17D3E6511E /* CampaignDetailView.swift */; };
 		E56E991E2C781673D1CFAE65 /* NonprofitDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ED7D098380533625AF5B96A /* NonprofitDashboardView.swift */; };
-		AA11BB22CC33DD44EE55FF66 /* AppLogo.png in Resources */ = {isa = PBXBuildFile; fileRef = AA11BB22CC33DD44EE55FF67 /* AppLogo.png */; };
-		CC44AA11BB22DD33EE55FF77 /* CharityDirectoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC44AA11BB22DD33EE55FF78 /* CharityDirectoryView.swift */; };
 		EB419AE064F42384BA9A2F4A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ACFFC76104DE87A2A11E296C /* Assets.xcassets */; };
 		EBEA9EB832E988F7DF272D31 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29C369CE0AFDDB55402A583B /* Models.swift */; };
+		EC11AA22BB33CC44DD55EE66 /* EditCampaignView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC11AA22BB33CC44DD55EE67 /* EditCampaignView.swift */; };
 		F2C01E40A34C3DDE3120D53C /* Endpoints.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0BE9712727B9CE1E2B2EF61 /* Endpoints.swift */; };
 		F769388481B3BFA48A09C1FD /* SupabaseClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 685016F4459736251BFCBCBF /* SupabaseClient.swift */; };
 		F89F45A6412AAAC8D0D69431 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4CC3561266ADD4F741AC35A /* OnboardingView.swift */; };
+		FA11BB22CC33DD44EE55FF66 /* HowItWorksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA11BB22CC33DD44EE55FF67 /* HowItWorksView.swift */; };
 		FB902D85E3FF7B155DEC64E8 /* Keychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49D6D5CFCC02F95B03AB9EA9 /* Keychain.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		131F3E1AD325EFA29603666A /* CreateCampaignView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateCampaignView.swift; sourceTree = "<group>"; };
-		EC11AA22BB33CC44DD55EE67 /* EditCampaignView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditCampaignView.swift; sourceTree = "<group>"; };
-		AB22CC33DD44EE55FF66AA12 /* SupportCampaignSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportCampaignSheet.swift; sourceTree = "<group>"; };
 		1E1C96D9A4822317E1BF4540 /* NonprofitSignupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NonprofitSignupView.swift; sourceTree = "<group>"; };
 		1FC1A9DE964CA2D4E304F43F /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
 		23A5AF14C443934003CB623A /* CharityAthletes.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CharityAthletes.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -58,18 +56,20 @@
 		8F5232577C5DA52C1D37C9DC /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
 		A0BE9712727B9CE1E2B2EF61 /* Endpoints.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Endpoints.swift; sourceTree = "<group>"; };
 		AA11BB22CC33DD44EE55FF67 /* AppLogo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = AppLogo.png; sourceTree = "<group>"; };
-		CC44AA11BB22DD33EE55FF78 /* CharityDirectoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CharityDirectoryView.swift; sourceTree = "<group>"; };
+		AB22CC33DD44EE55FF66AA12 /* SupportCampaignSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportCampaignSheet.swift; sourceTree = "<group>"; };
 		ACFFC76104DE87A2A11E296C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B0A48A68103DFB404B9825B7 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		B90FDF2C0F6B3C17D3E6511E /* CampaignDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampaignDetailView.swift; sourceTree = "<group>"; };
 		C8DF9C602349229650080DB6 /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Localizable.strings; sourceTree = "<group>"; };
+		CC44AA11BB22DD33EE55FF78 /* CharityDirectoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CharityDirectoryView.swift; sourceTree = "<group>"; };
 		D96696FF9ACCBE8ECB641C1D /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
-		FA11BB22CC33DD44EE55FF67 /* HowItWorksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HowItWorksView.swift; sourceTree = "<group>"; };
 		DA63DF739AF0698FCDF8DC7A /* I18n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = I18n.swift; sourceTree = "<group>"; };
 		DBF80F63113EE7DF0E6210D0 /* CampaignListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampaignListView.swift; sourceTree = "<group>"; };
 		E4CC3561266ADD4F741AC35A /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		EA723ACB1FFCEA03FF300374 /* AdminStatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminStatsView.swift; sourceTree = "<group>"; };
+		EC11AA22BB33CC44DD55EE67 /* EditCampaignView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditCampaignView.swift; sourceTree = "<group>"; };
 		F0CC13DCB0C1B66A64EB24A4 /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
+		FA11BB22CC33DD44EE55FF67 /* HowItWorksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HowItWorksView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -234,6 +234,14 @@
 			path = Auth;
 			sourceTree = "<group>";
 		};
+		CC44AA11BB22DD33EE55FF79 /* Charities */ = {
+			isa = PBXGroup;
+			children = (
+				CC44AA11BB22DD33EE55FF78 /* CharityDirectoryView.swift */,
+			);
+			path = Charities;
+			sourceTree = "<group>";
+		};
 		E4D5CA079527FA873C29038D /* Campaigns */ = {
 			isa = PBXGroup;
 			children = (
@@ -252,14 +260,6 @@
 				DA63DF739AF0698FCDF8DC7A /* I18n.swift */,
 			);
 			path = Localization;
-			sourceTree = "<group>";
-		};
-		CC44AA11BB22DD33EE55FF79 /* Charities */ = {
-			isa = PBXGroup;
-			children = (
-				CC44AA11BB22DD33EE55FF78 /* CharityDirectoryView.swift */,
-			);
-			path = Charities;
 			sourceTree = "<group>";
 		};
 		EBDA162218DBB31F36FAEAF1 /* Features */ = {

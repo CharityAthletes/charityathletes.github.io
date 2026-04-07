@@ -105,6 +105,7 @@ export const stravaService = {
         elapsed_time_seconds: raw.elapsed_time,
         total_elevation_gain: raw.total_elevation_gain,
         start_date:          raw.start_date,
+        start_date_local:    raw.start_date_local ?? raw.start_date,
         map_polyline:        raw.map?.summary_polyline ?? null,
         average_speed_mps:   raw.average_speed,
         max_speed_mps:       raw.max_speed,

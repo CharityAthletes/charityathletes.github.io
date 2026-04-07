@@ -96,8 +96,8 @@ async function chargeCampaign(campaign: CampaignRow): Promise<{
     .from('activities')
     .select('distance_meters, sport_type')
     .eq('user_id', campaign.created_by)
-    .gte('start_date', campaign.start_date)
-    .lte('start_date', campaign.end_date)
+    .gte('start_date_local', campaign.start_date)
+    .lte('start_date_local', campaign.end_date)
     .is('deleted_at', null);
 
   // Use partial-match sport type filter (e.g. 'Run' matches 'TrailRun')
