@@ -66,40 +66,74 @@ export async function recalcDistanceStats(userId: string): Promise<void> {
 
 /**
  * Recalculates a user's total donated (raised) amount and updates:
- *   - user_profiles.total_donated_jpy
- *       (sum of charged_amount_jpy on donor_pledges where athlete_user_id = userId)
- *   - campaign_participations.total_donated_jpy
- *       (per-campaign breakdown of the above)
+ *   - user_profiles.total_donated_jpy  — total raised across all campaigns
+ *   - campaign_participations.total_donated_jpy — per-campaign breakdown
  *
- * Call this after pledges are charged (finalize or per-km charge).
+ * Counts:
+ *   - Per-km pledges where athlete_user_id = userId (charged)
+ *   - Flat donations (athlete_user_id IS NULL) on campaigns created_by userId
+ *
+ * Call this after pledges are charged (finalize or checkout webhook).
  */
 export async function recalcDonatedStats(userId: string): Promise<void> {
-  // Per-campaign breakdown
+  // Get all campaigns this user created (flat donations land here with athlete_user_id = null)
+  const { data: createdCampaigns } = await db
+    .from('campaigns')
+    .select('id')
+    .eq('created_by', userId);
+  const createdIds = new Set((createdCampaigns ?? []).map((c: any) => c.id));
+
+  // Get all campaign_participations for this user (for per-km pledges)
   const { data: participations } = await db
     .from('campaign_participations')
     .select('id, campaign_id')
     .eq('user_id', userId);
 
+  // Build a unified set of campaign IDs to process
+  const allCampaignIds = new Set([
+    ...((participations ?? []).map((p: any) => p.campaign_id)),
+    ...createdIds,
+  ]);
+
   let grandTotal = 0;
 
-  for (const p of participations ?? []) {
-    const { data: pledges } = await db
+  for (const campaignId of allCampaignIds) {
+    // Per-km pledges directly tied to this athlete
+    const { data: perKmPledges } = await db
       .from('donor_pledges')
       .select('charged_amount_jpy')
-      .eq('campaign_id', (p as any).campaign_id)
+      .eq('campaign_id', campaignId)
       .eq('athlete_user_id', userId)
       .eq('status', 'charged');
 
-    const campTotal = (pledges ?? []).reduce(
-      (s, pl: any) => s + (pl.charged_amount_jpy ?? 0),
-      0
+    let campTotal = (perKmPledges ?? []).reduce(
+      (s, pl: any) => s + (pl.charged_amount_jpy ?? 0), 0
     );
+
+    // Flat donations (no specific athlete) on campaigns this user created
+    if (createdIds.has(campaignId)) {
+      const { data: flatPledges } = await db
+        .from('donor_pledges')
+        .select('charged_amount_jpy')
+        .eq('campaign_id', campaignId)
+        .is('athlete_user_id', null)
+        .eq('status', 'charged');
+
+      campTotal += (flatPledges ?? []).reduce(
+        (s, pl: any) => s + (pl.charged_amount_jpy ?? 0), 0
+      );
+    }
+
     grandTotal += campTotal;
 
-    await db
-      .from('campaign_participations')
-      .update({ total_donated_jpy: campTotal })
-      .eq('id', (p as any).id);
+    // Update campaign_participations row if it exists
+    const participation = (participations ?? []).find((p: any) => p.campaign_id === campaignId);
+    if (participation) {
+      await db
+        .from('campaign_participations')
+        .update({ total_donated_jpy: campTotal })
+        .eq('id', (participation as any).id);
+    }
   }
 
   await db
