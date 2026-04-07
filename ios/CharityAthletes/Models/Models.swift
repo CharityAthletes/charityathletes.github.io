@@ -176,6 +176,7 @@ struct Campaign: Decodable, Identifiable, Equatable {
     let isActive: Bool
     let isPublic: Bool
     let createdBy: String?
+    let myDistanceKm: Double?   // set only on /campaigns/mine — this athlete's distance
 
     let nonprofits: Nonprofit?
 

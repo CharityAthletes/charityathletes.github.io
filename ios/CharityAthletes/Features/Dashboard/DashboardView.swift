@@ -212,9 +212,17 @@ struct CampaignMiniCard: View {
                 .lineLimit(1)
             Spacer()
             ProgressView(value: campaign.progress).tint(Color("BrandOrange"))
-            Text("¥\(campaign.raisedAmountJpy.formatted())")
-                .font(.caption.bold())
-                .foregroundStyle(Color("BrandOrange"))
+            HStack {
+                Text("¥\(campaign.raisedAmountJpy.formatted())")
+                    .font(.caption.bold())
+                    .foregroundStyle(Color("BrandOrange"))
+                if joined, let km = campaign.myDistanceKm {
+                    Spacer()
+                    Label(String(format: "%.1f km", km), systemImage: "figure.run")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+            }
         }
         .padding()
         .frame(width: 200, height: 130)

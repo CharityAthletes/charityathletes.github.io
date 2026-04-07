@@ -91,11 +91,13 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
 router.get('/mine', requireAuth, async (req: Request, res: Response) => {
   const { data, error } = await db
     .from('campaign_participations')
-    .select('campaigns(*, nonprofits(id, name_ja, name_en, description_ja, description_en, logo_url, website_url))')
+    .select('total_distance_km, campaigns(*, nonprofits(id, name_ja, name_en, description_ja, description_en, logo_url, website_url))')
     .eq('user_id', req.userId!);
 
   if (error) return res.status(500).json({ error: error.message });
-  const campaigns = (data ?? []).map((r: any) => r.campaigns).filter(Boolean);
+  const campaigns = (data ?? [])
+    .filter((r: any) => r.campaigns)
+    .map((r: any) => ({ ...r.campaigns, my_distance_km: r.total_distance_km ?? 0 }));
   res.json(campaigns);
 });
 
