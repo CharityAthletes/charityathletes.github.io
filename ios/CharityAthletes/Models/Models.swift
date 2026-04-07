@@ -146,6 +146,7 @@ struct UpdateCampaignRequest: Encodable {
     var titleEn: String?
     var descriptionJa: String?
     var descriptionEn: String?
+    var startDate: String?
     var endDate: String?
     var goalAmountJpy: Int?
     var isPublic: Bool?

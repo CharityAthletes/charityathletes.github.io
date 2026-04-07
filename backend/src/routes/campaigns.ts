@@ -266,6 +266,7 @@ const updateSchema = z.object({
   title_en:        z.string().min(1).optional(),
   description_ja:  z.string().optional(),
   description_en:  z.string().optional(),
+  start_date:      z.string().optional(),
   end_date:        z.string().optional(),
   goal_amount_jpy: z.number().int().min(0).optional(),
   is_public:       z.boolean().optional(),
