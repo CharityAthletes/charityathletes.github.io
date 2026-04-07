@@ -224,7 +224,6 @@ struct CampaignRow: View {
                             .background(Color("BrandOrange"))
                             .clipShape(Capsule())
                     }
-                    SportBadges(sportTypes: campaign.sportTypes)
                 }
             }
 
@@ -248,6 +247,7 @@ struct CampaignRow: View {
                 Text("/ ¥\(campaign.goalAmountJpy.formatted())")
                     .font(.caption).foregroundStyle(.secondary)
                 Spacer()
+                SportBadges(sportTypes: campaign.sportTypes)
                 if let km = myDistanceKm {
                     Label(String(format: "%.1f km", km), systemImage: "figure.run")
                         .font(.caption).foregroundStyle(Color("BrandOrange"))
@@ -274,7 +274,7 @@ struct SportBadges: View {
     let sportTypes: [String]
     var body: some View {
         HStack(spacing: 4) {
-            ForEach(sportTypes.prefix(2), id: \.self) { t in
+            ForEach(sportTypes, id: \.self) { t in
                 Image(systemName: icon(for: t))
                     .font(.caption)
                     .padding(6)
@@ -287,9 +287,10 @@ struct SportBadges: View {
     private func icon(for t: String) -> String {
         switch t {
         case "Ride", "VirtualRide": return "bicycle"
-        case "Run":                  return "figure.walk"
-        case "Swim":                 return "figure.pool.swim"
-        default:                     return "star"
+        case "Run":                 return "figure.run"
+        case "Walk":                return "figure.walk"
+        case "Swim":                return "figure.pool.swim"
+        default:                    return "figure.mixed.cardio"
         }
     }
 }

@@ -205,6 +205,16 @@ struct CampaignMiniCard: View {
         return "\(s) – \(e)"
     }
 
+    private func sportIcon(for t: String) -> String {
+        switch t {
+        case "Ride", "VirtualRide": return "bicycle"
+        case "Run":                 return "figure.run"
+        case "Walk":                return "figure.walk"
+        case "Swim":                return "figure.pool.swim"
+        default:                    return "figure.mixed.cardio"
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
@@ -227,13 +237,18 @@ struct CampaignMiniCard: View {
                 .foregroundStyle(.secondary)
             Spacer()
             ProgressView(value: campaign.progress).tint(Color("BrandOrange"))
-            HStack {
+            HStack(spacing: 6) {
                 Text("¥\(campaign.raisedAmountJpy.formatted())")
                     .font(.caption.bold())
                     .foregroundStyle(Color("BrandOrange"))
+                Spacer()
+                ForEach(campaign.sportTypes, id: \.self) { t in
+                    Image(systemName: sportIcon(for: t))
+                        .font(.caption2)
+                        .foregroundStyle(Color("BrandOrange"))
+                }
                 if joined, let km = campaign.myDistanceKm {
-                    Spacer()
-                    Label(String(format: "%.1f km", km), systemImage: "figure.run")
+                    Text(String(format: "%.1f km", km))
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                 }
