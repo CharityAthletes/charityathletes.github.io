@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { db } from '../config/supabase';
 import { stripe } from '../config/stripe';
 import { stripeService } from '../services/stripeService';
+import { recalcDonatedStats } from '../services/statsService';
 import { requireAuth } from '../middleware/auth';
 import { z } from 'zod';
 import type Stripe from 'stripe';
@@ -501,6 +502,17 @@ router.post('/:id/finalize', requireAuth, async (req: Request, res: Response) =>
     is_active:        false,
     raised_amount_jpy: totalRaised,
   }).eq('id', req.params.id);
+
+  // Recalculate donated stats for every athlete whose pledges were charged
+  const chargedAthleteIds = new Set<string>(
+    (pledges ?? [])
+      .filter((p: any) => p.athlete_user_id)
+      .map((p: any) => p.athlete_user_id as string)
+  );
+  chargedAthleteIds.add(campaign.created_by); // always include creator
+  for (const athleteId of chargedAthleteIds) {
+    await recalcDonatedStats(athleteId);
+  }
 
   res.json({ ok: true, totalKm, ...results });
 });

@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
 import { z } from 'zod';
 import { stravaService } from '../services/stravaService';
+import { recalcDistanceStats } from '../services/statsService';
 import { db } from '../config/supabase';
 import { requireAuth } from '../middleware/auth';
 
@@ -331,6 +332,9 @@ router.post('/strava/sync', requireAuth, async (req: Request, res: Response) => 
       );
       if (result) synced++;
     }
+
+    // Recalculate distance stats after sync
+    await recalcDistanceStats(req.userId!);
 
     res.json({ ok: true, synced });
   } catch (err: any) {

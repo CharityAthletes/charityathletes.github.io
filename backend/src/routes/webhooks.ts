@@ -9,6 +9,7 @@ import { Router, Request, Response } from 'express';
 import { stravaService } from '../services/stravaService';
 import { stripeService } from '../services/stripeService';
 import { processActivityDonations } from '../services/donationEngine';
+import { recalcDistanceStats, recalcDonatedStats } from '../services/statsService';
 import { db } from '../config/supabase';
 import type { StravaWebhookEvent } from '../types';
 
@@ -38,10 +39,14 @@ router.post('/strava', (req: Request, res: Response) => {
     try {
       if (event.aspect_type === 'create') {
         const result = await stravaService.syncActivity(event.owner_id, event.object_id);
-        if (result) await processActivityDonations(result.activityId);
+        if (result) {
+          await processActivityDonations(result.activityId);
+          await recalcDistanceStats(result.userId);
+        }
       } else if (event.aspect_type === 'update') {
         // Re-sync so edits to name, sport type, distance, etc. are reflected immediately
-        await stravaService.syncActivity(event.owner_id, event.object_id);
+        const result = await stravaService.syncActivity(event.owner_id, event.object_id);
+        if (result) await recalcDistanceStats(result.userId);
       } else if (event.aspect_type === 'delete') {
         await stravaService.markActivityDeleted(event.object_id);
       }
@@ -149,6 +154,9 @@ router.post('/stripe', async (req: Request, res: Response) => {
           .eq('id', campaignId);
         if (updateErr) console.error('[Webhook/Stripe] campaign update failed', updateErr);
         else console.log('[Webhook/Stripe] raised_amount_jpy updated to', totalRaised);
+
+        // Recalc donated stats for the donor
+        if (userId) await recalcDonatedStats(userId);
       }
     }
   } catch (err) {
