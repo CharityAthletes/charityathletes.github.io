@@ -94,7 +94,8 @@ export interface StravaDetailedActivity {
   moving_time: number;      // seconds
   elapsed_time: number;
   total_elevation_gain: number;
-  start_date: string;       // ISO8601
+  start_date: string;         // ISO8601 UTC
+  start_date_local?: string;  // ISO8601 in athlete's local timezone
   map: { summary_polyline: string | null };
   average_speed: number;    // m/s
   max_speed: number;
