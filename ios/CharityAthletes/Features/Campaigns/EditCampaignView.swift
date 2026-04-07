@@ -36,9 +36,14 @@ final class EditCampaignVM: ObservableObject {
     private func localDayString(_ date: Date, endOfDay: Bool) -> String {
         let c = Calendar.current.dateComponents([.year, .month, .day], from: date)
         let y = c.year!, m = c.month!, d = c.day!
+        let offset = TimeZone.current.secondsFromGMT()
+        let sign = offset >= 0 ? "+" : "-"
+        let h = abs(offset) / 3600
+        let min = (abs(offset) % 3600) / 60
+        let tz = String(format: "%@%02d:%02d", sign, h, min)
         return endOfDay
-            ? String(format: "%04d-%02d-%02dT23:59:59Z", y, m, d)
-            : String(format: "%04d-%02d-%02dT00:00:00Z", y, m, d)
+            ? String(format: "%04d-%02d-%02dT23:59:59\(tz)", y, m, d)
+            : String(format: "%04d-%02d-%02dT00:00:00\(tz)", y, m, d)
     }
 
     func save() async {
