@@ -193,8 +193,20 @@ struct CampaignMiniCard: View {
     var joined: Bool = false
     @ObservedObject private var i18n = I18n.shared
 
+    private static let dateFmt: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "MMM d"
+        return f
+    }()
+
+    private var dateRange: String {
+        let s = Self.dateFmt.string(from: campaign.startDate)
+        let e = Self.dateFmt.string(from: campaign.endDate)
+        return "\(s) – \(e)"
+    }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 6) {
             HStack {
                 Text(i18n.pick(ja: campaign.titleJa, en: campaign.titleEn))
                     .font(.subheadline.bold())
@@ -210,6 +222,9 @@ struct CampaignMiniCard: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
+            Label(dateRange, systemImage: "calendar")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
             Spacer()
             ProgressView(value: campaign.progress).tint(Color("BrandOrange"))
             HStack {
@@ -225,7 +240,7 @@ struct CampaignMiniCard: View {
             }
         }
         .padding()
-        .frame(width: 200, height: 130)
+        .frame(width: 200, height: 145)
         .background(joined ? Color("BrandOrange").opacity(0.1) : Color(.secondarySystemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .overlay(

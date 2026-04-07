@@ -18,6 +18,7 @@ final class CreateCampaignVM: ObservableObject {
     @Published var suggestedRates: Set<Int> = [10, 20, 50]
 
     @Published var goalAmount: String = ""
+    @Published var startDate: Date = Calendar.current.date(byAdding: .day, value: 1, to: Date()) ?? Date()
     @Published var endDate: Date = Calendar.current.date(byAdding: .day, value: 90, to: Date()) ?? Date()
     @Published var isPublic: Bool = false
 
@@ -67,7 +68,7 @@ final class CreateCampaignVM: ObservableObject {
             maxDistanceKm:    maxKm,
             suggestedPerKmJpy: rates,
             donorboxCampaignId: "",
-            startDate:        isoFmt.string(from: Date()),
+            startDate:        isoFmt.string(from: startDate),
             endDate:          isoFmt.string(from: endDate),
             goalAmountJpy:    goal,
             isPublic:         isPublic
@@ -208,7 +209,7 @@ struct CreateCampaignView: View {
                     }
                 }
 
-                // Goal & end date
+                // Goal & date range
                 Section(header: Text(i18n.language == .ja ? "目標と期間" : "Goal & Duration")) {
                     HStack {
                         Text(i18n.language == .ja ? "目標金額（任意）¥" : "Fundraising goal (optional) ¥")
@@ -218,9 +219,20 @@ struct CreateCampaignView: View {
                             .multilineTextAlignment(.trailing)
                             .frame(width: 100)
                     }
+                    DatePicker(i18n.language == .ja ? "開始日" : "Start date",
+                               selection: $vm.startDate,
+                               in: Calendar.current.date(byAdding: .day, value: 1, to: Date())!...,
+                               displayedComponents: .date)
+                        .tint(Color("BrandOrange"))
+                        .onChange(of: vm.startDate) { _, newStart in
+                            // Keep end date after start date
+                            if vm.endDate <= newStart {
+                                vm.endDate = Calendar.current.date(byAdding: .day, value: 1, to: newStart) ?? newStart
+                            }
+                        }
                     DatePicker(i18n.language == .ja ? "終了日" : "End date",
                                selection: $vm.endDate,
-                               in: Date()...,
+                               in: Calendar.current.date(byAdding: .day, value: 1, to: vm.startDate)!...,
                                displayedComponents: .date)
                         .tint(Color("BrandOrange"))
                 }

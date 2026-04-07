@@ -167,6 +167,18 @@ struct CampaignRow: View {
     var myDistanceKm: Double? = nil
     @ObservedObject private var i18n = I18n.shared
 
+    private static let dateFmt: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "MMM d"
+        return f
+    }()
+
+    private var dateRange: String {
+        let s = Self.dateFmt.string(from: campaign.startDate)
+        let e = Self.dateFmt.string(from: campaign.endDate)
+        return "\(s) – \(e)"
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .top) {
@@ -188,6 +200,9 @@ struct CampaignRow: View {
                         Text(i18n.pick(ja: np.nameJa, en: np.nameEn))
                             .font(.caption).foregroundStyle(.secondary)
                     }
+                    Label(dateRange, systemImage: "calendar")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
                 }
                 Spacer()
                 VStack(alignment: .trailing, spacing: 4) {
