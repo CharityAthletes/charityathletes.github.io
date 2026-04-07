@@ -151,6 +151,7 @@ struct UpdateCampaignRequest: Encodable {
     var goalAmountJpy: Int?
     var isPublic: Bool?
     var maxDistanceKm: Int?
+    var sportTypes: [String]?
 }
 
 // ─── Campaign ─────────────────────────────────────────────────────────────────

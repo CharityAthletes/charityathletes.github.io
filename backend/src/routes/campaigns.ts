@@ -271,6 +271,7 @@ const updateSchema = z.object({
   goal_amount_jpy: z.number().int().min(0).optional(),
   is_public:       z.boolean().optional(),
   max_distance_km: z.number().int().min(1).nullable().optional(),
+  sport_types:     z.array(z.string()).min(1).optional(),
 });
 
 router.patch('/:id', requireAuth, async (req: Request, res: Response) => {

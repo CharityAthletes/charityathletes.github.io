@@ -11,6 +11,7 @@ final class EditCampaignVM: ObservableObject {
     @Published var goalAmountJpy: String
     @Published var maxDistanceKm: String
     @Published var isPublic: Bool
+    @Published var sportTypes: Set<String>
 
     @Published var isSaving = false
     @Published var error: String?
@@ -29,6 +30,7 @@ final class EditCampaignVM: ObservableObject {
         self.goalAmountJpy  = campaign.goalAmountJpy > 0 ? String(campaign.goalAmountJpy) : ""
         self.maxDistanceKm  = campaign.maxDistanceKm.map { String($0) } ?? ""
         self.isPublic       = campaign.isPublic
+        self.sportTypes     = Set(campaign.sportTypes)
     }
 
     private func localDayString(_ date: Date, endOfDay: Bool) -> String {
@@ -52,7 +54,8 @@ final class EditCampaignVM: ObservableObject {
             endDate:        localDayString(endDate, endOfDay: true),
             goalAmountJpy:  Int(goalAmountJpy),
             isPublic:       isPublic,
-            maxDistanceKm:  maxDistanceKm.isEmpty ? nil : Int(maxDistanceKm)
+            maxDistanceKm:  maxDistanceKm.isEmpty ? nil : Int(maxDistanceKm),
+            sportTypes:     Array(sportTypes)
         )
 
         do {
@@ -103,6 +106,18 @@ struct EditCampaignView: View {
                         axis: .vertical
                     )
                     .lineLimit(4...)
+                }
+
+                Section(header: Text(i18n.language == .ja ? "対象スポーツ" : "Sport Types")) {
+                    ForEach(["Ride", "VirtualRide", "Run", "Walk", "Swim"], id: \.self) { sport in
+                        Toggle(sportLabel(sport), isOn: Binding(
+                            get: { vm.sportTypes.contains(sport) },
+                            set: { on in
+                                if on { vm.sportTypes.insert(sport) }
+                                else if vm.sportTypes.count > 1 { vm.sportTypes.remove(sport) }
+                            }
+                        )).tint(Color("BrandOrange"))
+                    }
                 }
 
                 Section(header: Text(i18n.language == .ja ? "キャンペーン期間" : "Campaign Period")) {
@@ -185,6 +200,17 @@ struct EditCampaignView: View {
                     dismiss()
                 }
             }
+        }
+    }
+
+    private func sportLabel(_ sport: String) -> String {
+        switch sport {
+        case "Ride":        return i18n.language == .ja ? "サイクリング" : "Cycling"
+        case "VirtualRide": return i18n.language == .ja ? "バーチャルライド" : "Virtual Ride"
+        case "Run":         return i18n.language == .ja ? "ランニング" : "Running"
+        case "Walk":        return i18n.language == .ja ? "ウォーキング" : "Walking"
+        case "Swim":        return i18n.language == .ja ? "スイミング" : "Swimming"
+        default:            return sport
         }
     }
 }
