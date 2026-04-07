@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>サポート – チャリアス / Support – Charity Athletes</title>
+  <style>
+    :root {
+      --orange: #FF641E;
+      --orange-light: #FF8040;
+      --orange-pale: #FFF0E8;
+      --text: #1a1a1a;
+      --text-light: #555;
+      --bg: #fff;
+      --bg-alt: #f8f8f8;
+      --radius: 12px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Yu Gothic', sans-serif; color: var(--text); line-height: 1.8; }
+    a { color: var(--orange); }
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);
+      border-bottom: 1px solid #eee;
+      padding: 0 24px; height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .nav-logo { font-weight: 700; font-size: 17px; color: var(--text); text-decoration: none; }
+    .lang-btn { background: var(--orange-pale); color: var(--orange); border: none; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; }
+
+    .hero-banner {
+      background: linear-gradient(135deg, var(--orange), #FF8C42);
+      color: white; padding: 48px 24px; text-align: center;
+    }
+    .hero-banner h1 { font-size: 28px; font-weight: 800; }
+    .hero-banner p { opacity: 0.9; margin-top: 8px; font-size: 16px; }
+
+    .content { max-width: 760px; margin: 0 auto; padding: 48px 24px 80px; }
+
+    /* Contact cards */
+    .contact-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 56px; }
+    .contact-card {
+      background: var(--bg-alt); border-radius: var(--radius);
+      padding: 24px; text-align: center; border: 1.5px solid #eee;
+    }
+    .contact-icon { font-size: 36px; margin-bottom: 12px; }
+    .contact-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+    .contact-card p { font-size: 14px; color: var(--text-light); margin-bottom: 12px; }
+    .contact-card a.btn {
+      display: inline-block; background: var(--orange); color: white;
+      padding: 8px 20px; border-radius: 20px; font-size: 14px; font-weight: 600;
+      text-decoration: none;
+    }
+    .contact-card a.btn:hover { background: var(--orange-light); }
+
+    /* FAQ */
+    .section-title { font-size: 22px; font-weight: 800; margin-bottom: 24px; }
+    .tag { display: inline-block; background: var(--orange-pale); color: var(--orange); font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 20px; margin-bottom: 12px; letter-spacing: 0.5px; text-transform: uppercase; }
+
+    .faq-group { margin-bottom: 40px; }
+    .faq-group-title { font-size: 17px; font-weight: 700; color: var(--orange); margin-bottom: 16px; border-bottom: 2px solid var(--orange-pale); padding-bottom: 8px; }
+
+    details {
+      border: 1.5px solid #eee; border-radius: var(--radius);
+      margin-bottom: 8px; overflow: hidden;
+    }
+    details[open] { border-color: var(--orange); }
+    summary {
+      padding: 16px 20px; font-size: 15px; font-weight: 600;
+      cursor: pointer; list-style: none;
+      display: flex; justify-content: space-between; align-items: center;
+      user-select: none;
+    }
+    summary::-webkit-details-marker { display: none; }
+    summary::after { content: '+'; font-size: 20px; color: var(--orange); font-weight: 300; flex-shrink: 0; margin-left: 12px; }
+    details[open] summary::after { content: '−'; }
+    .faq-body { padding: 4px 20px 16px; font-size: 14px; color: var(--text-light); line-height: 1.7; }
+    .faq-body ul { margin: 8px 0 0 20px; }
+    .faq-body ul li { margin-bottom: 4px; }
+
+    /* Strava disconnect */
+    .info-box {
+      background: var(--orange-pale); border-radius: var(--radius);
+      padding: 20px 24px; margin: 40px 0;
+      border-left: 4px solid var(--orange);
+    }
+    .info-box h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--orange); }
+    .info-box p, .info-box li { font-size: 14px; color: var(--text-light); }
+    .info-box ul { margin: 8px 0 0 20px; }
+
+    [data-lang="en"] { display: none; }
+    body.en [data-lang="ja"] { display: none; }
+    body.en [data-lang="en"] { display: block; }
+
+    footer { background: #1a1a1a; color: #aaa; text-align: center; padding: 32px 24px; font-size: 14px; }
+    footer a { color: #aaa; margin: 0 12px; }
+    footer a:hover { color: white; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="index.html">← <span data-lang="ja">チャリアス</span><span data-lang="en">Charity Athletes</span></a>
+  <button class="lang-btn" onclick="toggleLang()">EN / JA</button>
+</nav>
+
+<div class="hero-banner">
+  <h1 data-lang="ja">サポートセンター</h1>
+  <h1 data-lang="en">Support Center</h1>
+  <p data-lang="ja">よくある質問やお問い合わせはこちら</p>
+  <p data-lang="en">Frequently asked questions and contact information</p>
+</div>
+
+<div class="content">
+
+  <!-- CONTACT -->
+  <div data-lang="ja">
+    <div class="tag">お問い合わせ</div>
+    <h2 class="section-title">サポートへのお問い合わせ</h2>
+    <div class="contact-grid">
+      <div class="contact-card">
+        <div class="contact-icon">📧</div>
+        <h3>メールサポート</h3>
+        <p>技術的な問題・アカウント・寄付に関するお問い合わせ</p>
+        <a class="btn" href="mailto:support@cyclingforcharityjapan.com">メールを送る</a>
+      </div>
+      <div class="contact-card">
+        <div class="contact-icon">🌐</div>
+        <h3>ウェブサイト</h3>
+        <p>最新情報・お知らせはこちら</p>
+        <a class="btn" href="https://cyclingforcharityjapan.com" target="_blank">サイトを見る</a>
+      </div>
+      <div class="contact-card">
+        <div class="contact-icon">🗑️</div>
+        <h3>アカウント削除</h3>
+        <p>アカウントとすべてのデータの削除を希望する場合</p>
+        <a class="btn" href="mailto:support@cyclingforcharityjapan.com?subject=アカウント削除リクエスト">削除を申請</a>
+      </div>
+    </div>
+  </div>
+
+  <div data-lang="en">
+    <div class="tag">Contact</div>
+    <h2 class="section-title">Get in Touch</h2>
+    <div class="contact-grid">
+      <div class="contact-card">
+        <div class="contact-icon">📧</div>
+        <h3>Email Support</h3>
+        <p>Technical issues, account questions, and donation inquiries</p>
+        <a class="btn" href="mailto:support@cyclingforcharityjapan.com">Send Email</a>
+      </div>
+      <div class="contact-card">
+        <div class="contact-icon">🌐</div>
+        <h3>Website</h3>
+        <p>Latest news and announcements</p>
+        <a class="btn" href="https://cyclingforcharityjapan.com" target="_blank">Visit Site</a>
+      </div>
+      <div class="contact-card">
+        <div class="contact-icon">🗑️</div>
+        <h3>Delete Account</h3>
+        <p>Request deletion of your account and all associated data</p>
+        <a class="btn" href="mailto:support@cyclingforcharityjapan.com?subject=Account Deletion Request">Request Deletion</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAQ JAPANESE -->
+  <div data-lang="ja">
+    <div class="tag">よくある質問</div>
+    <h2 class="section-title">FAQ</h2>
+
+    <div class="faq-group">
+      <div class="faq-group-title">🏃 アスリート向け</div>
+
+      <details>
+        <summary>チャリアスとは何ですか？</summary>
+        <div class="faq-body">
+          チャリアスはStravaと連携するiOSアプリです。あなたのランニング・サイクリング・ウォーキング・スイミングなどの活動距離に応じて、ドナー（支援者）が自動的に寄付を行います。あなたは普段通りに活動するだけで、非営利団体への支援につながります。
+        </div>
+      </details>
+
+      <details>
+        <summary>Stravaとどのように連携しますか？</summary>
+        <div class="faq-body">
+          アプリ内でStravaアカウントと連携すると、Stravaに記録した活動が自動的に取得されます。手動でデータをアップロードする必要はありません。Stravaに記録された活動が、参加中のキャンペーンの期間・スポーツ種別に合致した場合に寄付の計算が行われます。
+        </div>
+      </details>
+
+      <details>
+        <summary>どのスポーツが対象ですか？</summary>
+        <div class="faq-body">
+          以下のStravaアクティビティに対応しています：
+          <ul>
+            <li>🚴 サイクリング（Ride）</li>
+            <li>🚴 バーチャルライド（Virtual Ride）</li>
+            <li>🏃 ランニング（Run）</li>
+            <li>🚶 ウォーキング（Walk）</li>
+            <li>🏊 スイミング（Swim）</li>
+          </ul>
+          キャンペーンごとに対象スポーツが設定されています。
+        </div>
+      </details>
+
+      <details>
+        <summary>キャンペーンを作成するにはどうすればいいですか？</summary>
+        <div class="faq-body">
+          アプリの「キャンペーン」タブから「+」ボタンをタップして作成できます。キャンペーン名、対象スポーツ、期間、目標金額などを設定できます。作成後、シェアリンクをドナーに共有しましょう。
+        </div>
+      </details>
+
+      <details>
+        <summary>Stravaの連携を解除するにはどうすればいいですか？</summary>
+        <div class="faq-body">
+          <ul>
+            <li>アプリ内：プロフィール → Strava連携 → 連携解除</li>
+            <li>Stravaアプリ：設定 → マイアプリ → チャリアス → アクセスを取り消す</li>
+          </ul>
+          連携を解除しても、過去の活動データはアプリ内に残ります。完全な削除はサポートへお問い合わせください。
+        </div>
+      </details>
+    </div>
+
+    <div class="faq-group">
+      <div class="faq-group-title">💳 ドナー（支援者）向け</div>
+
+      <details>
+        <summary>寄付の仕組みを教えてください</summary>
+        <div class="faq-body">
+          アスリートからシェアリンクを受け取り、キャンペーンページで寄付レートを選びます（例：¥10/km）。アスリートが活動を記録するたびに、その距離に応じた金額がStripeを通じてクレジットカードに課金されます。
+        </div>
+      </details>
+
+      <details>
+        <summary>クレジットカード情報は安全ですか？</summary>
+        <div class="faq-body">
+          はい。カード情報はStripe, Inc.が管理する安全な決済システムで処理されます。チャリアスのサーバーにはカード番号は保存されません。Stripeは世界中の企業が利用する業界標準の決済サービスです。
+        </div>
+      </details>
+
+      <details>
+        <summary>1回の請求上限はありますか？</summary>
+        <div class="faq-body">
+          キャンペーンには「最大距離」の設定がある場合があります。例えば最大100kmに設定されている場合、アスリートが150km走っても、課金対象は100kmまでになります。
+        </div>
+      </details>
+
+      <details>
+        <summary>寄付を停止・解約するにはどうすればいいですか？</summary>
+        <div class="faq-body">
+          <a href="mailto:support@cyclingforcharityjapan.com">support@cyclingforcharityjapan.com</a> までご連絡ください。キャンペーンへの参加解除と、Stripeの支払い情報の削除を対応いたします。
+        </div>
+      </details>
+
+      <details>
+        <summary>寄付金はどこに届きますか？</summary>
+        <div class="faq-body">
+          寄付金はDonorboxを通じて、キャンペーンが指定した非営利団体に直接届きます。現在対応している団体は以下の通りです：
+          <ul>
+            <li>サイクリング・フォー・チャリティ</li>
+            <li>あしなが育英会</li>
+            <li>TELL Japan</li>
+          </ul>
+        </div>
+      </details>
+    </div>
+
+    <div class="faq-group">
+      <div class="faq-group-title">⚙️ 技術的な問題</div>
+
+      <details>
+        <summary>Stravaの活動が取り込まれません</summary>
+        <div class="faq-body">
+          以下を確認してください：
+          <ul>
+            <li>Stravaとの連携が有効になっているか（プロフィール画面で確認）</li>
+            <li>活動の日付がキャンペーンの期間内か</li>
+            <li>活動のスポーツ種別がキャンペーンの対象スポーツに含まれているか</li>
+            <li>Stravaにアクティビティが正常に保存されているか（Stravaアプリで確認）</li>
+          </ul>
+          それでも解決しない場合は <a href="mailto:support@cyclingforcharityjapan.com">サポートにご連絡ください</a>。
+        </div>
+      </details>
+
+      <details>
+        <summary>アプリにサインインできません</summary>
+        <div class="faq-body">
+          本アプリはApple IDを使用してサインインします。「Appleでサインイン」ボタンをタップして、AppleのFace ID/Touch IDまたはパスコードで認証してください。問題が続く場合は <a href="mailto:support@cyclingforcharityjapan.com">サポートまでご連絡ください</a>。
+        </div>
+      </details>
+
+      <details>
+        <summary>アカウントを削除したい</summary>
+        <div class="faq-body">
+          <a href="mailto:support@cyclingforcharityjapan.com?subject=アカウント削除リクエスト">support@cyclingforcharityjapan.com</a> にメールでご連絡ください。アカウントとすべての関連データを削除いたします。なお、法律上必要な決済記録は一定期間保持する場合があります。
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <!-- FAQ ENGLISH -->
+  <div data-lang="en">
+    <div class="tag">FAQ</div>
+    <h2 class="section-title">Frequently Asked Questions</h2>
+
+    <div class="faq-group">
+      <div class="faq-group-title">🏃 For Athletes</div>
+
+      <details>
+        <summary>What is Charity Athletes?</summary>
+        <div class="faq-body">
+          Charity Athletes is an iOS app that connects your Strava activities to charitable giving. When you run, ride, walk, or swim, donors who have pledged a per-km rate are automatically charged based on your distance. You train as normal — and your activity supports nonprofits.
+        </div>
+      </details>
+
+      <details>
+        <summary>How does the Strava integration work?</summary>
+        <div class="faq-body">
+          After connecting your Strava account in the app, your activities are automatically fetched whenever you log them on Strava. No manual uploads needed. Activities that fall within a campaign's date range and sport type will trigger donation calculations.
+        </div>
+      </details>
+
+      <details>
+        <summary>Which sports are supported?</summary>
+        <div class="faq-body">
+          The following Strava activity types are supported:
+          <ul>
+            <li>🚴 Cycling (Ride)</li>
+            <li>🚴 Virtual Ride</li>
+            <li>🏃 Running</li>
+            <li>🚶 Walking</li>
+            <li>🏊 Swimming</li>
+          </ul>
+          Each campaign specifies which sport types count toward donations.
+        </div>
+      </details>
+
+      <details>
+        <summary>How do I create a campaign?</summary>
+        <div class="faq-body">
+          Tap the "+" button on the Campaigns tab. You can set the campaign name, supported sports, date range, fundraising goal, and donation type (flat or per-km). Once created, share the campaign link with your donors.
+        </div>
+      </details>
+
+      <details>
+        <summary>How do I disconnect Strava?</summary>
+        <div class="faq-body">
+          <ul>
+            <li>In the app: Profile → Strava Connection → Disconnect</li>
+            <li>In Strava: Settings → My Apps → Charity Athletes → Revoke Access</li>
+          </ul>
+          Past activity data will remain in the app. Contact support for complete data deletion.
+        </div>
+      </details>
+    </div>
+
+    <div class="faq-group">
+      <div class="faq-group-title">💳 For Donors</div>
+
+      <details>
+        <summary>How does donating work?</summary>
+        <div class="faq-body">
+          Receive a campaign link from an athlete, open it in your browser, and choose a pledge rate (e.g. ¥10/km) or a flat amount. Register your credit card once. Every time the athlete logs an activity, your pledge is calculated and charged automatically via Stripe.
+        </div>
+      </details>
+
+      <details>
+        <summary>Is my payment information secure?</summary>
+        <div class="faq-body">
+          Yes. All payment processing is handled by Stripe, Inc. — an industry-standard payment platform used by companies worldwide. Charity Athletes never stores your card number on our servers.
+        </div>
+      </details>
+
+      <details>
+        <summary>Is there a cap on how much I can be charged?</summary>
+        <div class="faq-body">
+          Campaigns may have a maximum distance cap (e.g. 100 km). If the athlete runs 150 km, you'll only be charged for 100 km. The campaign page will show you the cap if one is set.
+        </div>
+      </details>
+
+      <details>
+        <summary>How do I stop my donations?</summary>
+        <div class="faq-body">
+          Contact us at <a href="mailto:support@cyclingforcharityjapan.com">support@cyclingforcharityjapan.com</a> and we will remove your pledge and delete your payment information from Stripe.
+        </div>
+      </details>
+
+      <details>
+        <summary>Where does my donation go?</summary>
+        <div class="faq-body">
+          Donations are sent directly to the nonprofit specified in the campaign, via Donorbox. Current partner nonprofits:
+          <ul>
+            <li>Cycling for Charity</li>
+            <li>Ashinaga (あしなが育英会)</li>
+            <li>TELL Japan</li>
+          </ul>
+        </div>
+      </details>
+    </div>
+
+    <div class="faq-group">
+      <div class="faq-group-title">⚙️ Technical Issues</div>
+
+      <details>
+        <summary>My Strava activities aren't being picked up</summary>
+        <div class="faq-body">
+          Please check:
+          <ul>
+            <li>Strava is connected in your Profile tab</li>
+            <li>The activity date falls within the campaign's start and end dates</li>
+            <li>The activity sport type is included in the campaign's eligible sports</li>
+            <li>The activity was successfully saved on Strava</li>
+          </ul>
+          If the issue persists, <a href="mailto:support@cyclingforcharityjapan.com">contact support</a>.
+        </div>
+      </details>
+
+      <details>
+        <summary>I can't sign in to the app</summary>
+        <div class="faq-body">
+          The app uses Sign in with Apple. Tap the "Sign in with Apple" button and authenticate with Face ID, Touch ID, or your passcode. If the issue continues, please <a href="mailto:support@cyclingforcharityjapan.com">contact support</a>.
+        </div>
+      </details>
+
+      <details>
+        <summary>I want to delete my account</summary>
+        <div class="faq-body">
+          Email <a href="mailto:support@cyclingforcharityjapan.com?subject=Account Deletion Request">support@cyclingforcharityjapan.com</a> with the subject "Account Deletion Request". We will delete your account and all associated data. Payment records may be retained for a legally required period.
+        </div>
+      </details>
+    </div>
+
+    <div class="info-box" data-lang="en">
+      <h3>Still need help?</h3>
+      <p>Email us at <a href="mailto:support@cyclingforcharityjapan.com">support@cyclingforcharityjapan.com</a> — we typically respond within 1–2 business days.</p>
+    </div>
+  </div>
+
+  <div class="info-box" data-lang="ja">
+    <h3>解決しない場合は</h3>
+    <p><a href="mailto:support@cyclingforcharityjapan.com">support@cyclingforcharityjapan.com</a> までお気軽にご連絡ください。通常1〜2営業日以内にご返信します。</p>
+  </div>
+
+</div>
+
+<footer>
+  <a href="index.html" data-lang="ja">ホーム</a>
+  <a href="index.html" data-lang="en">Home</a>
+  <a href="support.html" data-lang="ja">サポート</a>
+  <a href="support.html" data-lang="en">Support</a>
+  <a href="privacy.html" data-lang="ja">プライバシーポリシー</a>
+  <a href="privacy.html" data-lang="en">Privacy Policy</a>
+  <br><br>
+  <span style="font-size:12px;">© 2025 Charity Athletes</span>
+</footer>
+
+<script>
+  function toggleLang() {
+    document.body.classList.toggle('en');
+    document.documentElement.lang = document.body.classList.contains('en') ? 'en' : 'ja';
+    localStorage.setItem('lang', document.body.classList.contains('en') ? 'en' : 'ja');
+  }
+  if (localStorage.getItem('lang') === 'en') {
+    document.body.classList.add('en');
+    document.documentElement.lang = 'en';
+  }
+</script>
+</body>
+</html>
