@@ -4,9 +4,18 @@ import SwiftUI
 final class CampaignListVM: ObservableObject {
     @Published var campaigns: [Campaign] = []
     @Published var joinedIds: Set<String> = []
+    @Published var myCampaigns: [Campaign] = []   // from /mine — includes myDistanceKm
     @Published var createdCampaigns: [Campaign] = []
     @Published var isLoading = false
     @Published var error: String?
+
+    /// Lookup: campaign id → athlete's distance for that campaign
+    var myDistanceById: [String: Double] {
+        Dictionary(uniqueKeysWithValues: myCampaigns.compactMap { c in
+            guard let km = c.myDistanceKm else { return nil }
+            return (c.id, km)
+        })
+    }
 
     func load() async {
         isLoading = true; error = nil
@@ -17,6 +26,7 @@ final class CampaignListVM: ObservableObject {
             async let created = APIClient.shared.getCreatedCampaigns()
             let (allCamps, myCamps, createdCamps) = try await (all, mine, created)
             campaigns = allCamps
+            myCampaigns = myCamps
             joinedIds = Set(myCamps.map(\.id))
             createdCampaigns = createdCamps
         }
@@ -69,7 +79,7 @@ struct CampaignListView: View {
                             Section {
                                 ForEach(allJoined) { c in
                                     NavigationLink { CampaignDetailView(campaign: c, isJoined: true) } label: {
-                                        CampaignRow(campaign: c, joined: true, isCreated: createdIds.contains(c.id), showPrivateBadge: !c.isPublic)
+                                        CampaignRow(campaign: c, joined: true, isCreated: createdIds.contains(c.id), showPrivateBadge: !c.isPublic, myDistanceKm: vm.myDistanceById[c.id])
                                     }
                                     .listRowBackground(Color.clear)
                                     .listRowSeparator(.hidden)
@@ -154,6 +164,7 @@ struct CampaignRow: View {
     var joined: Bool = false
     var isCreated: Bool = false
     var showPrivateBadge: Bool = false
+    var myDistanceKm: Double? = nil
     @ObservedObject private var i18n = I18n.shared
 
     var body: some View {
@@ -222,8 +233,13 @@ struct CampaignRow: View {
                 Text("/ ¥\(campaign.goalAmountJpy.formatted())")
                     .font(.caption).foregroundStyle(.secondary)
                 Spacer()
-                Label("\(campaign.participantCount)", systemImage: "person.2")
-                    .font(.caption).foregroundStyle(.secondary)
+                if let km = myDistanceKm {
+                    Label(String(format: "%.1f km", km), systemImage: "figure.run")
+                        .font(.caption).foregroundStyle(Color("BrandOrange"))
+                } else {
+                    Label("\(campaign.participantCount)", systemImage: "person.2")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
             }
         }
         .padding()
