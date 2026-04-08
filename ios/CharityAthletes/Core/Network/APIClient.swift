@@ -90,6 +90,11 @@ final class APIClient {
         let _: R = try await request(.stravaDisconnect)
     }
 
+    func deleteAccount() async throws {
+        struct R: Decodable { let success: Bool }
+        let _: R = try await request(.deleteAccount)
+    }
+
     func stravaAuthURL() async throws -> URL {
         struct R: Decodable { let url: String }
         let r: R = try await request(.stravaAuth)

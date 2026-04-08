@@ -224,11 +224,15 @@ private struct CardInputView: View {
 struct ProfileView: View {
     @EnvironmentObject var auth: AuthManager
     @EnvironmentObject var i18n: I18n
-    @State private var showSignOutConfirm = false
-    @State private var showCardInput      = false
+    @State private var showSignOutConfirm      = false
+    @State private var showCardInput           = false
     @State private var stravaError: String?
-    @State private var showStravaError    = false
+    @State private var showStravaError         = false
     @State private var savedCard: SavedCard?
+    @State private var showDeleteConfirm       = false
+    @State private var isDeletingAccount       = false
+    @State private var deleteError: String?
+    @State private var showDeleteError         = false
 
     var body: some View {
         NavigationStack {
@@ -369,6 +373,27 @@ struct ProfileView: View {
                         Label(i18n.t(.profileSignOut), systemImage: "rectangle.portrait.and.arrow.right")
                     }
                 }
+
+                // ── Danger zone ────────────────────────────────────────────────
+                Section(i18n.language == .ja ? "危険な操作" : "Danger Zone") {
+                    Button(role: .destructive) {
+                        showDeleteConfirm = true
+                    } label: {
+                        if isDeletingAccount {
+                            HStack {
+                                ProgressView()
+                                    .padding(.trailing, 4)
+                                Text(i18n.language == .ja ? "削除中..." : "Deleting...")
+                            }
+                        } else {
+                            Label(
+                                i18n.language == .ja ? "アカウントを削除" : "Delete Account",
+                                systemImage: "trash"
+                            )
+                        }
+                    }
+                    .disabled(isDeletingAccount)
+                }
             }
             .navigationTitle(i18n.t(.profileTitle))
             .task {
@@ -403,6 +428,41 @@ struct ProfileView: View {
             } message: {
                 Text(stravaError ?? "")
             }
+            .alert(
+                i18n.language == .ja ? "アカウントを削除しますか？" : "Delete Account?",
+                isPresented: $showDeleteConfirm
+            ) {
+                Button(i18n.t(.commonCancel), role: .cancel) {}
+                Button(i18n.language == .ja ? "アカウントを削除" : "Delete Account", role: .destructive) {
+                    Task { await deleteAccount() }
+                }
+            } message: {
+                Text(
+                    i18n.language == .ja
+                    ? "本当によろしいですか？アカウントとすべてのデータが完全に削除されます。この操作は元に戻せません。"
+                    : "Are you sure? This will permanently delete your account and all data. This cannot be undone."
+                )
+            }
+            .alert(
+                i18n.language == .ja ? "削除エラー" : "Delete Error",
+                isPresented: $showDeleteError
+            ) {
+                Button(i18n.t(.commonClose)) { deleteError = nil }
+            } message: {
+                Text(deleteError ?? "")
+            }
+        }
+    }
+
+    private func deleteAccount() async {
+        isDeletingAccount = true
+        defer { isDeletingAccount = false }
+        do {
+            try await APIClient.shared.deleteAccount()
+            await auth.signOut()
+        } catch {
+            deleteError = error.localizedDescription
+            showDeleteError = true
         }
     }
 

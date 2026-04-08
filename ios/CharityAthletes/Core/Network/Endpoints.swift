@@ -1,6 +1,6 @@
 enum Endpoint {
     // Auth / identity
-    case me, stravaAuth, stravaLogin, stravaDisconnect
+    case me, stravaAuth, stravaLogin, stravaDisconnect, deleteAccount
     case nonprofitRegister
 
     // Athlete
@@ -34,6 +34,7 @@ enum Endpoint {
         case .stravaAuth:                    return "/auth/strava"
         case .stravaLogin:                   return "/auth/strava/login"
         case .stravaDisconnect:              return "/auth/strava"
+        case .deleteAccount:                 return "/auth/account"
         case .nonprofitRegister:             return "/auth/nonprofit/register"
 
         case .nonprofits:                    return "/nonprofits"
@@ -84,7 +85,7 @@ enum Endpoint {
 
     var method: String {
         switch self {
-        case .unjoinCampaign, .deleteCampaign, .stravaDisconnect:
+        case .unjoinCampaign, .deleteCampaign, .stravaDisconnect, .deleteAccount:
             return "DELETE"
         case .archiveCampaign, .updateCampaign:
             return "PATCH"

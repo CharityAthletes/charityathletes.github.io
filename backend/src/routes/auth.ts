@@ -1,9 +1,11 @@
 import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
 import { z } from 'zod';
+import axios from 'axios';
 import { stravaService } from '../services/stravaService';
 import { recalcDistanceStats } from '../services/statsService';
 import { db } from '../config/supabase';
+import { stripe } from '../config/stripe';
 import { requireAuth } from '../middleware/auth';
 
 const router = Router();
@@ -305,6 +307,68 @@ router.delete('/strava', requireAuth, async (req: Request, res: Response) => {
   await db.from('strava_tokens').delete().eq('user_id', req.userId);
   await db.from('user_profiles').update({ strava_athlete_id: null }).eq('user_id', req.userId);
   res.json({ ok: true });
+});
+
+// DELETE /auth/account — permanently delete the authenticated user's account
+router.delete('/account', requireAuth, async (req: Request, res: Response) => {
+  const userId = req.userId!;
+
+  try {
+    // 1. Fetch user profile to get Stripe customer and Strava info
+    const { data: profile } = await db
+      .from('user_profiles')
+      .select('stripe_customer_id, strava_athlete_id')
+      .eq('user_id', userId)
+      .single();
+
+    // 2. Cancel/delete Stripe customer if one exists
+    if (profile?.stripe_customer_id) {
+      try {
+        await stripe.customers.del(profile.stripe_customer_id);
+      } catch (err) {
+        console.error('[DeleteAccount] Stripe customer deletion failed (continuing):', err);
+      }
+    }
+
+    // 3. Revoke Strava token if connected
+    if (profile?.strava_athlete_id) {
+      try {
+        const { data: stravaToken } = await db
+          .from('strava_tokens')
+          .select('access_token')
+          .eq('user_id', userId)
+          .single();
+
+        if (stravaToken?.access_token) {
+          await axios.post('https://www.strava.com/oauth/deauthorize', null, {
+            params: { access_token: stravaToken.access_token },
+          });
+        }
+      } catch (err) {
+        console.error('[DeleteAccount] Strava deauthorization failed (continuing):', err);
+      }
+    }
+
+    // 4. Delete all user data in dependency order
+    await db.from('donor_pledges').delete().eq('donor_user_id', userId);
+    await db.from('campaign_participations').delete().eq('user_id', userId);
+    await db.from('activities').delete().eq('user_id', userId);
+    await db.from('campaigns').delete().eq('created_by', userId);
+    await db.from('strava_tokens').delete().eq('user_id', userId);
+    await db.from('user_profiles').delete().eq('user_id', userId);
+
+    // 5. Delete the Supabase auth user (service role client bypasses RLS)
+    const { error: deleteAuthError } = await db.auth.admin.deleteUser(userId);
+    if (deleteAuthError) {
+      console.error('[DeleteAccount] Auth user deletion failed:', deleteAuthError);
+      return res.status(500).json({ error: 'Failed to delete auth user' });
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('[DeleteAccount] Unexpected error:', err);
+    res.status(500).json({ error: 'Account deletion failed' });
+  }
 });
 
 // ── Manual Strava sync ────────────────────────────────────────────────────────
