@@ -57,15 +57,15 @@ struct HowItWorksView: View {
                         icon: "bicycle",
                         title: i18n.language == .ja ? "走る・漕ぐ・泳ぐ" : "Run, Ride, or Swim",
                         description: i18n.language == .ja
-                            ? "Stravaでアクティビティを記録するだけ！あなたの距離がリアルタイムでドナーページに反映されます。"
+                            ? "Stravaでアクティビティを記録するだけ！あなたの距離がリアルタイムで寄付者ページに反映されます。"
                             : "Just record your activity on Strava. Your distance updates automatically on your personal donor page in real time."
                     )
                     StepCard(
                         number: 5,
                         icon: "person.2.fill",
-                        title: i18n.language == .ja ? "ドナーを確認する" : "See Your Donors",
+                        title: i18n.language == .ja ? "寄付者を確認する" : "See Your Donors",
                         description: i18n.language == .ja
-                            ? "キャンペーン詳細画面の「あなたのドナー」で、あなたのリンクから応援してくれた人を確認できます。匿名希望のドナーは非表示になります。"
+                            ? "キャンペーン詳細画面の「あなたの寄付者」で、あなたのリンクから応援してくれた人を確認できます。匿名希望の寄付者は非表示になります。"
                             : "View supporters who pledged through your personal link in the \"Your Donors\" section on the campaign detail screen. Anonymous donors will show as Anonymous."
                     )
                     StepCard(
@@ -95,7 +95,7 @@ struct HowItWorksView: View {
                            ? "非公開キャンペーンはURLを持っている人だけが見られます。"
                            : "Private campaigns are only visible to people with the link.")
                     tipRow(i18n.language == .ja
-                           ? "ドナーページはブラウザで開けるので、アプリ不要でドナーが寄付できます。"
+                           ? "寄付者ページはブラウザで開けるので、アプリ不要で寄付者が寄付できます。"
                            : "Donors give through a web page — no app needed.")
                     tipRow(i18n.language == .ja
                            ? "アプリからも「応援する」ボタンでキャンペーンに寄付できます。"

@@ -157,7 +157,7 @@ struct EditCampaignView: View {
                 Section(
                     header: Text(i18n.language == .ja ? "距離上限（km）" : "Distance Cap (km)"),
                     footer: Text(i18n.language == .ja
-                        ? "ドナーへの請求に使う距離の上限。空白にすると上限なし。"
+                        ? "寄付者への請求に使う距離の上限。空白にすると上限なし。"
                         : "Maximum km used to calculate per-km donor charges. Leave blank for no cap.")
                         .font(.caption)
                 ) {

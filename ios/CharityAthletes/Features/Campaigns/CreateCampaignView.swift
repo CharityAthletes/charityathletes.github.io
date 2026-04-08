@@ -152,7 +152,7 @@ struct CreateCampaignView: View {
                 // Donation types
                 Section(header: Text(i18n.language == .ja ? "寄付の方法" : "Donation Types"),
                         footer: Text(i18n.language == .ja
-                            ? "ドナーが金額を自由に選択できます"
+                            ? "寄付者が金額を自由に選択できます"
                             : "Donors choose their own amounts")) {
 
                     // Flat donation toggle
@@ -161,7 +161,7 @@ struct CreateCampaignView: View {
                             Text(i18n.language == .ja ? "定額寄付" : "Flat Donation")
                                 .font(.body)
                             Text(i18n.language == .ja
-                                 ? "ドナーが1回あたりの金額を選択"
+                                 ? "寄付者が1回あたりの金額を選択"
                                  : "Donor picks amount per activity")
                                 .font(.caption).foregroundStyle(.secondary)
                         }
@@ -173,7 +173,7 @@ struct CreateCampaignView: View {
                             Text(i18n.language == .ja ? "距離連動寄付" : "Per-km Donation")
                                 .font(.body)
                             Text(i18n.language == .ja
-                                 ? "ドナーが1kmあたりの金額を選択"
+                                 ? "寄付者が1kmあたりの金額を選択"
                                  : "Donor picks rate per km")
                                 .font(.caption).foregroundStyle(.secondary)
                         }
@@ -184,7 +184,7 @@ struct CreateCampaignView: View {
                 if vm.perKmEnabled {
                     Section(header: Text(i18n.language == .ja ? "距離連動の設定" : "Per-km Settings"),
                             footer: Text(i18n.language == .ja
-                                ? "上限距離を設定するとドナーの負担が予測しやすくなります"
+                                ? "上限距離を設定すると寄付者の負担が予測しやすくなります"
                                 : "A distance cap helps donors know their maximum contribution")) {
 
                         HStack {
@@ -198,7 +198,7 @@ struct CreateCampaignView: View {
                         }
 
                         VStack(alignment: .leading, spacing: 8) {
-                            Text(i18n.language == .ja ? "推奨レート（ドナーに表示）" : "Suggested rates (shown to donors)")
+                            Text(i18n.language == .ja ? "推奨レート（寄付者に表示）" : "Suggested rates (shown to donors)")
                                 .font(.caption).foregroundStyle(.secondary)
                             HStack(spacing: 8) {
                                 ForEach(rateOptions, id: \.self) { rate in

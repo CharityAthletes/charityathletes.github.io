@@ -353,7 +353,7 @@ struct CampaignDetailView: View {
             Button(i18n.t(.commonCancel), role: .cancel) {}
         } message: {
             Text(i18n.language == .ja
-                 ? "距離連動プレッジのドナーに実際の走行距離に基づいて請求されます。キャンペーンは終了します。この操作は取り消せません。"
+                 ? "距離連動プレッジの寄付者に実際の走行距離に基づいて請求されます。キャンペーンは終了します。この操作は取り消せません。"
                  : "Per-km pledge donors will be charged based on actual distance covered. The campaign will be closed. This cannot be undone.")
         }
         .sheet(isPresented: $vm.showFinalizeResult) {
@@ -425,7 +425,7 @@ struct JoinCampaignSheet: View {
                         .font(.title3.bold())
                         .multilineTextAlignment(.center)
                     Text(i18n.language == .ja
-                         ? "このキャンペーンに参加して、あなたの活動で寄付を集めましょう。ドナーがあなたの走行距離に応じて寄付します。"
+                         ? "このキャンペーンに参加して、あなたの活動で寄付を集めましょう。寄付者があなたの走行距離に応じて寄付します。"
                          : "Join this campaign and fundraise through your activities. Donors will pledge donations based on your distance.")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
@@ -633,8 +633,8 @@ private struct DonorPledgeSection: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text(isCreator
-                     ? (i18n.language == .ja ? "全ドナー一覧" : "All Donors")
-                     : (i18n.language == .ja ? "あなたのドナー" : "Your Donors"))
+                     ? (i18n.language == .ja ? "全寄付者一覧" : "All Donors")
+                     : (i18n.language == .ja ? "あなたの寄付者" : "Your Donors"))
                     .font(.headline)
                 Spacer()
                 Text(i18n.language == .ja ? "\(pledges.count) 件" : "\(pledges.count) pledge(s)")
@@ -643,7 +643,7 @@ private struct DonorPledgeSection: View {
             }
 
             if pledges.isEmpty {
-                Text(i18n.language == .ja ? "まだドナーはいません" : "No donors yet")
+                Text(i18n.language == .ja ? "まだ寄付者はいません" : "No donors yet")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .center)
