@@ -16,6 +16,7 @@ import charitiesRoutes  from './routes/charities';
 import activitiesRoutes from './routes/activities';
 import webRoutes        from './routes/web';
 import { renderDirectoryPage } from './routes/directory';
+import chatRoutes from './routes/chat';
 
 const app  = express();
 const PORT = process.env.PORT ?? 3000;
@@ -36,7 +37,12 @@ app.use(helmet({
   },
 }));
 app.use(cors({
-  origin: [process.env.WEB_URL ?? 'https://charityathletes.com', /^charityathletes:\/\//],
+  origin: [
+    process.env.WEB_URL ?? 'https://charityathletes.com',
+    'https://charityathletes.org',
+    'https://www.charityathletes.org',
+    /^charityathletes:\/\//
+  ],
   credentials: true,
 }));
 app.use(rateLimit({ windowMs: 15 * 60_000, max: 200, standardHeaders: true, legacyHeaders: false }));
@@ -58,6 +64,7 @@ app.use('/admin',       adminRoutes);
 app.use('/charities',   charitiesRoutes);
 app.use('/activities',  activitiesRoutes);
 app.use('/c',           webRoutes);
+app.use('/chat',        chatRoutes);
 
 // Web: public charity directory page
 app.get('/directory', async (req, res) => {
