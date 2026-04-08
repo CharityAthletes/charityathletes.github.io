@@ -48,8 +48,15 @@
     [data-lang="en"] { display: none; }
     body.en [data-lang="ja"] { display: none; }
     body.en [data-lang="en"] { display: block; }
-    body.en p[data-lang="en"], body.en li[data-lang="en"], body.en span[data-lang="en"] { display: inline; }
+    /* Inline elements stay inline when shown */
+    body.en span[data-lang="en"],
+    body.en a[data-lang="en"] { display: inline; }
+    body.en li[data-lang="en"] { display: list-item; }
     body.en ul[data-lang="en"] { display: block; }
+
+    /* Ensure block-level elements always render as blocks */
+    h1, h2, h3, h4, h5, h6 { display: block; }
+    p { display: block; }
 
     footer { background: #1a1a1a; color: #aaa; text-align: center; padding: 32px 24px; font-size: 14px; }
     footer a { color: #aaa; margin: 0 12px; }

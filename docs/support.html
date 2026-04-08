@@ -55,7 +55,7 @@
 
     /* FAQ */
     .section-title { font-size: 22px; font-weight: 800; margin-bottom: 24px; }
-    .tag { display: inline-block; background: var(--orange-pale); color: var(--orange); font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 20px; margin-bottom: 12px; letter-spacing: 0.5px; text-transform: uppercase; }
+    .tag { display: block; width: fit-content; background: var(--orange-pale); color: var(--orange); font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 20px; margin-bottom: 12px; letter-spacing: 0.5px; text-transform: uppercase; }
 
     .faq-group { margin-bottom: 40px; }
     .faq-group-title { font-size: 17px; font-weight: 700; color: var(--orange); margin-bottom: 16px; border-bottom: 2px solid var(--orange-pale); padding-bottom: 8px; }
@@ -91,6 +91,15 @@
     [data-lang="en"] { display: none; }
     body.en [data-lang="ja"] { display: none; }
     body.en [data-lang="en"] { display: block; }
+    /* Inline elements stay inline when shown */
+    body.en span[data-lang="en"],
+    body.en a[data-lang="en"] { display: inline; }
+
+    /* Ensure block-level elements always render as blocks */
+    h1, h2, h3, h4, h5, h6 { display: block; }
+    p { display: block; }
+    .tag { display: block; width: fit-content; }
+    .section-title { display: block; }
 
     footer { background: #1a1a1a; color: #aaa; text-align: center; padding: 32px 24px; font-size: 14px; }
     footer a { color: #aaa; margin: 0 12px; }
