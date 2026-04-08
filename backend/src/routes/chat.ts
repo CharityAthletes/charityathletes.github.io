@@ -92,9 +92,9 @@ router.post('/', async (req: Request, res: Response) => {
 
     const reply = response.content[0].type === 'text' ? response.content[0].text : '';
     return res.json({ reply });
-  } catch (err: any) {
+  } catch (err) {
     console.error('[chat] error:', err);
-    return res.status(500).json({ error: 'Failed to get response. Please try again.', detail: err?.message ?? String(err) });
+    return res.status(500).json({ error: 'Failed to get response. Please try again.' });
   }
 });
 
