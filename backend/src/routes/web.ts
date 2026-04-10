@@ -65,7 +65,7 @@ router.get('/:id/data', async (req: Request, res: Response) => {
 
   // Build activities query — only filter by sport_type when types are actually configured
   let activityQuery = db.from('activities')
-    .select('id, name, sport_type, distance_meters, start_date, moving_time_seconds, strava_activity_id')
+    .select('id, name, sport_type, distance_meters, start_date, moving_time_seconds, strava_activity_id, map_polyline, photo_urls')
     .eq('user_id', athleteId)
     .gte('start_date_local', campaign.start_date ?? '')
     .order('start_date_local', { ascending: false })
@@ -253,10 +253,12 @@ function renderPage(campaign: any, stripeKey: string, apiBase: string, campaignI
   <meta name="twitter:title"      content="${campaign.title_ja} | チャリアス">
   <meta name="twitter:description" content="${campaign.description_ja || campaign.description_en || ''}">
   <script src="https://js.stripe.com/v3/"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f7;color:#1d1d1f;min-height:100vh}
-    .hero{background:linear-gradient(135deg,#FF6B35,#c0392b);color:#fff;padding:32px 20px 40px}
+    .hero{background:linear-gradient(135deg,#007B83,#2E7D32);color:#fff;padding:32px 20px 40px}
     .hero h1{font-size:24px;font-weight:700;margin-bottom:6px}
     .hero .sub{opacity:.85;font-size:14px}
     .hero .meta{margin-top:16px;font-size:13px;opacity:.8}
@@ -264,36 +266,36 @@ function renderPage(campaign: any, stripeKey: string, apiBase: string, campaignI
     .section-title{font-size:13px;font-weight:600;color:#86868b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
     .stat-row{display:flex;gap:12px;margin:-8px 16px 0;position:relative;z-index:1}
     .stat{background:#fff;border-radius:14px;padding:16px;flex:1;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,.1)}
-    .stat .val{font-size:22px;font-weight:700;color:#FF6B35}
+    .stat .val{font-size:22px;font-weight:700;color:#007B83}
     .stat .lbl{font-size:11px;color:#86868b;margin-top:2px}
     .progress-bar{background:#f0f0f0;border-radius:99px;height:8px;margin:10px 0}
-    .progress-fill{background:linear-gradient(90deg,#FF6B35,#c0392b);border-radius:99px;height:8px;transition:width .5s}
+    .progress-fill{background:linear-gradient(90deg,#007B83,#2E7D32);border-radius:99px;height:8px;transition:width .5s}
     .activity-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f0f0f0}
     .activity-row:last-child{border-bottom:none}
-    .activity-icon{width:36px;height:36px;background:#fff5f0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+    .activity-icon{width:36px;height:36px;background:#E0F7FA;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
     .activity-info{flex:1}
     .activity-name{font-size:14px;font-weight:500}
     .activity-meta{font-size:12px;color:#86868b}
-    .activity-dist{font-size:14px;font-weight:700;color:#FF6B35}
+    .activity-dist{font-size:14px;font-weight:700;color:#007B83}
     input,select{width:100%;padding:12px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:15px;margin-top:6px;outline:none;transition:border .2s}
-    input:focus,select:focus{border-color:#FF6B35}
+    input:focus,select:focus{border-color:#007B83}
     label{font-size:14px;font-weight:500;color:#444;display:block;margin-top:14px}
     .rate-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
-    .rate-btn{padding:8px 14px;border:2px solid #FF6B35;border-radius:99px;background:#fff;color:#FF6B35;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
-    .rate-btn.active{background:#FF6B35;color:#fff}
+    .rate-btn{padding:8px 14px;border:2px solid #007B83;border-radius:99px;background:#fff;color:#007B83;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
+    .rate-btn.active{background:#007B83;color:#fff}
     .stripe-element{padding:12px 14px;border:1.5px solid #d0d0d0;border-radius:10px;margin-top:8px;min-height:48px;background:#f9f9f9}
-    .btn{width:100%;padding:15px;background:linear-gradient(135deg,#FF6B35,#c0392b);color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;margin-top:18px;transition:opacity .2s}
+    .btn{width:100%;padding:15px;background:linear-gradient(135deg,#007B83,#2E7D32);color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;margin-top:18px;transition:opacity .2s}
     .btn:disabled{opacity:.5;cursor:not-allowed}
     .success-box{background:#e8f9ee;border:1px solid #34c759;border-radius:12px;padding:20px;text-align:center;display:none}
     .success-box h3{color:#1a8736;font-size:18px;margin-bottom:8px}
     .success-box p{color:#444;font-size:14px}
     .error-msg{color:#fff;font-size:14px;font-weight:600;margin-top:10px;display:none;background:#ff3b30;border-radius:10px;padding:12px 14px;line-height:1.5}
     .test-banner{background:#ff9500;color:#fff;border-radius:10px;padding:12px 14px;font-size:13px;margin-bottom:14px;line-height:1.6}
-    .calc-box{background:#fff5f0;border-radius:10px;padding:12px;margin-top:12px;font-size:14px}
-    .calc-box strong{color:#FF6B35;font-size:18px}
+    .calc-box{background:#E0F7FA;border-radius:10px;padding:12px;margin-top:12px;font-size:14px}
+    .calc-box strong{color:#007B83;font-size:18px}
     .type-tabs{display:flex;gap:8px;margin:12px 0}
     .type-tab{flex:1;padding:12px 8px;border:2px solid #e0e0e0;border-radius:12px;background:#fff;font-size:14px;font-weight:600;cursor:pointer;text-align:center;transition:all .15s;color:#86868b}
-    .type-tab.active{border-color:#FF6B35;color:#FF6B35;background:#fff5f0}
+    .type-tab.active{border-color:#007B83;color:#007B83;background:#E0F7FA}
     .donation-panel{display:none}
     .donation-panel.active{display:block}
     #loading{text-align:center;padding:40px;color:#86868b}
@@ -352,15 +354,15 @@ ${(campaign.description_ja || campaign.description_en) ? `
   <div id="how-it-works" style="display:none;margin-top:14px">
     <div style="display:flex;flex-direction:column;gap:12px">
       <div style="display:flex;gap:12px;align-items:flex-start">
-        <div style="background:#FF6B35;color:#fff;font-weight:700;font-size:13px;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">1</div>
+        <div style="background:#007B83;color:#fff;font-weight:700;font-size:13px;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">1</div>
         <div><div style="font-weight:600;font-size:14px">🏃 このアスリートが走る・漕ぐ・泳ぐ</div><div style="font-size:13px;color:#86868b;margin-top:2px">This page shows <strong>this athlete's</strong> activities and distance. Strava tracks every km automatically.</div></div>
       </div>
       <div style="display:flex;gap:12px;align-items:flex-start">
-        <div style="background:#FF6B35;color:#fff;font-weight:700;font-size:13px;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">2</div>
+        <div style="background:#007B83;color:#fff;font-weight:700;font-size:13px;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">2</div>
         <div><div style="font-weight:600;font-size:14px">💳 あなたが寄付を申し込む</div><div style="font-size:13px;color:#86868b;margin-top:2px">Pledge a flat amount or a per-km rate (e.g. ¥10 per km). You can donate anonymously if you prefer.</div></div>
       </div>
       <div style="display:flex;gap:12px;align-items:flex-start">
-        <div style="background:#FF6B35;color:#fff;font-weight:700;font-size:13px;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">3</div>
+        <div style="background:#007B83;color:#fff;font-weight:700;font-size:13px;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">3</div>
         <div><div style="font-weight:600;font-size:14px">✅ 寄付が届く</div><div style="font-size:13px;color:#86868b;margin-top:2px">Flat donations charge immediately. Per-km pledges charge at campaign end based on <strong>this athlete's</strong> total distance — not the combined total of all participants.</div></div>
       </div>
     </div>
@@ -407,7 +409,7 @@ ${(campaign.description_ja || campaign.description_en) ? `
       <div id="custom-rate-row" style="display:none;align-items:center;gap:6px;margin-top:10px;flex-wrap:wrap">
         <span style="font-size:14px;color:#444">¥</span>
         <input id="custom-rate" type="number" placeholder="30" min="1"
-          style="width:72px;padding:6px 8px;border:2px solid #FF6B35;border-radius:8px;font-size:14px;font-weight:600;color:#1d1d1f;outline:none;-moz-appearance:textfield">
+          style="width:72px;padding:6px 8px;border:2px solid #007B83;border-radius:8px;font-size:14px;font-weight:600;color:#1d1d1f;outline:none;-moz-appearance:textfield">
         <span style="font-size:14px;color:#444">/km</span>
       </div>
       <div class="calc-box" id="calc-box" style="display:none">
@@ -417,7 +419,7 @@ ${(campaign.description_ja || campaign.description_en) ? `
     </div>` : ''}
 
     <label style="display:flex;align-items:center;gap:10px;margin-top:20px;cursor:pointer;font-size:14px;color:#444;user-select:none">
-      <input type="checkbox" id="anon-check" style="width:18px;height:18px;accent-color:#FF6B35;cursor:pointer;flex-shrink:0">
+      <input type="checkbox" id="anon-check" style="width:18px;height:18px;accent-color:#007B83;cursor:pointer;flex-shrink:0">
       <span>匿名で寄付する / Donate anonymously<br><span style="font-size:11px;color:#86868b">キャンペーン作成者にお名前は表示されません / Your name won't be shown to the campaign creator</span></span>
     </label>
 
@@ -527,6 +529,62 @@ function selectType(type, btn) {
   }
 }
 
+// ── HTML escape ────────────────────────────────────────────────────────────
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Polyline decoder (Google encoded polyline algorithm) ───────────────────
+function decodePolyline(str) {
+  var idx=0, lat=0, lng=0, coords=[];
+  while (idx < str.length) {
+    var b, shift=0, result=0;
+    do { b=str.charCodeAt(idx++)-63; result|=(b&0x1f)<<shift; shift+=5; } while(b>=0x20);
+    lat += (result&1) ? ~(result>>1) : (result>>1);
+    shift=0; result=0;
+    do { b=str.charCodeAt(idx++)-63; result|=(b&0x1f)<<shift; shift+=5; } while(b>=0x20);
+    lng += (result&1) ? ~(result>>1) : (result>>1);
+    coords.push([lat/1e5, lng/1e5]);
+  }
+  return coords;
+}
+
+// ── Route map renderer (Leaflet) ───────────────────────────────────────────
+var leafletMaps = {};
+function renderMap(id, polyline) {
+  if (leafletMaps[id] || !polyline) return;
+  var coords = decodePolyline(polyline);
+  if (coords.length < 2) return;
+  var map = L.map(id, { zoomControl:false, attributionControl:false, dragging:false,
+                         scrollWheelZoom:false, touchZoom:false, doubleClickZoom:false });
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+  var poly = L.polyline(coords, { color:'#007B83', weight:3, opacity:0.9 }).addTo(map);
+  L.circleMarker(coords[0],              { radius:5, fillColor:'#2E7D32', color:'#fff', weight:2, fillOpacity:1 }).addTo(map);
+  L.circleMarker(coords[coords.length-1],{ radius:5, fillColor:'#007B83', color:'#fff', weight:2, fillOpacity:1 }).addTo(map);
+  map.fitBounds(poly.getBounds().pad(0.15));
+  leafletMaps[id] = map;
+}
+
+// ── Activity expand / collapse ─────────────────────────────────────────────
+var activityData = {};
+function toggleActivity(id) {
+  var detail  = document.getElementById('detail-'+id);
+  var chevron = document.getElementById('chev-'+id);
+  if (!detail) return;
+  var isOpen = detail.style.display === 'block';
+  // close all others first
+  document.querySelectorAll('[id^="detail-"]').forEach(function(d) { d.style.display='none'; });
+  document.querySelectorAll('[id^="chev-"]').forEach(function(c) { c.style.transform=''; });
+  if (!isOpen) {
+    detail.style.display = 'block';
+    if (chevron) chevron.style.transform = 'rotate(180deg)';
+    var d = activityData[id];
+    if (d && d.polyline) {
+      setTimeout(function() { renderMap('map-'+id, d.polyline); }, 60);
+    }
+  }
+}
+
 // Load live data
 async function loadData() {
   try {
@@ -542,20 +600,54 @@ async function loadData() {
     if (!data.activities.length) {
       actEl.innerHTML = '<p style="color:#86868b;font-size:14px;text-align:center;padding:16px">まだ活動がありません<br>No activities yet during this campaign</p>';
     } else {
+      activityData = {};
       actEl.innerHTML = data.activities.map(a => {
-        const km   = (a.distance_meters / 1000).toFixed(1);
-        const date = new Date(a.start_date).toLocaleDateString('ja-JP', {month:'short', day:'numeric'});
-        const icon = a.sport_type.includes('Ride') ? '🚴' : a.sport_type.includes('Run') ? '🏃' : a.sport_type.includes('Swim') ? '🏊' : '🚶';
+        const km       = (a.distance_meters / 1000).toFixed(1);
+        const mins     = Math.floor(a.moving_time_seconds / 60);
+        const time     = mins >= 60 ? Math.floor(mins/60)+'h '+(mins%60)+'m' : mins+'m';
+        const date     = new Date(a.start_date).toLocaleDateString('ja-JP', {month:'short', day:'numeric'});
+        const icon     = a.sport_type.includes('Ride') ? '🚴' : a.sport_type.includes('Run') ? '🏃' : a.sport_type.includes('Swim') ? '🏊' : '🚶';
         const stravaUrl = a.strava_activity_id ? 'https://www.strava.com/activities/' + a.strava_activity_id : null;
-        const inner = '<div class="activity-icon">' + icon + '</div>'
+        const hasMap    = !!(a.map_polyline && a.map_polyline.length > 10);
+        const hasPhotos = !!(a.photo_urls && a.photo_urls.length > 0);
+        const hasDetail = hasMap || hasPhotos;
+
+        activityData[a.id] = { polyline: a.map_polyline || '', photos: a.photo_urls || [] };
+
+        const safeName = esc(a.name);
+        const header = '<div class="activity-row"'
+          + (hasDetail ? ' onclick="toggleActivity(\''+a.id+'\')" style="cursor:pointer;border-bottom:none"' : '')
+          + '>'
+          + '<div class="activity-icon">'+icon+'</div>'
           + '<div class="activity-info">'
-          + '<div class="activity-name">' + a.name + (stravaUrl ? ' <span style="font-size:11px;color:#FC4C02">Strava ↗</span>' : '') + '</div>'
-          + '<div class="activity-meta">' + date + '</div>'
+          + '<div class="activity-name">'+safeName
+            +(stravaUrl ? ' <a href="'+stravaUrl+'" target="_blank" onclick="event.stopPropagation()" style="font-size:11px;color:#FC4C02;text-decoration:none">Strava ↗</a>' : '')
+          +'</div>'
+          + '<div class="activity-meta">'+date+' · '+time+'</div>'
           + '</div>'
-          + '<div class="activity-dist">' + km + ' km</div>';
-        return stravaUrl
-          ? '<a href="' + stravaUrl + '" target="_blank" rel="noopener" class="activity-row" style="text-decoration:none;color:inherit">' + inner + '</a>'
-          : '<div class="activity-row">' + inner + '</div>';
+          + '<div style="display:flex;align-items:center;gap:6px">'
+          + '<div class="activity-dist">'+km+' km</div>'
+          + (hasDetail ? '<span id="chev-'+a.id+'" style="font-size:16px;color:#86868b;transition:transform .25s">▾</span>' : '')
+          + '</div>'
+          + '</div>';
+
+        const mapHtml = hasMap
+          ? '<div id="map-'+a.id+'" style="height:200px;background:#e8f5f9"></div>'
+          : '';
+        const photosHtml = hasPhotos
+          ? '<div style="display:flex;gap:8px;overflow-x:auto;padding:10px 12px;-webkit-overflow-scrolling:touch">'
+            + a.photo_urls.map(url =>
+                '<img src="'+url+'" style="width:160px;height:110px;object-fit:cover;border-radius:8px;flex-shrink:0" loading="lazy">'
+              ).join('')
+            + '</div>'
+          : '';
+        const detail = hasDetail
+          ? '<div id="detail-'+a.id+'" style="display:none;border-top:1px solid #f0f0f0">'
+            + mapHtml + photosHtml + '</div>'
+          : '';
+
+        return '<div style="border:1px solid #eee;border-radius:12px;margin-bottom:10px;overflow:hidden;background:#fff">'
+          + header + detail + '</div>';
       }).join('');
     }
     updateCalc();
