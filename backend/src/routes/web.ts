@@ -67,6 +67,7 @@ router.get('/:id/data', async (req: Request, res: Response) => {
     // Build activities query — only filter by sport_type when types are actually configured
     let activityQuery = db.from('activities')
       .select('id, name, sport_type, distance_meters, start_date, moving_time_seconds, strava_activity_id, map_polyline, photo_urls')
+      .is('deleted_at', null)
       .gte('start_date_local', campaign.start_date ?? '')
       .order('start_date_local', { ascending: false })
       .limit(20);
@@ -244,20 +245,30 @@ function renderPage(campaign: any, stripeKey: string, apiBase: string, campaignI
   const endDate   = new Date(campaign.end_date).toLocaleDateString('ja-JP', { year:'numeric', month:'long', day:'numeric' });
   const endDateEn = new Date(campaign.end_date).toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' });
 
+  // ── Server-side HTML escape helpers ───────────────────────────────────────
+  // Must be applied to every user-controlled value inserted into the template.
+  const h = (s: string | null | undefined): string =>
+    String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  // For src/href attributes: only allow http/https/relative URLs to block javascript: injection.
+  const safeUrl = (url: string | null | undefined): string => {
+    const u = String(url ?? '').trim();
+    return (u.startsWith('https://') || u.startsWith('http://') || u.startsWith('/')) ? h(u) : '';
+  };
+
   return `<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>${campaign.title_ja} | チャリアス</title>
+  <title>${h(campaign.title_ja)} | チャリアス</title>
   <meta property="og:type"        content="website">
-  <meta property="og:title"       content="${campaign.title_ja} | チャリアス (Charity Athletes)">
-  <meta property="og:description" content="${campaign.description_ja || campaign.description_en || 'チャリアスのチャリティキャンペーンを応援してください！'}">
-  <meta property="og:url"         content="https://charityathletes-production.up.railway.app/c/${campaignId}">
-  <meta property="og:image"       content="${np?.logo_url || 'https://charityathletes-production.up.railway.app/static/logo.png'}">
+  <meta property="og:title"       content="${h(campaign.title_ja)} | チャリアス (Charity Athletes)">
+  <meta property="og:description" content="${h(campaign.description_ja || campaign.description_en || 'チャリアスのチャリティキャンペーンを応援してください！')}">
+  <meta property="og:url"         content="https://charityathletes-production.up.railway.app/c/${h(campaignId)}">
+  <meta property="og:image"       content="${safeUrl(np?.logo_url) || 'https://charityathletes-production.up.railway.app/static/logo.png'}">
   <meta name="twitter:card"       content="summary_large_image">
-  <meta name="twitter:title"      content="${campaign.title_ja} | チャリアス">
-  <meta name="twitter:description" content="${campaign.description_ja || campaign.description_en || ''}">
+  <meta name="twitter:title"      content="${h(campaign.title_ja)} | チャリアス">
+  <meta name="twitter:description" content="${h(campaign.description_ja || campaign.description_en || '')}">
   <script src="https://js.stripe.com/v3/"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -332,16 +343,16 @@ function renderPage(campaign: any, stripeKey: string, apiBase: string, campaignI
       <button class="lang-btn" id="btn-lang-en">EN</button>
     </div>
   </div>
-  <h1><span class="ja">${campaign.title_ja}</span><span class="en">${campaign.title_en || campaign.title_ja}</span></h1>
+  <h1><span class="ja">${h(campaign.title_ja)}</span><span class="en">${h(campaign.title_en || campaign.title_ja)}</span></h1>
   <div class="meta" style="display:flex;align-items:center;gap:12px;margin-top:16px">
     ${athlete?.avatar_url
-      ? `<img src="${athlete.avatar_url}" alt="${athlete.display_name ?? ''}"
+      ? `<img src="${safeUrl(athlete.avatar_url)}" alt="${h(athlete.display_name ?? '')}"
              style="width:52px;height:52px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.6);flex-shrink:0">`
       : `<div style="width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">🏃</div>`
     }
     <div>
-      ${athlete?.display_name ? `<div style="font-weight:600;font-size:15px">${athlete.display_name}</div>` : ''}
-      ${np ? `<div style="font-size:13px;opacity:.85;margin-top:2px">🏢 <span class="ja">${np.name_ja}</span><span class="en">${np.name_en || np.name_ja}</span></div>` : ''}
+      ${athlete?.display_name ? `<div style="font-weight:600;font-size:15px">${h(athlete.display_name)}</div>` : ''}
+      ${np ? `<div style="font-size:13px;opacity:.85;margin-top:2px">🏢 <span class="ja">${h(np.name_ja)}</span><span class="en">${h(np.name_en || np.name_ja)}</span></div>` : ''}
       <div style="font-size:12px;opacity:.75;margin-top:2px">📅 <span class="ja">${endDate}まで</span><span class="en">Ends ${endDateEn}</span></div>
     </div>
   </div>
@@ -364,8 +375,8 @@ function renderPage(campaign: any, stripeKey: string, apiBase: string, campaignI
 ${(campaign.description_ja || campaign.description_en) ? `
 <div class="card">
   <div class="section-title"><span class="ja">キャンペーンについて</span><span class="en">About</span></div>
-  ${campaign.description_ja ? `<p class="ja" style="font-size:14px;line-height:1.6;color:#444">${campaign.description_ja}</p>` : ''}
-  ${campaign.description_en ? `<p class="en" style="font-size:14px;line-height:1.6;color:#444">${campaign.description_en}</p>` : ''}
+  ${campaign.description_ja ? `<p class="ja" style="font-size:14px;line-height:1.6;color:#444">${h(campaign.description_ja)}</p>` : ''}
+  ${campaign.description_en ? `<p class="en" style="font-size:14px;line-height:1.6;color:#444">${h(campaign.description_en)}</p>` : ''}
 </div>` : ''}
 
 <div class="card" id="how-it-works-card">
