@@ -355,6 +355,9 @@ function renderPage(campaign: any, stripeKey: string, apiBase: string, campaignI
 
 <div class="card" style="margin-top:28px">
   <div class="section-title"><span class="ja">活動履歴</span><span class="en">Activities</span></div>
+  <div id="activities-hint" style="display:none;font-size:12px;color:#86868b;margin-bottom:10px;margin-top:-6px">
+    🗺️ <span class="ja">アクティビティをタップするとマップや写真が表示されます</span><span class="en">Tap an activity to see the map &amp; photos</span>
+  </div>
   <div id="activities"><div id="loading"><span class="ja">読み込み中…</span><span class="en">Loading…</span></div></div>
 </div>
 
@@ -655,10 +658,16 @@ async function loadData() {
     document.getElementById('stat-total').textContent  = '¥' + (data.estimatedTotal ?? 0).toLocaleString();
 
     const actEl = document.getElementById('activities');
+    var hintEl = document.getElementById('activities-hint');
     if (!data.activities.length) {
+      if (hintEl) hintEl.style.display = 'none';
       actEl.innerHTML = '<p style="color:#86868b;font-size:14px;text-align:center;padding:16px">'
         + '<span class="ja">まだ活動がありません</span><span class="en">No activities yet during this campaign</span></p>';
     } else {
+      var hasAnyDetail = data.activities.some(function(a) {
+        return (a.map_polyline && a.map_polyline.length > 10) || (a.photo_urls && a.photo_urls.length > 0);
+      });
+      if (hintEl) hintEl.style.display = hasAnyDetail ? 'block' : 'none';
       activityData = {};
       actEl.innerHTML = data.activities.map(a => {
         const km       = (a.distance_meters / 1000).toFixed(1);
