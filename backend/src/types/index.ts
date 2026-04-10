@@ -102,6 +102,12 @@ export interface StravaDetailedActivity {
   average_heartrate?: number;
 }
 
+export interface StravaPhoto {
+  unique_id: string;
+  urls: Record<string, string>;   // key = size string e.g. "600"
+  location?: [number, number];
+}
+
 export interface StravaTokenResponse {
   access_token: string;
   refresh_token: string;

@@ -78,15 +78,18 @@ struct UserProfile: Decodable, Identifiable {
 
 // ─── Activity ─────────────────────────────────────────────────────────────────
 
-struct Activity: Decodable, Identifiable {
+struct Activity: Decodable, Identifiable, Hashable {
     let id: String
     let name: String
     let sportType: String
     let distanceMeters: Double
     let movingTimeSeconds: Int
     let totalElevationGain: Double
+    let averageHeartrate: Double?
     let startDate: Date
     let stravaActivityId: String?
+    let mapPolyline: String?
+    let photoUrls: [String]?
 
     var distanceKm: Double { distanceMeters / 1000 }
 

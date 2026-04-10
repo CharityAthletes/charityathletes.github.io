@@ -50,11 +50,14 @@ struct ActivityListView: View {
                     ContentUnavailableView(i18n.t(.activitiesEmpty), systemImage: "bicycle")
                 } else {
                     List(vm.activities) { a in
-                        ActivityRow(activity: a)
-                            .listRowBackground(Color.clear)
-                            .listRowSeparator(.hidden)
+                        NavigationLink(value: a) {
+                            ActivityRow(activity: a)
+                        }
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
                     }
                     .listStyle(.plain)
+                    .navigationDestination(for: Activity.self) { ActivityDetailView(activity: $0) }
                 }
             }
             .navigationTitle(i18n.t(.activitiesTitle))

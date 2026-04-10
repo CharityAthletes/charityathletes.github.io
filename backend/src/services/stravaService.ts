@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { db } from '../config/supabase';
-import type { StravaDetailedActivity, StravaTokenResponse } from '../types';
+import type { StravaDetailedActivity, StravaPhoto, StravaTokenResponse } from '../types';
 
 const API = 'https://www.strava.com/api/v3';
 const TOKEN_URL = 'https://www.strava.com/oauth/token';
@@ -93,6 +93,21 @@ export const stravaService = {
       { headers: { Authorization: `Bearer ${accessToken}` } }
     );
 
+    // Fetch photos — optional, don't fail the sync if this errors
+    let photoUrls: string[] = [];
+    try {
+      const { data: photos } = await axios.get<StravaPhoto[]>(
+        `${API}/activities/${stravaActivityId}/photos`,
+        { params: { photo_sources: true, size: 600 },
+          headers: { Authorization: `Bearer ${accessToken}` } }
+      );
+      photoUrls = photos
+        .filter(p => p.urls?.['600'])
+        .map(p => p.urls['600']);
+    } catch {
+      // Photos are optional; silently skip if unavailable
+    }
+
     const { data, error } = await db
       .from('activities')
       .upsert({
@@ -110,6 +125,7 @@ export const stravaService = {
         average_speed_mps:   raw.average_speed,
         max_speed_mps:       raw.max_speed,
         average_heartrate:   raw.average_heartrate ?? null,
+        photo_urls:          photoUrls,
         is_processed:        false,
       }, { onConflict: 'strava_activity_id' })
       .select('id')
