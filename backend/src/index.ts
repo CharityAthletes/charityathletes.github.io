@@ -27,12 +27,13 @@ app.set('trust proxy', 1);
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
-      defaultSrc:  ["'self'"],
-      scriptSrc:   ["'self'", "'unsafe-inline'", 'https://js.stripe.com'],
-      frameSrc:    ["'self'", 'https://js.stripe.com', 'https://*.stripe.com'],
-      connectSrc:  ["'self'", 'https://api.stripe.com'],
-      imgSrc:      ["'self'", 'data:', 'https:'],
-      styleSrc:    ["'self'", "'unsafe-inline'"],
+      defaultSrc:     ["'self'"],
+      scriptSrc:      ["'self'", "'unsafe-inline'", 'https://js.stripe.com', 'https://unpkg.com'],
+      scriptSrcAttr:  ["'unsafe-inline'"],   // allow onclick= handlers on donor page
+      frameSrc:       ["'self'", 'https://js.stripe.com', 'https://*.stripe.com'],
+      connectSrc:     ["'self'", 'https://api.stripe.com'],
+      imgSrc:         ["'self'", 'data:', 'https:'],
+      styleSrc:       ["'self'", "'unsafe-inline'", 'https://unpkg.com'],
     },
   },
 }));

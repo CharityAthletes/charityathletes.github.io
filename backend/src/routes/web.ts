@@ -42,60 +42,65 @@ router.get('/:id', async (req: Request, res: Response) => {
 // ── GET /c/:id/data — JSON for the page ──────────────────────────────────────
 
 router.get('/:id/data', async (req: Request, res: Response) => {
-  const { data: campaign } = await db
-    .from('campaigns')
-    .select('*, nonprofits(name_ja, name_en)')
-    .eq('id', req.params.id).single();
+  try {
+    const { data: campaign } = await db
+      .from('campaigns')
+      .select('*, nonprofits(name_ja, name_en)')
+      .eq('id', req.params.id).single();
 
-  if (!campaign) return res.status(404).json({ error: 'Not found' });
+    if (!campaign) return res.status(404).json({ error: 'Not found' });
 
-  // Expand sport_type aliases so e.g. "Ride" also matches "VirtualRide", "EBikeRide", "GravelRide"
-  const sportTypeAliases: Record<string, string[]> = {
-    Ride:  ['Ride', 'MountainBikeRide', 'GravelRide', 'EBikeRide', 'EMountainBikeRide', 'Handcycle', 'VelomobileRide', 'VirtualRide'],
-    Run:   ['Run', 'TrailRun', 'VirtualRun', 'Wheelchair'],
-    Walk:  ['Walk', 'Hike', 'Wheelchair'],
-    Swim:  ['Swim', 'OpenWaterSwim'],
-  };
-  const expandedTypes = (campaign.sport_types ?? []).flatMap(
-    (t: string) => sportTypeAliases[t] ?? [t]
-  );
+    // Expand sport_type aliases so e.g. "Ride" also matches "VirtualRide", "EBikeRide", "GravelRide"
+    const sportTypeAliases: Record<string, string[]> = {
+      Ride:  ['Ride', 'MountainBikeRide', 'GravelRide', 'EBikeRide', 'EMountainBikeRide', 'Handcycle', 'VelomobileRide', 'VirtualRide'],
+      Run:   ['Run', 'TrailRun', 'VirtualRun', 'Wheelchair'],
+      Walk:  ['Walk', 'Hike', 'Wheelchair'],
+      Swim:  ['Swim', 'OpenWaterSwim'],
+    };
+    const expandedTypes = (campaign.sport_types ?? []).flatMap(
+      (t: string) => sportTypeAliases[t] ?? [t]
+    );
 
-  // ?a=userId — show a specific athlete's activities; defaults to creator
-  const athleteId = (req.query.a as string) || campaign.created_by;
+    // ?a=userId — show a specific athlete's activities; defaults to creator
+    const athleteId = (req.query.a as string) || campaign.created_by || null;
 
-  // Build activities query — only filter by sport_type when types are actually configured
-  let activityQuery = db.from('activities')
-    .select('id, name, sport_type, distance_meters, start_date, moving_time_seconds, strava_activity_id, map_polyline, photo_urls')
-    .eq('user_id', athleteId)
-    .gte('start_date_local', campaign.start_date ?? '')
-    .order('start_date_local', { ascending: false })
-    .limit(20);
-  if (campaign.end_date) activityQuery = activityQuery.lte('start_date_local', campaign.end_date);
-  if (expandedTypes.length > 0) activityQuery = activityQuery.in('sport_type', expandedTypes);
+    // Build activities query — only filter by sport_type when types are actually configured
+    let activityQuery = db.from('activities')
+      .select('id, name, sport_type, distance_meters, start_date, moving_time_seconds, strava_activity_id, map_polyline, photo_urls')
+      .gte('start_date_local', campaign.start_date ?? '')
+      .order('start_date_local', { ascending: false })
+      .limit(20);
+    if (athleteId) activityQuery = activityQuery.eq('user_id', athleteId);
+    if (campaign.end_date) activityQuery = activityQuery.lte('start_date_local', campaign.end_date);
+    if (expandedTypes.length > 0) activityQuery = activityQuery.in('sport_type', expandedTypes);
 
-  // Pledges: scope to this athlete when ?a= is present; otherwise all campaign pledges
-  let pledgesQuery = db.from('donor_pledges')
-    .select('flat_amount_jpy, per_km_rate_jpy, status')
-    .eq('campaign_id', req.params.id)
-    .in('status', ['confirmed', 'charged']);
-  if (req.query.a) pledgesQuery = pledgesQuery.eq('athlete_user_id', athleteId);
+    // Pledges: scope to this athlete when ?a= is present; otherwise all campaign pledges
+    let pledgesQuery = db.from('donor_pledges')
+      .select('flat_amount_jpy, per_km_rate_jpy, status')
+      .eq('campaign_id', req.params.id)
+      .in('status', ['confirmed', 'charged']);
+    if (req.query.a && athleteId) pledgesQuery = pledgesQuery.eq('athlete_user_id', athleteId);
 
-  const [{ data: activities }, { data: pledges }] = await Promise.all([
-    activityQuery,
-    pledgesQuery,
-  ]);
+    const [{ data: activities }, { data: pledges }] = await Promise.all([
+      activityQuery,
+      pledgesQuery,
+    ]);
 
-  const totalKm = (activities ?? []).reduce((s, a) => s + (a.distance_meters / 1000), 0);
-  const totalPledgedFlat = (pledges ?? []).reduce((s, p) => s + (p.flat_amount_jpy ?? 0), 0);
-  const totalPledgedPerKm = (pledges ?? []).reduce((s, p) => s + ((p.per_km_rate_jpy ?? 0) * totalKm), 0);
+    const totalKm = (activities ?? []).reduce((s, a) => s + (a.distance_meters / 1000), 0);
+    const totalPledgedFlat = (pledges ?? []).reduce((s, p) => s + (p.flat_amount_jpy ?? 0), 0);
+    const totalPledgedPerKm = (pledges ?? []).reduce((s, p) => s + ((p.per_km_rate_jpy ?? 0) * totalKm), 0);
 
-  res.json({
-    campaign,
-    activities: activities ?? [],
-    totalKm: Math.round(totalKm * 10) / 10,
-    donorCount: (pledges ?? []).length,
-    estimatedTotal: Math.round(totalPledgedFlat + totalPledgedPerKm),
-  });
+    return res.json({
+      campaign,
+      activities: activities ?? [],
+      totalKm: Math.round(totalKm * 10) / 10,
+      donorCount: (pledges ?? []).length,
+      estimatedTotal: Math.round(totalPledgedFlat + totalPledgedPerKm),
+    });
+  } catch (err: any) {
+    console.error('[Web] /data error:', err);
+    return res.status(500).json({ error: err?.message ?? 'Internal error' });
+  }
 });
 
 // ── POST /c/:id/pledge ────────────────────────────────────────────────────────
@@ -589,12 +594,13 @@ function toggleActivity(id) {
 async function loadData() {
   try {
     const res  = await fetch(API + '/c/' + CAMPAIGN_ID + '/data' + (ATHLETE_ID ? '?a=' + ATHLETE_ID : ''));
+    if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     currentKm  = isNaN(data.totalKm) ? 0 : (data.totalKm || 0);
 
     document.getElementById('stat-km').textContent     = currentKm.toFixed(1) + ' km';
-    document.getElementById('stat-donors').textContent = data.donorCount;
-    document.getElementById('stat-total').textContent  = '¥' + data.estimatedTotal.toLocaleString();
+    document.getElementById('stat-donors').textContent = data.donorCount ?? 0;
+    document.getElementById('stat-total').textContent  = '¥' + (data.estimatedTotal ?? 0).toLocaleString();
 
     const actEl = document.getElementById('activities');
     if (!data.activities.length) {
@@ -652,7 +658,11 @@ async function loadData() {
     }
     updateCalc();
   } catch(e) {
-    document.getElementById('loading').textContent = '読み込み失敗 / Failed to load';
+    console.error('[loadData]', e);
+    var loadEl = document.getElementById('loading');
+    if (loadEl) loadEl.textContent = '読み込み失敗 / Failed to load';
+    var actEl2 = document.getElementById('activities');
+    if (actEl2 && !loadEl) actEl2.innerHTML = '<p style="color:#ff3b30;font-size:14px;text-align:center;padding:16px">読み込みに失敗しました / Failed to load</p>';
   }
 }
 
