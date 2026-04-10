@@ -25,14 +25,14 @@
     #ca-chat-btn {
       position: fixed; bottom: 24px; right: 24px; z-index: 9999;
       width: 56px; height: 56px; border-radius: 50%;
-      background: linear-gradient(135deg, #FF641E, #FF8040);
+      background: linear-gradient(135deg, #007B83, #009CA6);
       border: none; cursor: pointer;
-      box-shadow: 0 4px 16px rgba(255,100,30,0.4);
+      box-shadow: 0 4px 16px rgba(0,123,131,0.4);
       display: flex; align-items: center; justify-content: center;
       transition: transform 0.2s, box-shadow 0.2s;
       color: white; font-size: 24px;
     }
-    #ca-chat-btn:hover { transform: scale(1.08); box-shadow: 0 6px 20px rgba(255,100,30,0.5); }
+    #ca-chat-btn:hover { transform: scale(1.08); box-shadow: 0 6px 20px rgba(0,123,131,0.5); }
 
     #ca-chat-window {
       position: fixed; bottom: 92px; right: 24px; z-index: 9999;
@@ -74,7 +74,7 @@
       align-self: flex-start; border-bottom-left-radius: 4px;
     }
     .ca-msg-user {
-      background: linear-gradient(135deg, #FF641E, #FF8040);
+      background: linear-gradient(135deg, #007B83, #009CA6);
       color: white; align-self: flex-end; border-bottom-right-radius: 4px;
     }
     .ca-msg-thinking { opacity: 0.6; font-style: italic; }
@@ -89,9 +89,9 @@
       font-family: inherit; outline: none; max-height: 80px;
       line-height: 1.4;
     }
-    #ca-chat-input:focus { border-color: #FF641E; }
+    #ca-chat-input:focus { border-color: #007B83; }
     #ca-chat-send {
-      background: linear-gradient(135deg, #FF641E, #FF8040);
+      background: linear-gradient(135deg, #007B83, #009CA6);
       color: white; border: none; border-radius: 10px;
       padding: 8px 14px; font-size: 13px; font-weight: 600;
       cursor: pointer; white-space: nowrap;
