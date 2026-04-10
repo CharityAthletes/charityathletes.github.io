@@ -298,7 +298,7 @@ struct ProfileView: View {
                             }
                         } label: {
                             Label(i18n.language == .ja ? "Stravaを切断" : "Disconnect Strava",
-                                  systemImage: "link.badge.minus")
+                                  systemImage: "xmark.circle")
                         }
                     } else {
                         Button {
