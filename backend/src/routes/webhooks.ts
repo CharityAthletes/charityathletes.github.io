@@ -35,6 +35,15 @@ router.post('/strava', (req: Request, res: Response) => {
   const event = req.body as StravaWebhookEvent;
   if (event.object_type !== 'activity') return;
 
+  // Verify subscription_id matches ours — blocks spoofed events from anyone
+  // who discovers this URL.  Set STRAVA_WEBHOOK_SUBSCRIPTION_ID in Railway env
+  // to the numeric ID returned when you registered the webhook with Strava.
+  const expectedSubId = process.env.STRAVA_WEBHOOK_SUBSCRIPTION_ID;
+  if (expectedSubId && String(event.subscription_id) !== expectedSubId) {
+    console.warn('[Webhook/Strava] Rejected event with unexpected subscription_id:', event.subscription_id);
+    return;
+  }
+
   setImmediate(async () => {
     try {
       if (event.aspect_type === 'create') {

@@ -2,6 +2,17 @@ import { Router, Request, Response } from 'express';
 import { db } from '../config/supabase';
 import Stripe from 'stripe';
 import { z } from 'zod';
+import rateLimit from 'express-rate-limit';
+
+// Tight limiter for pledge submissions: 5 per IP per hour.
+// Legitimate donors rarely need more than one; this prevents Stripe customer spam.
+const pledgeRateLimit = rateLimit({
+  windowMs:        60 * 60_000,
+  max:             5,
+  standardHeaders: true,
+  legacyHeaders:   false,
+  message:         { error: 'Too many pledge attempts from this IP. Please try again later.' },
+});
 
 const router = Router();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2023-10-16' });
@@ -121,7 +132,7 @@ const pledgeSchema = z.object({
   message: 'Choose one pledge type only',
 });
 
-router.post('/:id/pledge', async (req: Request, res: Response) => {
+router.post('/:id/pledge', pledgeRateLimit, async (req: Request, res: Response) => {
   const parsed = pledgeSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
