@@ -350,7 +350,7 @@ ${(campaign.description_ja || campaign.description_en) ? `
 </div>` : ''}
 
 <div class="card" id="how-it-works-card">
-  <button type="button" onclick="toggleHowItWorks()" style="width:100%;background:none;border:none;padding:0;cursor:pointer;text-align:left">
+  <button type="button" id="hiw-btn" style="width:100%;background:none;border:none;padding:0;cursor:pointer;text-align:left">
     <div style="display:flex;align-items:center;justify-content:space-between">
       <div class="section-title" style="margin-bottom:0">💡 使い方 / How It Works</div>
       <span id="hiw-chevron" style="font-size:18px;color:#86868b;transition:transform .25s">▾</span>
@@ -460,6 +460,16 @@ ${(campaign.description_ja || campaign.description_en) ? `
 </div>
 
 <script>
+// ── Global error capture (must be first) ──────────────────────────────────
+window.addEventListener('error', function(ev) {
+  var el = document.getElementById('loading') || document.getElementById('activities');
+  if (el) el.innerHTML = '<p style="color:#ff3b30;font-size:12px;padding:8px">JS Error: ' + ev.message + ' (L' + ev.lineno + ')</p>';
+});
+window.addEventListener('unhandledrejection', function(ev) {
+  var el = document.getElementById('loading') || document.getElementById('activities');
+  if (el) el.innerHTML = '<p style="color:#ff3b30;font-size:12px;padding:8px">Async Error: ' + (ev.reason && ev.reason.message ? ev.reason.message : ev.reason) + '</p>';
+});
+
 // ── How it works toggle ────────────────────────────────────────────────────
 function toggleHowItWorks() {
   var el = document.getElementById('how-it-works');
@@ -622,12 +632,12 @@ async function loadData() {
 
         const safeName = esc(a.name);
         const header = '<div class="activity-row"'
-          + (hasDetail ? ' onclick="toggleActivity(\''+a.id+'\')" style="cursor:pointer;border-bottom:none"' : '')
+          + (hasDetail ? ' data-act-id="'+a.id+'" style="cursor:pointer;border-bottom:none"' : '')
           + '>'
           + '<div class="activity-icon">'+icon+'</div>'
           + '<div class="activity-info">'
           + '<div class="activity-name">'+safeName
-            +(stravaUrl ? ' <a href="'+stravaUrl+'" target="_blank" onclick="event.stopPropagation()" style="font-size:11px;color:#FC4C02;text-decoration:none">Strava ↗</a>' : '')
+            +(stravaUrl ? ' <a href="'+stravaUrl+'" target="_blank" data-strava-link="1" style="font-size:11px;color:#FC4C02;text-decoration:none">Strava ↗</a>' : '')
           +'</div>'
           + '<div class="activity-meta">'+date+' · '+time+'</div>'
           + '</div>'
@@ -801,8 +811,19 @@ if (typeof Stripe === 'undefined') {
 var pledgeBtn = document.getElementById('pledge-btn');
 if (pledgeBtn) pledgeBtn.addEventListener('click', function() { submitPledge(); });
 
-// All other button clicks via event delegation
+// Wire How It Works toggle (event listener — no onclick needed)
+var hiwBtn = document.getElementById('hiw-btn');
+if (hiwBtn) hiwBtn.addEventListener('click', toggleHowItWorks);
+
+// All button clicks via event delegation
 document.addEventListener('click', function(e) {
+  // Strava link — let it open normally, stop propagation to parent row
+  if (e.target.closest('[data-strava-link]')) { e.stopPropagation(); return; }
+
+  // Activity row expand/collapse
+  var actRow = e.target.closest('[data-act-id]');
+  if (actRow) { toggleActivity(actRow.dataset.actId); return; }
+
   var tab = e.target.closest('[data-type]');
   if (tab) { selectType(tab.dataset.type, tab); return; }
 
