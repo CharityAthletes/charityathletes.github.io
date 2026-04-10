@@ -241,7 +241,8 @@ export default router;
 function renderPage(campaign: any, stripeKey: string, apiBase: string, campaignId: string, athleteId: string = ''): string {
   const np   = campaign.nonprofits;
   const athlete = campaign.user_profiles;
-  const endDate = new Date(campaign.end_date).toLocaleDateString('ja-JP', { year:'numeric', month:'long', day:'numeric' });
+  const endDate   = new Date(campaign.end_date).toLocaleDateString('ja-JP', { year:'numeric', month:'long', day:'numeric' });
+  const endDateEn = new Date(campaign.end_date).toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' });
 
   return `<!DOCTYPE html>
 <html lang="ja">
@@ -304,18 +305,34 @@ function renderPage(campaign: any, stripeKey: string, apiBase: string, campaignI
     .donation-panel{display:none}
     .donation-panel.active{display:block}
     #loading{text-align:center;padding:40px;color:#86868b}
+    /* Language toggle */
+    .lang-toggle{display:flex;gap:6px}
+    .lang-btn{background:rgba(255,255,255,0.2);color:#fff;border:1.5px solid rgba(255,255,255,0.5);border-radius:99px;padding:4px 12px;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
+    .lang-btn.active{background:#fff;color:#007B83;border-color:#fff}
+    span.en{display:none}
+    html.lang-en span.ja{display:none}
+    html.lang-en span.en{display:inline}
+    p.en,div.en{display:none}
+    html.lang-en p.ja,html.lang-en div.ja{display:none}
+    html.lang-en p.en,html.lang-en div.en{display:block}
   </style>
+  <script>(function(){try{var l=localStorage.getItem('ca_lang');if(l==='en')document.documentElement.classList.add('lang-en');}catch(e){}}())</script>
 </head>
 <body>
 
 <div class="hero">
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
-    <img src="/static/logo.png" alt="チャリアス"
-         style="width:44px;height:44px;border-radius:10px;object-fit:cover;flex-shrink:0">
-    <span style="font-size:14px;font-weight:600;opacity:.9">チャリアス / Charity Athletes</span>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <img src="/static/logo.png" alt="チャリアス"
+           style="width:44px;height:44px;border-radius:10px;object-fit:cover;flex-shrink:0">
+      <span style="font-size:14px;font-weight:600;opacity:.9"><span class="ja">チャリアス</span><span class="en">Charity Athletes</span></span>
+    </div>
+    <div class="lang-toggle">
+      <button class="lang-btn" id="btn-lang-ja">日本語</button>
+      <button class="lang-btn" id="btn-lang-en">EN</button>
+    </div>
   </div>
-  <h1>${campaign.title_ja}</h1>
-  ${campaign.title_en !== campaign.title_ja ? `<div class="sub">${campaign.title_en}</div>` : ''}
+  <h1><span class="ja">${campaign.title_ja}</span><span class="en">${campaign.title_en || campaign.title_ja}</span></h1>
   <div class="meta" style="display:flex;align-items:center;gap:12px;margin-top:16px">
     ${athlete?.avatar_url
       ? `<img src="${athlete.avatar_url}" alt="${athlete.display_name ?? ''}"
@@ -324,35 +341,34 @@ function renderPage(campaign: any, stripeKey: string, apiBase: string, campaignI
     }
     <div>
       ${athlete?.display_name ? `<div style="font-weight:600;font-size:15px">${athlete.display_name}</div>` : ''}
-      ${np ? `<div style="font-size:13px;opacity:.85;margin-top:2px">🏢 ${np.name_ja}</div>` : ''}
-      <div style="font-size:12px;opacity:.75;margin-top:2px">📅 ${endDate}まで / Ends ${new Date(campaign.end_date).toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' })}</div>
+      ${np ? `<div style="font-size:13px;opacity:.85;margin-top:2px">🏢 <span class="ja">${np.name_ja}</span><span class="en">${np.name_en || np.name_ja}</span></div>` : ''}
+      <div style="font-size:12px;opacity:.75;margin-top:2px">📅 <span class="ja">${endDate}まで</span><span class="en">Ends ${endDateEn}</span></div>
     </div>
   </div>
 </div>
 
 <div class="stat-row">
-  <div class="stat"><div class="val" id="stat-km">…</div><div class="lbl">走行距離 / My Distance</div></div>
-  <div class="stat"><div class="val" id="stat-donors">…</div><div class="lbl">サポーター / Donors</div></div>
-  <div class="stat"><div class="val" id="stat-total">…</div><div class="lbl">寄付見込額 / Est. Total</div></div>
+  <div class="stat"><div class="val" id="stat-km">…</div><div class="lbl"><span class="ja">走行距離</span><span class="en">My Distance</span></div></div>
+  <div class="stat"><div class="val" id="stat-donors">…</div><div class="lbl"><span class="ja">サポーター</span><span class="en">Donors</span></div></div>
+  <div class="stat"><div class="val" id="stat-total">…</div><div class="lbl"><span class="ja">寄付見込額</span><span class="en">Est. Total</span></div></div>
 </div>
 
 <div class="card" style="margin-top:28px">
-  <div class="section-title">活動履歴 / Activities</div>
-  <div id="activities"><div id="loading">読み込み中… / Loading…</div></div>
+  <div class="section-title"><span class="ja">活動履歴</span><span class="en">Activities</span></div>
+  <div id="activities"><div id="loading"><span class="ja">読み込み中…</span><span class="en">Loading…</span></div></div>
 </div>
 
 ${(campaign.description_ja || campaign.description_en) ? `
 <div class="card">
-  <div class="section-title">キャンペーンについて / About</div>
-  ${campaign.description_ja ? `<p style="font-size:14px;line-height:1.6;color:#444">${campaign.description_ja}</p>` : ''}
-  ${campaign.description_en && campaign.description_en !== campaign.description_ja
-    ? `<p style="font-size:13px;line-height:1.6;color:#86868b;margin-top:8px">${campaign.description_en}</p>` : ''}
+  <div class="section-title"><span class="ja">キャンペーンについて</span><span class="en">About</span></div>
+  ${campaign.description_ja ? `<p class="ja" style="font-size:14px;line-height:1.6;color:#444">${campaign.description_ja}</p>` : ''}
+  ${campaign.description_en ? `<p class="en" style="font-size:14px;line-height:1.6;color:#444">${campaign.description_en}</p>` : ''}
 </div>` : ''}
 
 <div class="card" id="how-it-works-card">
   <button type="button" id="hiw-btn" style="width:100%;background:none;border:none;padding:0;cursor:pointer;text-align:left">
     <div style="display:flex;align-items:center;justify-content:space-between">
-      <div class="section-title" style="margin-bottom:0">💡 使い方 / How It Works</div>
+      <div class="section-title" style="margin-bottom:0">💡 <span class="ja">使い方</span><span class="en">How It Works</span></div>
       <span id="hiw-chevron" style="font-size:18px;color:#86868b;transition:transform .25s">▾</span>
     </div>
   </button>
@@ -360,40 +376,52 @@ ${(campaign.description_ja || campaign.description_en) ? `
     <div style="display:flex;flex-direction:column;gap:12px">
       <div style="display:flex;gap:12px;align-items:flex-start">
         <div style="background:#007B83;color:#fff;font-weight:700;font-size:13px;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">1</div>
-        <div><div style="font-weight:600;font-size:14px">🏃 このアスリートが走る・漕ぐ・泳ぐ</div><div style="font-size:13px;color:#86868b;margin-top:2px">This page shows <strong>this athlete's</strong> activities and distance. Strava tracks every km automatically.</div></div>
+        <div>
+          <div style="font-weight:600;font-size:14px"><span class="ja">🏃 このアスリートが走る・漕ぐ・泳ぐ</span><span class="en">🏃 The athlete runs, rides or swims</span></div>
+          <div class="ja" style="font-size:13px;color:#86868b;margin-top:2px">このページには<strong>このアスリート</strong>の活動と走行距離が表示されます。StravaがすべてのKmを自動追跡します。</div>
+          <div class="en" style="font-size:13px;color:#86868b;margin-top:2px">This page shows <strong>this athlete's</strong> activities and distance. Strava tracks every km automatically.</div>
+        </div>
       </div>
       <div style="display:flex;gap:12px;align-items:flex-start">
         <div style="background:#007B83;color:#fff;font-weight:700;font-size:13px;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">2</div>
-        <div><div style="font-weight:600;font-size:14px">💳 あなたが寄付を申し込む</div><div style="font-size:13px;color:#86868b;margin-top:2px">Pledge a flat amount or a per-km rate (e.g. ¥10 per km). You can donate anonymously if you prefer.</div></div>
+        <div>
+          <div style="font-weight:600;font-size:14px"><span class="ja">💳 あなたが寄付を申し込む</span><span class="en">💳 You make a pledge</span></div>
+          <div class="ja" style="font-size:13px;color:#86868b;margin-top:2px">定額または距離連動（例：1kmあたり¥10）で申し込めます。匿名での寄付も可能です。</div>
+          <div class="en" style="font-size:13px;color:#86868b;margin-top:2px">Pledge a flat amount or a per-km rate (e.g. ¥10 per km). You can donate anonymously if you prefer.</div>
+        </div>
       </div>
       <div style="display:flex;gap:12px;align-items:flex-start">
         <div style="background:#007B83;color:#fff;font-weight:700;font-size:13px;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">3</div>
-        <div><div style="font-weight:600;font-size:14px">✅ 寄付が届く</div><div style="font-size:13px;color:#86868b;margin-top:2px">Flat donations charge immediately. Per-km pledges charge at campaign end based on <strong>this athlete's</strong> total distance — not the combined total of all participants.</div></div>
+        <div>
+          <div style="font-weight:600;font-size:14px"><span class="ja">✅ 寄付が届く</span><span class="en">✅ Your donation goes to the charity</span></div>
+          <div class="ja" style="font-size:13px;color:#86868b;margin-top:2px">定額寄付はすぐに請求されます。距離連動はキャンペーン終了後に<strong>このアスリート</strong>の総走行距離をもとに請求されます。</div>
+          <div class="en" style="font-size:13px;color:#86868b;margin-top:2px">Flat donations charge immediately. Per-km pledges charge at campaign end based on <strong>this athlete's</strong> total distance — not the combined total of all participants.</div>
+        </div>
       </div>
     </div>
   </div>
 </div>
 
 <div class="card">
-  <div class="section-title">寄付を申し込む / Pledge to Donate</div>
+  <div class="section-title"><span class="ja">寄付を申し込む</span><span class="en">Pledge to Donate</span></div>
 
   <form id="pledge-form" onsubmit="return false">
-    <label>お名前 / Your Name</label>
+    <label><span class="ja">お名前</span><span class="en">Your Name</span></label>
     <input id="donor-name" type="text" placeholder="山田 太郎">
 
-    <label>メールアドレス / Email</label>
+    <label><span class="ja">メールアドレス</span><span class="en">Email</span></label>
     <input id="donor-email" type="email" placeholder="taro@example.com">
 
-    <label style="margin-top:16px">寄付の種類 / Donation Type</label>
+    <label style="margin-top:16px"><span class="ja">寄付の種類</span><span class="en">Donation Type</span></label>
     <div class="type-tabs">
-      ${campaign.has_flat_donation ? `<button type="button" class="type-tab active" data-type="flat">💴 定額寄付<br><span style="font-size:11px;font-weight:400">Flat Donation</span></button>` : ''}
-      ${campaign.has_per_km_donation ? `<button type="button" class="type-tab${!campaign.has_flat_donation ? ' active' : ''}" data-type="perkm">🚴 距離連動<br><span style="font-size:11px;font-weight:400">Per-km Pledge</span></button>` : ''}
+      ${campaign.has_flat_donation ? `<button type="button" class="type-tab active" data-type="flat">💴 <span class="ja">定額寄付</span><span class="en">Flat Donation</span><br><span style="font-size:11px;font-weight:400"><span class="ja">Flat Donation</span><span class="en">Charged immediately</span></span></button>` : ''}
+      ${campaign.has_per_km_donation ? `<button type="button" class="type-tab${!campaign.has_flat_donation ? ' active' : ''}" data-type="perkm">🚴 <span class="ja">距離連動</span><span class="en">Per-km Pledge</span><br><span style="font-size:11px;font-weight:400"><span class="ja">Per-km Pledge</span><span class="en">Charged at campaign end</span></span></button>` : ''}
     </div>
 
     ${campaign.has_flat_donation ? `
     <div class="donation-panel active" id="panel-flat">
       <div style="font-size:12px;color:#86868b;margin-bottom:8px">
-        ⚡ 申し込み後すぐに請求されます<br>Your card is charged immediately on pledge
+        <span class="ja">⚡ 申し込み後すぐに請求されます</span><span class="en">⚡ Your card is charged immediately on pledge</span>
       </div>
       <input id="flat-amount" type="number" placeholder="例: 3000" min="100">
       <div style="font-size:12px;color:#86868b;margin-top:4px">円 / JPY (¥100以上)</div>
@@ -402,14 +430,14 @@ ${(campaign.description_ja || campaign.description_en) ? `
     ${campaign.has_per_km_donation ? `
     <div class="donation-panel${!campaign.has_flat_donation ? ' active' : ''}" id="panel-perkm">
       <div style="font-size:12px;color:#86868b;margin-bottom:8px">
-        🕐 キャンペーン終了後に請求されます — <strong>このアスリート</strong>の走行距離 × あなたのレート${campaign.max_distance_km ? `（上限 ${campaign.max_distance_km} km）` : ''}<br>
-        Charged after campaign ends · <strong>this athlete's</strong> distance × your rate${campaign.max_distance_km ? ` (max ${campaign.max_distance_km} km cap)` : ''}
+        <span class="ja">🕐 キャンペーン終了後に請求されます — <strong>このアスリート</strong>の走行距離 × あなたのレート${campaign.max_distance_km ? `（上限 ${campaign.max_distance_km} km）` : ''}</span>
+        <span class="en">🕐 Charged after campaign ends · <strong>this athlete's</strong> distance × your rate${campaign.max_distance_km ? ` (max ${campaign.max_distance_km} km cap)` : ''}</span>
       </div>
       <div class="rate-grid">
         ${(campaign.suggested_per_km_jpy ?? [10,20,50]).map((r: number) =>
           `<button type="button" class="rate-btn" data-rate="${r}">¥${r}/km</button>`
         ).join('')}
-        <button type="button" class="rate-btn" data-rate="-1" id="btn-other">その他</button>
+        <button type="button" class="rate-btn" data-rate="-1" id="btn-other"><span class="ja">その他</span><span class="en">Other</span></button>
       </div>
       <div id="custom-rate-row" style="display:none;align-items:center;gap:6px;margin-top:10px;flex-wrap:wrap">
         <span style="font-size:14px;color:#444">¥</span>
@@ -418,45 +446,45 @@ ${(campaign.description_ja || campaign.description_en) ? `
         <span style="font-size:14px;color:#444">/km</span>
       </div>
       <div class="calc-box" id="calc-box" style="display:none">
-        現在 <span id="calc-km">0</span> km × ¥<span id="calc-rate">0</span>/km = <strong id="calc-total">¥0</strong>
-        ${campaign.max_distance_km ? `<br><small style="color:#86868b">（上限 ${campaign.max_distance_km} km 適用）</small>` : ''}
+        <span class="ja">現在 </span><span id="calc-km">0</span> km × ¥<span id="calc-rate">0</span>/km = <strong id="calc-total">¥0</strong>
+        ${campaign.max_distance_km ? `<br><small style="color:#86868b"><span class="ja">（上限 ${campaign.max_distance_km} km 適用）</span><span class="en">(max ${campaign.max_distance_km} km cap applies)</span></small>` : ''}
       </div>
     </div>` : ''}
 
     <label style="display:flex;align-items:center;gap:10px;margin-top:20px;cursor:pointer;font-size:14px;color:#444;user-select:none">
       <input type="checkbox" id="anon-check" style="width:18px;height:18px;accent-color:#007B83;cursor:pointer;flex-shrink:0">
-      <span>匿名で寄付する / Donate anonymously<br><span style="font-size:11px;color:#86868b">キャンペーン作成者にお名前は表示されません / Your name won't be shown to the campaign creator</span></span>
+      <span><span class="ja">匿名で寄付する</span><span class="en">Donate anonymously</span><br><span style="font-size:11px;color:#86868b"><span class="ja">キャンペーン作成者にお名前は表示されません</span><span class="en">Your name won't be shown to the campaign creator</span></span></span>
     </label>
 
-    <label style="margin-top:20px">カード情報 / Payment Card</label>
+    <label style="margin-top:20px"><span class="ja">カード情報</span><span class="en">Payment Card</span></label>
     ${stripeKey.startsWith('pk_test_') ? `
     <div class="test-banner">
-      🧪 <strong>テストモード / Test Mode</strong><br>
-      実際のカードは使用できません。以下のテストカードをご利用ください：<br>
-      Real cards won't work. Use this test card:<br>
-      <strong>4242 4242 4242 4242</strong> · Exp: 任意の将来の日付 / any future date · CVC: 任意3桁 / any 3 digits
+      🧪 <strong><span class="ja">テストモード</span><span class="en">Test Mode</span></strong><br>
+      <span class="ja">実際のカードは使用できません。以下のテストカードをご利用ください：</span><span class="en">Real cards won't work. Use this test card:</span><br>
+      <strong>4242 4242 4242 4242</strong> · Exp: <span class="ja">任意の将来の日付</span><span class="en">any future date</span> · CVC: <span class="ja">任意3桁</span><span class="en">any 3 digits</span>
     </div>` : ''}
     <div class="stripe-element" id="card-element"></div>
     <div class="error-msg" id="card-error"></div>
 
     <div style="font-size:11px;color:#86868b;margin-top:10px;line-height:1.5">
-      🔒 カード情報はStripeにより安全に処理されます。<br>
-      定額寄付はすぐに請求されます。距離連動はキャンペーン終了後にこのアスリートの走行距離をもとに請求されます。<br>
-      Flat donations are charged immediately. Per-km pledges are charged after the campaign ends based on this athlete's distance.
+      <span class="ja">🔒 カード情報はStripeにより安全に処理されます。<br>
+      定額寄付はすぐに請求されます。距離連動はキャンペーン終了後にこのアスリートの走行距離をもとに請求されます。</span>
+      <span class="en">🔒 Your card details are securely processed by Stripe.<br>
+      Flat donations are charged immediately. Per-km pledges are charged after the campaign ends based on this athlete's distance.</span>
     </div>
 
-    <button type="button" class="btn" id="pledge-btn">寄付を申し込む / Pledge</button>
+    <button type="button" class="btn" id="pledge-btn"><span class="ja">寄付を申し込む</span><span class="en">Pledge to Donate</span></button>
   </form>
 
   <div class="success-box" id="success-box">
-    <h3>✅ 申し込み完了！</h3>
-    <p>ご支援ありがとうございます。<br>キャンペーン終了後にメールをお送りします。<br><br>Thank you for your support!</p>
+    <h3>✅ <span class="ja">申し込み完了！</span><span class="en">Done!</span></h3>
+    <p><span class="ja">ご支援ありがとうございます。<br>キャンペーン終了後にメールをお送りします。</span><span class="en">Thank you for your support!</span></p>
   </div>
 </div>
 
 <div style="text-align:center;padding:24px;font-size:12px;color:#86868b;display:flex;align-items:center;justify-content:center;gap:8px">
   <img src="/static/logo.png" alt="" style="width:20px;height:20px;border-radius:5px;opacity:.6">
-  Powered by <strong>チャリアス</strong> · Charity Athletes
+  Powered by <strong><span class="ja">チャリアス</span><span class="en">Charity Athletes</span></strong>
 </div>
 
 <script>
@@ -469,6 +497,20 @@ window.addEventListener('unhandledrejection', function(ev) {
   var el = document.getElementById('loading') || document.getElementById('activities');
   if (el) el.innerHTML = '<p style="color:#ff3b30;font-size:12px;padding:8px">Async Error: ' + (ev.reason && ev.reason.message ? ev.reason.message : ev.reason) + '</p>';
 });
+
+// ── Language toggle ────────────────────────────────────────────────────────
+var currentLang = 'ja';
+function t(ja, en) { return currentLang === 'en' ? en : ja; }
+function applyLang(l) {
+  currentLang = l;
+  if (l === 'en') document.documentElement.classList.add('lang-en');
+  else document.documentElement.classList.remove('lang-en');
+  var jBtn = document.getElementById('btn-lang-ja');
+  var eBtn = document.getElementById('btn-lang-en');
+  if (jBtn) jBtn.classList.toggle('active', l === 'ja');
+  if (eBtn) eBtn.classList.toggle('active', l === 'en');
+  try { localStorage.setItem('ca_lang', l); } catch(ex) {}
+}
 
 // ── How it works toggle ────────────────────────────────────────────────────
 function toggleHowItWorks() {
@@ -614,16 +656,18 @@ async function loadData() {
 
     const actEl = document.getElementById('activities');
     if (!data.activities.length) {
-      actEl.innerHTML = '<p style="color:#86868b;font-size:14px;text-align:center;padding:16px">まだ活動がありません<br>No activities yet during this campaign</p>';
+      actEl.innerHTML = '<p style="color:#86868b;font-size:14px;text-align:center;padding:16px">'
+        + '<span class="ja">まだ活動がありません</span><span class="en">No activities yet during this campaign</span></p>';
     } else {
       activityData = {};
       actEl.innerHTML = data.activities.map(a => {
         const km       = (a.distance_meters / 1000).toFixed(1);
         const mins     = Math.floor(a.moving_time_seconds / 60);
         const time     = mins >= 60 ? Math.floor(mins/60)+'h '+(mins%60)+'m' : mins+'m';
-        const date     = new Date(a.start_date).toLocaleDateString('ja-JP', {month:'short', day:'numeric'});
+        const dateJa   = new Date(a.start_date).toLocaleDateString('ja-JP', {month:'short', day:'numeric'});
+        const dateEn   = new Date(a.start_date).toLocaleDateString('en-US', {month:'short', day:'numeric'});
+        const datePart = '<span class="ja">'+dateJa+'</span><span class="en">'+dateEn+'</span>';
         const icon     = a.sport_type.includes('Ride') ? '🚴' : a.sport_type.includes('Run') ? '🏃' : a.sport_type.includes('Swim') ? '🏊' : '🚶';
-        const stravaUrl = a.strava_activity_id ? 'https://www.strava.com/activities/' + a.strava_activity_id : null;
         const hasMap    = !!(a.map_polyline && a.map_polyline.length > 10);
         const hasPhotos = !!(a.photo_urls && a.photo_urls.length > 0);
         const hasDetail = hasMap || hasPhotos;
@@ -636,10 +680,8 @@ async function loadData() {
           + '>'
           + '<div class="activity-icon">'+icon+'</div>'
           + '<div class="activity-info">'
-          + '<div class="activity-name">'+safeName
-            +(stravaUrl ? ' <a href="'+stravaUrl+'" target="_blank" data-strava-link="1" style="font-size:11px;color:#FC4C02;text-decoration:none">Strava ↗</a>' : '')
-          +'</div>'
-          + '<div class="activity-meta">'+date+' · '+time+'</div>'
+          + '<div class="activity-name">'+safeName+'</div>'
+          + '<div class="activity-meta">'+datePart+' · '+time+'</div>'
           + '</div>'
           + '<div style="display:flex;align-items:center;gap:6px">'
           + '<div class="activity-dist">'+km+' km</div>'
@@ -670,9 +712,9 @@ async function loadData() {
   } catch(e) {
     console.error('[loadData]', e);
     var loadEl = document.getElementById('loading');
-    if (loadEl) loadEl.textContent = '読み込み失敗 / Failed to load';
+    if (loadEl) loadEl.innerHTML = '<span class="ja">読み込み失敗</span><span class="en">Failed to load</span>';
     var actEl2 = document.getElementById('activities');
-    if (actEl2 && !loadEl) actEl2.innerHTML = '<p style="color:#ff3b30;font-size:14px;text-align:center;padding:16px">読み込みに失敗しました / Failed to load</p>';
+    if (actEl2 && !loadEl) actEl2.innerHTML = '<p style="color:#ff3b30;font-size:14px;text-align:center;padding:16px"><span class="ja">読み込みに失敗しました</span><span class="en">Failed to load</span></p>';
   }
 }
 
@@ -815,11 +857,14 @@ if (pledgeBtn) pledgeBtn.addEventListener('click', function() { submitPledge(); 
 var hiwBtn = document.getElementById('hiw-btn');
 if (hiwBtn) hiwBtn.addEventListener('click', toggleHowItWorks);
 
+// Wire language buttons
+var langJaBtn = document.getElementById('btn-lang-ja');
+var langEnBtn = document.getElementById('btn-lang-en');
+if (langJaBtn) langJaBtn.addEventListener('click', function() { applyLang('ja'); });
+if (langEnBtn) langEnBtn.addEventListener('click', function() { applyLang('en'); });
+
 // All button clicks via event delegation
 document.addEventListener('click', function(e) {
-  // Strava link — let it open normally, stop propagation to parent row
-  if (e.target.closest('[data-strava-link]')) { e.stopPropagation(); return; }
-
   // Activity row expand/collapse
   var actRow = e.target.closest('[data-act-id]');
   if (actRow) { toggleActivity(actRow.dataset.actId); return; }
@@ -838,6 +883,22 @@ if (customRateInput) {
     onCustomRate(this.value);
   });
 }
+
+// Init language button state from localStorage
+(function() {
+  try {
+    var saved = localStorage.getItem('ca_lang') || 'ja';
+    currentLang = saved;
+    var jBtn = document.getElementById('btn-lang-ja');
+    var eBtn = document.getElementById('btn-lang-en');
+    if (jBtn) jBtn.classList.toggle('active', saved === 'ja');
+    if (eBtn) eBtn.classList.toggle('active', saved === 'en');
+  } catch(ex) {
+    currentLang = 'ja';
+    var jBtn2 = document.getElementById('btn-lang-ja');
+    if (jBtn2) jBtn2.classList.add('active');
+  }
+}());
 
 loadData();
 </script>
