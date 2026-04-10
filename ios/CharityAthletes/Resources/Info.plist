@@ -63,6 +63,10 @@
 	<dict>
 		<key>UIColorName</key>
 		<string>BrandOrange</string>
+		<key>UIImageName</key>
+		<string>AppLogo</string>
+		<key>UIImageRespectsSafeAreaInsets</key>
+		<true/>
 	</dict>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
