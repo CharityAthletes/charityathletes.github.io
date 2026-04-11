@@ -25,8 +25,12 @@
       display: flex; align-items: center; justify-content: space-between;
     }
     .nav-logo { font-weight: 700; font-size: 17px; color: var(--text); text-decoration: none; display: flex; align-items: center; gap: 8px; }
-    .back-btn { font-size: 14px; color: var(--orange); font-weight: 600; }
+    .nav-links { display: flex; align-items: center; gap: 24px; font-size: 14px; }
+    .nav-links a { color: var(--text-light); font-weight: 500; text-decoration: none; }
+    .nav-links a:hover { color: var(--orange); }
+    .nav-links a.active { color: var(--orange); font-weight: 700; }
     .lang-btn { background: var(--orange-pale); color: var(--orange); border: none; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; }
+    @media (max-width: 600px) { .nav-links { display: none; } }
 
     .hero-banner {
       background: linear-gradient(135deg, #1565C0, #2E7D32);
@@ -69,8 +73,14 @@
 <nav>
   <a class="nav-logo" href="index.html" style="display:flex;align-items:center;gap:8px;">
     <img src="icon.png" alt="チャリアス" style="width:28px;height:28px;border-radius:6px;"/>
-    ← <span data-lang="ja">チャリアス</span><span data-lang="en">Charity Athletes</span>
+    <span>チャリアス</span>
   </a>
+  <div class="nav-links">
+    <a href="index.html#how"><span data-lang="ja">使い方</span><span data-lang="en">How It Works</span></a>
+    <a href="index.html#nonprofits"><span data-lang="ja">支援先</span><span data-lang="en">Nonprofits</span></a>
+    <a href="support.html"><span data-lang="ja">サポート</span><span data-lang="en">Support</span></a>
+    <a href="privacy.html" class="active"><span data-lang="ja">プライバシー</span><span data-lang="en">Privacy</span></a>
+  </div>
   <button class="lang-btn" onclick="toggleLang()">EN / JA</button>
 </nav>
 
