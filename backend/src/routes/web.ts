@@ -516,9 +516,9 @@ ${(campaign.description_ja || campaign.description_en) ? `
     <label id="tip-row" style="display:flex;align-items:center;gap:10px;margin-top:14px;cursor:pointer;font-size:14px;color:#444;user-select:none">
       <input type="checkbox" id="tip-check" style="width:18px;height:18px;accent-color:#007B83;cursor:pointer;flex-shrink:0">
       <span>
-        <span class="ja">CharityAthletesをサポートする</span><span class="en">Support CharityAthletes</span>
+        <span class="ja">チャリアスをサポートする</span><span class="en">Support CharityAthletes</span>
         (<span id="tip-label">+¥100</span>)<br>
-        <span style="font-size:11px;color:#86868b"><span class="ja">CharityAthletesは手数料ゼロ。チップでサービスを維持しています。</span><span class="en">CharityAthletes charges no platform fee — tips keep it running.</span></span>
+        <span style="font-size:11px;color:#86868b"><span class="ja">チャリアスは手数料ゼロ。チップでサービスを維持しています。</span><span class="en">CharityAthletes charges no platform fee — tips keep it running.</span></span>
       </span>
     </label>
 
