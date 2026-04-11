@@ -49,12 +49,26 @@ struct ActivityListView: View {
                 } else if vm.activities.isEmpty {
                     ContentUnavailableView(i18n.t(.activitiesEmpty), systemImage: "bicycle")
                 } else {
-                    List(vm.activities) { a in
-                        NavigationLink(value: a) {
-                            ActivityRow(activity: a)
+                    List {
+                        Section {
+                            ForEach(vm.activities) { a in
+                                NavigationLink(value: a) {
+                                    ActivityRow(activity: a)
+                                }
+                                .listRowBackground(Color.clear)
+                                .listRowSeparator(.hidden)
+                            }
+                        } header: {
+                            Label(
+                                i18n.language == .ja
+                                    ? "アクティビティをタップするとマップや写真が表示されます"
+                                    : "Tap an activity to see the map & photos",
+                                systemImage: "map"
+                            )
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .textCase(nil)
                         }
-                        .listRowBackground(Color.clear)
-                        .listRowSeparator(.hidden)
                     }
                     .listStyle(.plain)
                     .navigationDestination(for: Activity.self) { ActivityDetailView(activity: $0) }
@@ -97,19 +111,11 @@ struct ActivityListView: View {
 
 struct ActivityRow: View {
     let activity: Activity
-    @ObservedObject private var i18n = I18n.shared
     private static let dateFormatter: DateFormatter = {
         let f = DateFormatter()
         f.dateStyle = .medium; f.timeStyle = .none
         return f
     }()
-
-    private var stravaURL: URL? {
-        guard let sid = activity.stravaActivityId else { return nil }
-        let appURL = URL(string: "strava://activities/\(sid)")!
-        let webURL = URL(string: "https://www.strava.com/activities/\(sid)")!
-        return UIApplication.shared.canOpenURL(appURL) ? appURL : webURL
-    }
 
     var body: some View {
         HStack(spacing: 14) {
@@ -132,23 +138,6 @@ struct ActivityRow: View {
             }
 
             Spacer()
-
-            if let url = stravaURL {
-                Link(destination: url) {
-                    HStack(spacing: 3) {
-                        Image(systemName: "arrow.up.right.square.fill")
-                            .font(.caption2)
-                        Text("Strava")
-                            .font(.caption2.bold())
-                    }
-                    .foregroundStyle(Color("StravaOrange"))
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 5)
-                    .background(Color("StravaOrange").opacity(0.12))
-                    .clipShape(Capsule())
-                }
-                .buttonStyle(.plain)
-            }
         }
         .padding(.vertical, 8)
     }
