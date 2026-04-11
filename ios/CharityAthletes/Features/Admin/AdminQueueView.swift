@@ -58,7 +58,7 @@ struct AdminQueueView: View {
                 }
                 .pickerStyle(.segmented)
                 .padding()
-                .onChange(of: vm.selectedFilter) { _ in Task { await vm.load() } }
+                .onChange(of: vm.selectedFilter) { Task { await vm.load() } }
 
                 if vm.isLoading && vm.nonprofits.isEmpty {
                     Spacer(); ProgressView(); Spacer()

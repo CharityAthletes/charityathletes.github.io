@@ -105,7 +105,7 @@ final class AuthManager: ObservableObject {
     // ── Google Sign-In ────────────────────────────────────────────────────────
 
     func signInWithGoogle() async throws {
-        let url = try await supabase.auth.getOAuthSignInURL(provider: .google, redirectTo: URL(string: "charityathletes://auth/callback")!)
+        let url = try supabase.auth.getOAuthSignInURL(provider: .google, redirectTo: URL(string: "charityathletes://auth/callback")!)
         await UIApplication.shared.open(url)
     }
 
