@@ -122,8 +122,10 @@ router.get('/:id/data', async (req: Request, res: Response) => {
 const pledgeSchema = z.object({
   donor_name:       z.string().min(1),
   donor_email:      z.string().email(),
-  flat_amount_jpy:  z.number().int().min(100).nullable().default(null),
+  flat_amount_jpy:  z.number().int().min(1).nullable().default(null),
   per_km_rate_jpy:  z.number().int().min(1).nullable().default(null),
+  currency:         z.enum(['jpy', 'usd', 'aud']).default('jpy'),
+  tip_amount:       z.number().int().min(1).nullable().default(null),
   is_anonymous:     z.boolean().default(false),
   athlete_user_id:  z.string().uuid().nullable().default(null),
 }).refine(d => d.flat_amount_jpy != null || d.per_km_rate_jpy != null, {
@@ -136,8 +138,12 @@ router.post('/:id/pledge', pledgeRateLimit, async (req: Request, res: Response) 
   const parsed = pledgeSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
-  const { donor_name, donor_email, flat_amount_jpy, per_km_rate_jpy, is_anonymous, athlete_user_id } = parsed.data;
+  const { donor_name, donor_email, flat_amount_jpy, per_km_rate_jpy, currency, tip_amount, is_anonymous, athlete_user_id } = parsed.data;
   const isFlat = flat_amount_jpy != null;
+
+  // Convert human-readable amount to Stripe units.
+  // JPY is zero-decimal (no conversion); USD/AUD use cents (multiply by 100).
+  const toStripeUnits = (v: number) => currency === 'jpy' ? v : v * 100;
 
   // Create Stripe customer
   const customer = await stripe.customers.create({
@@ -148,12 +154,14 @@ router.post('/:id/pledge', pledgeRateLimit, async (req: Request, res: Response) 
 
   if (isFlat) {
     // ── Flat: charge immediately via PaymentIntent ───────────────────────────
+    const baseUnits = toStripeUnits(flat_amount_jpy!);
+    const tipUnits  = tip_amount ? toStripeUnits(tip_amount) : 0;
     const paymentIntent = await stripe.paymentIntents.create({
-      amount:   flat_amount_jpy!,
-      currency: 'jpy',
+      amount:   baseUnits + tipUnits,
+      currency,
       customer: customer.id,
       payment_method_types: ['card'],
-      metadata: { campaign_id: req.params.id, donor_name, donor_email },
+      metadata: { campaign_id: req.params.id, donor_name, donor_email, tip_amount: String(tip_amount ?? 0) },
     });
 
     const { error } = await db.from('donor_pledges').insert({
@@ -162,6 +170,8 @@ router.post('/:id/pledge', pledgeRateLimit, async (req: Request, res: Response) 
       donor_email,
       flat_amount_jpy,
       per_km_rate_jpy:          null,
+      currency,
+      tip_amount,
       stripe_customer_id:       customer.id,
       stripe_payment_intent_id: paymentIntent.id,
       is_anonymous,
@@ -181,6 +191,7 @@ router.post('/:id/pledge', pledgeRateLimit, async (req: Request, res: Response) 
         donor_name,
         donor_email,
         per_km_rate_jpy:  String(per_km_rate_jpy),
+        currency,
       },
     });
 
@@ -190,6 +201,8 @@ router.post('/:id/pledge', pledgeRateLimit, async (req: Request, res: Response) 
       donor_email,
       flat_amount_jpy:         null,
       per_km_rate_jpy,
+      currency,
+      tip_amount:              null,
       stripe_customer_id:      customer.id,
       stripe_setup_intent_id:  setupIntent.id,
       is_anonymous,
@@ -327,6 +340,8 @@ function renderPage(campaign: any, stripeKey: string, apiBase: string, campaignI
     .donation-panel{display:none}
     .donation-panel.active{display:block}
     #loading{text-align:center;padding:40px;color:#86868b}
+    .curr-btn{padding:6px 14px;border:2px solid #e0e0e0;border-radius:99px;background:#fff;color:#86868b;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
+    .curr-btn.active{border-color:#007B83;color:#007B83;background:#E0F7FA}
     /* Language toggle */
     .lang-toggle{display:flex;gap:6px}
     .lang-btn{background:rgba(255,255,255,0.2);color:#fff;border:1.5px solid rgba(255,255,255,0.5);border-radius:99px;padding:4px 12px;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
@@ -437,6 +452,13 @@ ${(campaign.description_ja || campaign.description_en) ? `
     <label><span class="ja">メールアドレス</span><span class="en">Email</span></label>
     <input id="donor-email" type="email" placeholder="taro@example.com">
 
+    <label style="margin-top:16px"><span class="ja">通貨</span><span class="en">Currency</span></label>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button type="button" class="curr-btn active" data-currency="jpy">🇯🇵 JPY ¥</button>
+      <button type="button" class="curr-btn" data-currency="usd">🇺🇸 USD $</button>
+      <button type="button" class="curr-btn" data-currency="aud">🇦🇺 AUD A$</button>
+    </div>
+
     <label style="margin-top:16px"><span class="ja">寄付の種類</span><span class="en">Donation Type</span></label>
     <div class="type-tabs">
       ${campaign.has_flat_donation ? `<button type="button" class="type-tab active" data-type="flat">💴 <span class="ja">定額寄付</span><span class="en">Flat Donation</span><br><span style="font-size:11px;font-weight:400"><span class="ja">Flat Donation</span><span class="en">Charged immediately</span></span></button>` : ''}
@@ -448,8 +470,8 @@ ${(campaign.description_ja || campaign.description_en) ? `
       <div style="font-size:12px;color:#86868b;margin-bottom:8px">
         <span class="ja">⚡ 申し込み後すぐに請求されます</span><span class="en">⚡ Your card is charged immediately on pledge</span>
       </div>
-      <input id="flat-amount" type="number" placeholder="例: 3000" min="100">
-      <div style="font-size:12px;color:#86868b;margin-top:4px">円 / JPY (¥100以上)</div>
+      <input id="flat-amount" type="number" placeholder="3000" min="100" step="1">
+      <div id="flat-amount-hint" style="font-size:12px;color:#86868b;margin-top:4px"><span class="ja">円（¥100以上）</span><span class="en">JPY (¥100 minimum)</span></div>
     </div>` : ''}
 
     ${campaign.has_per_km_donation ? `
@@ -458,20 +480,20 @@ ${(campaign.description_ja || campaign.description_en) ? `
         <span class="ja">🕐 キャンペーン終了後に請求されます — <strong>このアスリート</strong>の走行距離 × あなたのレート${campaign.max_distance_km ? `（上限 ${campaign.max_distance_km} km）` : ''}</span>
         <span class="en">🕐 Charged after campaign ends · <strong>this athlete's</strong> distance × your rate${campaign.max_distance_km ? ` (max ${campaign.max_distance_km} km cap)` : ''}</span>
       </div>
-      <div class="rate-grid">
+      <div id="rate-grid" class="rate-grid">
         ${(campaign.suggested_per_km_jpy ?? [10,20,50]).map((r: number) =>
           `<button type="button" class="rate-btn" data-rate="${r}">¥${r}/km</button>`
         ).join('')}
         <button type="button" class="rate-btn" data-rate="-1" id="btn-other"><span class="ja">その他</span><span class="en">Other</span></button>
       </div>
       <div id="custom-rate-row" style="display:none;align-items:center;gap:6px;margin-top:10px;flex-wrap:wrap">
-        <span style="font-size:14px;color:#444">¥</span>
+        <span id="custom-rate-sym" style="font-size:14px;color:#444">¥</span>
         <input id="custom-rate" type="number" placeholder="30" min="1"
           style="width:72px;padding:6px 8px;border:2px solid #007B83;border-radius:8px;font-size:14px;font-weight:600;color:#1d1d1f;outline:none;-moz-appearance:textfield">
         <span style="font-size:14px;color:#444">/km</span>
       </div>
       <div class="calc-box" id="calc-box" style="display:none">
-        <span class="ja">現在 </span><span id="calc-km">0</span> km × ¥<span id="calc-rate">0</span>/km = <strong id="calc-total">¥0</strong>
+        <span class="ja">現在 </span><span id="calc-km">0</span> km × <span id="calc-curr-sym">¥</span><span id="calc-rate">0</span>/km = <strong id="calc-total">¥0</strong>
         ${campaign.max_distance_km ? `<br><small style="color:#86868b"><span class="ja">（上限 ${campaign.max_distance_km} km 適用）</span><span class="en">(max ${campaign.max_distance_km} km cap applies)</span></small>` : ''}
       </div>
     </div>` : ''}
@@ -490,6 +512,15 @@ ${(campaign.description_ja || campaign.description_en) ? `
     </div>` : ''}
     <div class="stripe-element" id="card-element"></div>
     <div class="error-msg" id="card-error"></div>
+
+    <label id="tip-row" style="display:flex;align-items:center;gap:10px;margin-top:14px;cursor:pointer;font-size:14px;color:#444;user-select:none">
+      <input type="checkbox" id="tip-check" style="width:18px;height:18px;accent-color:#007B83;cursor:pointer;flex-shrink:0">
+      <span>
+        <span class="ja">CharityAthletesをサポートする</span><span class="en">Support CharityAthletes</span>
+        (<span id="tip-label">+¥100</span>)<br>
+        <span style="font-size:11px;color:#86868b"><span class="ja">CharityAthletesは手数料ゼロ。チップでサービスを維持しています。</span><span class="en">CharityAthletes charges no platform fee — tips keep it running.</span></span>
+      </span>
+    </label>
 
     <div style="font-size:11px;color:#86868b;margin-top:10px;line-height:1.5">
       <span class="ja">🔒 カード情報はStripeにより安全に処理されます。<br>
@@ -551,7 +582,36 @@ const CAMPAIGN_ID = '${campaignId}';
 const ATHLETE_ID  = '${athleteId}';
 const API = '${apiBase}';
 
+// ── Currency config ────────────────────────────────────────────────────────
+var CURRENCY = {
+  jpy: { sym:'¥',  name:'JPY', flatMin:100, flatPlaceholder:'3000',
+         flatHint: function() { return t('円（¥100以上）','JPY (¥100 minimum)'); },
+         kmRates:[10,20,50],
+         kmLabel: function(r) { return '¥'+r+'/km'; },
+         rateDisplay: function(r) { return String(r); },
+         calcTotal: function(km,r) { return '¥'+Math.round(km*r).toLocaleString(); },
+         tipAmt:100, tipLabel:'+¥100',
+         toStripe: function(v) { return v; } },
+  usd: { sym:'$',  name:'USD', flatMin:1,   flatPlaceholder:'20',
+         flatHint: function() { return 'USD ($1 minimum)'; },
+         kmRates:[10,25,50],
+         kmLabel: function(r) { return '$'+(r/100).toFixed(2)+'/km'; },
+         rateDisplay: function(r) { return (r/100).toFixed(2); },
+         calcTotal: function(km,r) { return '$'+(km*r/100).toFixed(2); },
+         tipAmt:1, tipLabel:'+$1',
+         toStripe: function(v) { return v*100; } },
+  aud: { sym:'A$', name:'AUD', flatMin:1,   flatPlaceholder:'20',
+         flatHint: function() { return 'AUD (A$1 minimum)'; },
+         kmRates:[10,25,50],
+         kmLabel: function(r) { return 'A$'+(r/100).toFixed(2)+'/km'; },
+         rateDisplay: function(r) { return (r/100).toFixed(2); },
+         calcTotal: function(km,r) { return 'A$'+(km*r/100).toFixed(2); },
+         tipAmt:1, tipLabel:'+A$1',
+         toStripe: function(v) { return v*100; } },
+};
+
 // ── State (declared BEFORE Stripe init so functions always have access) ────
+var currentCurrency = 'jpy';
 let currentRate = 0;
 let currentKm   = 0;
 let currentType = '${campaign.has_flat_donation ? 'flat' : 'perkm'}';
@@ -594,6 +654,39 @@ function onCustomRate(val) {
 
 function updateFlatCalc() {}
 
+function selectCurrency(currency) {
+  currentCurrency = currency;
+  var cfg = CURRENCY[currency];
+  // Update currency buttons
+  document.querySelectorAll('.curr-btn').forEach(function(b) { b.classList.remove('active'); });
+  var activeBtn = document.querySelector('[data-currency="'+currency+'"]');
+  if (activeBtn) activeBtn.classList.add('active');
+  // Update flat panel min/placeholder/hint
+  var flatInput = document.getElementById('flat-amount');
+  var flatHint  = document.getElementById('flat-amount-hint');
+  if (flatInput) { flatInput.min = cfg.flatMin; flatInput.placeholder = cfg.flatPlaceholder; flatInput.value = ''; }
+  if (flatHint)  flatHint.textContent = cfg.flatHint();
+  // Rebuild per-km rate buttons
+  var rateGrid = document.getElementById('rate-grid');
+  if (rateGrid) {
+    rateGrid.innerHTML = cfg.kmRates.map(function(r) {
+      return '<button type="button" class="rate-btn" data-rate="'+r+'">'+cfg.kmLabel(r)+'</button>';
+    }).join('') + '<button type="button" class="rate-btn" data-rate="-1" id="btn-other">'+t('その他','Other')+'</button>';
+  }
+  // Update currency symbols in custom rate row and calc box
+  var sym = document.getElementById('custom-rate-sym');
+  if (sym) sym.textContent = cfg.sym;
+  var calcSym = document.getElementById('calc-curr-sym');
+  if (calcSym) calcSym.textContent = cfg.sym;
+  // Update tip label
+  var tipLabel = document.getElementById('tip-label');
+  if (tipLabel) tipLabel.textContent = cfg.tipLabel;
+  // Reset rate selection and hide calc
+  currentRate = 0;
+  var calcBox = document.getElementById('calc-box');
+  if (calcBox) calcBox.style.display = 'none';
+}
+
 function selectType(type, btn) {
   currentType = type;
   // Update tab highlight
@@ -604,6 +697,9 @@ function selectType(type, btn) {
   const perkmPanel = document.getElementById('panel-perkm');
   if (flatPanel)  flatPanel.style.display  = (type === 'flat')  ? 'block' : 'none';
   if (perkmPanel) perkmPanel.style.display = (type === 'perkm') ? 'block' : 'none';
+  // Tip only applies to flat (immediate) donations
+  var tipRow = document.getElementById('tip-row');
+  if (tipRow) tipRow.style.display = (type === 'flat') ? 'flex' : 'none';
   // Auto-select first rate when switching to per-km
   if (type === 'perkm' && currentRate === 0) {
     const firstRateBtn = document.querySelector('#panel-perkm .rate-btn:not(#btn-other)');
@@ -755,10 +851,11 @@ function updateCalc() {
   calcBox.style.display = 'block';
   const safeKm = (isNaN(currentKm) || currentKm == null) ? 0 : currentKm;
   const km = maxKm ? Math.min(safeKm, maxKm) : safeKm;
-  const total = isNaN(km * currentRate) ? 0 : Math.round(km * currentRate);
-  document.getElementById('calc-km').textContent   = km.toFixed(1);
-  document.getElementById('calc-rate').textContent = currentRate;
-  document.getElementById('calc-total').textContent = '¥' + total.toLocaleString();
+  var cfg = CURRENCY[currentCurrency];
+  document.getElementById('calc-km').textContent       = km.toFixed(1);
+  document.getElementById('calc-curr-sym').textContent = cfg.sym;
+  document.getElementById('calc-rate').textContent     = cfg.rateDisplay(currentRate);
+  document.getElementById('calc-total').textContent    = cfg.calcTotal(km, currentRate);
 }
 
 async function submitPledge() {
@@ -770,17 +867,21 @@ async function submitPledge() {
   const emailOk = email.indexOf('@') > 0 && email.lastIndexOf('.') > email.indexOf('@') + 1 && !email.includes(' ');
   if (!emailOk) return alert('有効なメールアドレスを入力してください（例: taro@example.com）\\nPlease enter a valid email address (e.g. taro@example.com)');
 
+  var cfg = CURRENCY[currentCurrency];
   let flat = null;
   let rate = null;
 
   if (currentType === 'flat') {
     const flatEl = document.getElementById('flat-amount');
     flat = flatEl ? (parseInt(flatEl.value) || null) : null;
-    if (!flat || flat < 100) return alert('¥100以上の金額を入力してください / Please enter ¥100 or more');
+    if (!flat || flat < cfg.flatMin) return alert(t('金額を入力してください（最低'+cfg.flatMin+'）', 'Please enter an amount (minimum '+cfg.flatMin+')'));
   } else {
     rate = currentRate;
-    if (!rate || rate < 1) return alert('1km あたりのレートを選択してください / Please select a per-km rate');
+    if (!rate || rate < 1) return alert(t('1kmあたりのレートを選択してください', 'Please select a per-km rate'));
   }
+
+  const tipCheck = document.getElementById('tip-check');
+  const tipAmount = (currentType === 'flat' && tipCheck && tipCheck.checked) ? cfg.tipAmt : null;
 
   if (!stripe || !cardEl) return alert('カード決済システムを読み込めませんでした。ページを再読み込みしてください。 Card system failed to load. Please refresh the page.');
 
@@ -801,6 +902,8 @@ async function submitPledge() {
         donor_email:      email,
         flat_amount_jpy:  flat,
         per_km_rate_jpy:  rate,
+        currency:         currentCurrency,
+        tip_amount:       tipAmount,
         is_anonymous:     !!(document.getElementById('anon-check') && document.getElementById('anon-check').checked),
         athlete_user_id:  ATHLETE_ID || null,
       }),
@@ -899,6 +1002,9 @@ document.addEventListener('click', function(e) {
   // Activity row expand/collapse
   var actRow = e.target.closest('[data-act-id]');
   if (actRow) { toggleActivity(actRow.dataset.actId); return; }
+
+  var currBtn = e.target.closest('[data-currency]');
+  if (currBtn) { selectCurrency(currBtn.dataset.currency); return; }
 
   var tab = e.target.closest('[data-type]');
   if (tab) { selectType(tab.dataset.type, tab); return; }
