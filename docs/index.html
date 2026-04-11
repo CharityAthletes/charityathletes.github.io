@@ -174,16 +174,35 @@
     body.en span[data-lang="en"],
     body.en a[data-lang="en"] { display: inline; }
 
-    /* Ensure block-level elements always render as blocks */
+    /* Block-level defaults — element selectors only (lower specificity than [data-lang]) */
     h1, h2, h3, h4, h5, h6 { display: block; }
     p { display: block; }
-    .tag { display: block; width: fit-content; }
-    .section-title { display: block; }
-    .section-sub { display: block; }
+    .tag { width: fit-content; }
 
-    @media (max-width: 600px) {
+    /* MOBILE TABS */
+    .tab-bar {
+      display: none;
+      position: sticky; top: 60px; z-index: 99;
+      background: rgba(255,255,255,0.97); backdrop-filter: blur(10px);
+      border-bottom: 1px solid #eee;
+      overflow-x: auto; white-space: nowrap;
+      -webkit-overflow-scrolling: touch; scrollbar-width: none;
+    }
+    .tab-bar::-webkit-scrollbar { display: none; }
+    .tab-bar button {
+      display: inline-block; padding: 11px 18px;
+      font-size: 13px; font-weight: 600; color: #86868b;
+      background: none; border: none; border-bottom: 3px solid transparent;
+      cursor: pointer; white-space: nowrap;
+    }
+    .tab-bar button.active { color: var(--orange); border-bottom-color: var(--orange); }
+
+    @media (max-width: 640px) {
       .nav-links { display: none; }
       .hero { padding: 60px 20px 80px; }
+      .tab-bar { display: block; }
+      .tab-panel { display: none; }
+      .tab-panel.active { display: block; }
     }
   </style>
 </head>
@@ -204,7 +223,16 @@
   <button class="lang-btn" onclick="toggleLang()">EN / JA</button>
 </nav>
 
+<!-- MOBILE TAB BAR (hidden on desktop) -->
+<div class="tab-bar" id="tab-bar">
+  <button class="active" data-tab="home" onclick="switchTab('home')">🏠 <span data-lang="ja">ホーム</span><span data-lang="en">Home</span></button>
+  <button data-tab="how" onclick="switchTab('how')">💡 <span data-lang="ja">使い方</span><span data-lang="en">How It Works</span></button>
+  <button data-tab="features" onclick="switchTab('features')">✨ <span data-lang="ja">機能</span><span data-lang="en">Features</span></button>
+  <button data-tab="nonprofits" onclick="switchTab('nonprofits')">🏢 <span data-lang="ja">支援先</span><span data-lang="en">Nonprofits</span></button>
+</div>
+
 <!-- HERO -->
+<div class="tab-panel active" id="panel-home">
 <section class="hero">
   <div class="hero-inner">
     <img class="hero-icon" src="icon.png" alt="チャリアス – Charity Athletes"/>
@@ -232,8 +260,10 @@
     </div>
   </div>
 </section>
+</div><!-- /panel-home -->
 
 <!-- HOW IT WORKS -->
+<div class="tab-panel" id="panel-how">
 <section id="how" style="background: var(--bg-alt);">
   <div class="section-inner">
     <div class="tag" data-lang="ja">使い方</div>
@@ -315,8 +345,10 @@
     </div>
   </div>
 </section>
+</div><!-- /panel-how -->
 
 <!-- FEATURES -->
+<div class="tab-panel" id="panel-features">
 <section id="features">
   <div class="section-inner">
     <div class="tag" data-lang="ja">機能</div>
@@ -371,8 +403,10 @@
     </div>
   </div>
 </section>
+</div><!-- /panel-features -->
 
 <!-- NONPROFITS -->
+<div class="tab-panel" id="panel-nonprofits">
 <section id="nonprofits" style="background: var(--bg-alt);">
   <div class="section-inner">
     <div class="tag" data-lang="ja">支援先団体</div>
@@ -427,6 +461,7 @@
     <span data-lang="en">Download on App Store</span>
   </a>
 </section>
+</div><!-- /panel-nonprofits -->
 
 <!-- FOOTER -->
 <footer>
@@ -459,6 +494,16 @@
   if (localStorage.getItem('lang') === 'en') {
     document.body.classList.add('en');
     document.documentElement.lang = 'en';
+  }
+
+  // Mobile tab switching
+  function switchTab(id) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-bar button').forEach(b => b.classList.remove('active'));
+    document.getElementById('panel-' + id).classList.add('active');
+    var btn = document.querySelector('.tab-bar [data-tab="' + id + '"]');
+    if (btn) btn.classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 </script>
 
