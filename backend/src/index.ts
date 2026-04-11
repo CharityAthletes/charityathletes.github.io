@@ -16,7 +16,8 @@ import charitiesRoutes  from './routes/charities';
 import activitiesRoutes from './routes/activities';
 import webRoutes        from './routes/web';
 import { renderDirectoryPage } from './routes/directory';
-import chatRoutes from './routes/chat';
+import chatRoutes    from './routes/chat';
+import supportRoutes from './routes/support';
 
 const app  = express();
 const PORT = process.env.PORT ?? 3000;
@@ -66,6 +67,7 @@ app.use('/charities',   charitiesRoutes);
 app.use('/activities',  activitiesRoutes);
 app.use('/c',           webRoutes);
 app.use('/chat',        chatRoutes);
+app.use('/support',     supportRoutes);
 
 // Web: public charity directory page
 app.get('/directory', async (req, res) => {

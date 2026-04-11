@@ -107,6 +107,48 @@
     .tag { display: block; width: fit-content; }
     .section-title { display: block; }
 
+    /* Tip card */
+    .tip-card {
+      background: linear-gradient(135deg, #E0F7FA, #f0fff4);
+      border: 1.5px solid var(--orange); border-radius: var(--radius);
+      padding: 32px; margin-bottom: 56px; text-align: center;
+    }
+    .tip-card h2 { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
+    .tip-card p  { font-size: 14px; color: var(--text-light); margin-bottom: 20px; }
+    .tip-curr-row { display: flex; gap: 8px; justify-content: center; margin-bottom: 16px; }
+    .tip-curr-btn {
+      padding: 5px 14px; border: 2px solid #ccc; border-radius: 99px;
+      background: #fff; color: var(--text-light); font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: all .15s;
+    }
+    .tip-curr-btn.active { border-color: var(--orange); color: var(--orange); background: var(--orange-pale); }
+    .tip-amounts { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 14px; }
+    .tip-amt-btn {
+      padding: 10px 22px; border: 2px solid var(--orange); border-radius: 99px;
+      background: #fff; color: var(--orange); font-size: 15px; font-weight: 700;
+      cursor: pointer; transition: all .15s;
+    }
+    .tip-amt-btn.active { background: var(--orange); color: #fff; }
+    .tip-custom-row { display: flex; align-items: center; gap: 8px; justify-content: center; margin-bottom: 20px; }
+    .tip-custom-row input {
+      width: 90px; padding: 8px 12px; border: 2px solid var(--orange); border-radius: 10px;
+      font-size: 15px; font-weight: 700; text-align: center; outline: none; color: var(--text);
+    }
+    .tip-submit {
+      display: inline-block; background: linear-gradient(135deg, var(--orange), #2E7D32);
+      color: #fff; border: none; border-radius: 12px;
+      padding: 14px 36px; font-size: 16px; font-weight: 700;
+      cursor: pointer; transition: opacity .2s; width: 100%; max-width: 320px;
+    }
+    .tip-submit:disabled { opacity: .5; cursor: not-allowed; }
+    .tip-note { font-size: 12px; color: var(--text-light); margin-top: 12px; }
+    .tip-thanks {
+      background: #e8f9ee; border: 1.5px solid #34c759; border-radius: var(--radius);
+      padding: 20px; margin-bottom: 32px; text-align: center; display: none;
+    }
+    .tip-thanks h3 { color: #1a8736; font-size: 18px; margin-bottom: 6px; }
+    .tip-thanks p  { color: #444; font-size: 14px; }
+
     footer { background: #1a1a1a; color: #aaa; text-align: center; padding: 32px 24px; font-size: 14px; }
     footer a { color: #aaa; margin: 0 12px; }
     footer a:hover { color: white; }
@@ -136,6 +178,48 @@
 </div>
 
 <div class="content">
+
+  <!-- TIP THANKS BANNER (shown when ?tip=thanks) -->
+  <div class="tip-thanks" id="tip-thanks">
+    <h3>💚 <span data-lang="ja">ありがとうございます！</span><span data-lang="en">Thank you!</span></h3>
+    <p data-lang="ja">チャリアスへのご支援、誠にありがとうございます。皆様のチップでサービスを継続できます。</p>
+    <p data-lang="en">Your support means a lot. Tips like yours keep CharityAthletes running fee-free.</p>
+  </div>
+
+  <!-- TIP CARD -->
+  <div class="tip-card">
+    <div class="tag" style="margin: 0 auto 12px;" data-lang="ja">チャリアスをサポート</div>
+    <div class="tag" style="margin: 0 auto 12px;" data-lang="en">Support CharityAthletes</div>
+    <h2 data-lang="ja">手数料ゼロを支えるチップ</h2>
+    <h2 data-lang="en">Help Keep It Fee-Free</h2>
+    <p data-lang="ja">チャリアスはアスリートにも寄付者にも手数料を請求しません。<br>運営コストはこのようなチップで賄われています。</p>
+    <p data-lang="en">CharityAthletes charges no fees to athletes or donors.<br>Tips like this one cover our running costs.</p>
+
+    <div class="tip-curr-row">
+      <button class="tip-curr-btn active" data-curr="jpy">🇯🇵 JPY</button>
+      <button class="tip-curr-btn" data-curr="usd">🇺🇸 USD</button>
+      <button class="tip-curr-btn" data-curr="aud">🇦🇺 AUD</button>
+    </div>
+
+    <div class="tip-amounts" id="tip-amounts">
+      <button class="tip-amt-btn active" data-amount="300">¥300</button>
+      <button class="tip-amt-btn" data-amount="500">¥500</button>
+      <button class="tip-amt-btn" data-amount="1000">¥1,000</button>
+      <button class="tip-amt-btn" data-amount="custom" data-lang="ja">その他</button>
+      <button class="tip-amt-btn" data-amount="custom" data-lang="en">Other</button>
+    </div>
+
+    <div class="tip-custom-row" id="tip-custom-row" style="display:none">
+      <span id="tip-curr-sym" style="font-size:15px;font-weight:700;color:var(--orange)">¥</span>
+      <input type="number" id="tip-custom-input" placeholder="500" min="1">
+    </div>
+
+    <button class="tip-submit" id="tip-submit-btn" onclick="submitTip()">
+      <span data-lang="ja">サポートする</span><span data-lang="en">Support チャリアス</span>
+    </button>
+    <p class="tip-note" data-lang="ja">🔒 Stripeで安全に処理されます。領収書はメールでお送りします。</p>
+    <p class="tip-note" data-lang="en">🔒 Securely processed by Stripe. You'll receive a receipt by email.</p>
+  </div>
 
   <!-- CONTACT -->
   <div data-lang="ja">
@@ -486,6 +570,101 @@
   if (localStorage.getItem('lang') === 'en') {
     document.body.classList.add('en');
     document.documentElement.lang = 'en';
+  }
+
+  // ── Tip widget ─────────────────────────────────────────────────────────────
+  var API = 'https://charityathletes-production.up.railway.app';
+
+  var tipCurrency  = 'jpy';
+  var tipAmount    = 300;   // default preset
+  var tipIsCustom  = false;
+
+  var CURR_CONFIG = {
+    jpy: { sym: '¥',  presets: [300, 500, 1000] },
+    usd: { sym: '$',  presets: [3,   5,   10  ] },
+    aud: { sym: 'A$', presets: [3,   5,   10  ] },
+  };
+
+  function rebuildAmounts() {
+    var cfg = CURR_CONFIG[tipCurrency];
+    var el  = document.getElementById('tip-amounts');
+    var isEn = document.body.classList.contains('en');
+    el.innerHTML = cfg.presets.map(function(a, i) {
+      return '<button class="tip-amt-btn' + (i === 0 ? ' active' : '') + '" data-amount="' + a + '">'
+        + cfg.sym + a.toLocaleString() + '</button>';
+    }).join('') +
+    '<button class="tip-amt-btn" data-amount="custom">' + (isEn ? 'Other' : 'その他') + '</button>';
+    tipAmount   = cfg.presets[0];
+    tipIsCustom = false;
+    document.getElementById('tip-custom-row').style.display = 'none';
+    document.getElementById('tip-curr-sym').textContent = cfg.sym;
+  }
+
+  document.addEventListener('click', function(e) {
+    // Currency buttons
+    var cb = e.target.closest('[data-curr]');
+    if (cb) {
+      document.querySelectorAll('.tip-curr-btn').forEach(function(b) { b.classList.remove('active'); });
+      cb.classList.add('active');
+      tipCurrency = cb.dataset.curr;
+      rebuildAmounts();
+      return;
+    }
+    // Amount buttons (re-queried since rebuildAmounts() replaces them)
+    var ab = e.target.closest('[data-amount]');
+    if (ab && ab.closest('#tip-amounts')) {
+      document.querySelectorAll('#tip-amounts .tip-amt-btn').forEach(function(b) { b.classList.remove('active'); });
+      ab.classList.add('active');
+      if (ab.dataset.amount === 'custom') {
+        tipIsCustom = true;
+        tipAmount   = 0;
+        document.getElementById('tip-custom-row').style.display = 'flex';
+        document.getElementById('tip-custom-input').focus();
+      } else {
+        tipIsCustom = false;
+        tipAmount   = parseInt(ab.dataset.amount);
+        document.getElementById('tip-custom-row').style.display = 'none';
+      }
+    }
+  });
+
+  document.addEventListener('input', function(e) {
+    if (e.target.id === 'tip-custom-input') {
+      tipAmount = parseInt(e.target.value) || 0;
+    }
+  });
+
+  async function submitTip() {
+    var amount = tipIsCustom ? tipAmount : tipAmount;
+    if (!amount || amount < 1) {
+      alert(document.body.classList.contains('en') ? 'Please enter an amount.' : '金額を入力してください。');
+      return;
+    }
+    var btn = document.getElementById('tip-submit-btn');
+    btn.disabled = true;
+    btn.innerHTML = document.body.classList.contains('en') ? 'Redirecting…' : '移動中…';
+    try {
+      var res = await fetch(API + '/support/tip', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ amount: amount, currency: tipCurrency }),
+      });
+      var data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed');
+      window.location.href = data.url;
+    } catch (err) {
+      alert('Error: ' + err.message);
+      btn.disabled = false;
+      btn.innerHTML = document.body.classList.contains('en')
+        ? '<span data-lang="ja">サポートする</span><span data-lang="en">Support チャリアス</span>'
+        : '<span data-lang="ja">サポートする</span><span data-lang="en">Support チャリアス</span>';
+    }
+  }
+
+  // Show thank-you banner if redirected back from Stripe
+  if (new URLSearchParams(window.location.search).get('tip') === 'thanks') {
+    var thankEl = document.getElementById('tip-thanks');
+    if (thankEl) thankEl.style.display = 'block';
   }
 </script>
 <script src="chat.js"></script>
