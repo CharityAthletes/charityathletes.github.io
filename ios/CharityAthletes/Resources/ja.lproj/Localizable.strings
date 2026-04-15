@@ -18,6 +18,7 @@
 "auth.login"          = "ログイン";
 "auth.switch_signup"  = "アカウントをお持ちでない方";
 "auth.switch_login"   = "すでにアカウントをお持ちの方";
+"auth.account_created" = "アカウントを作成しました。ログインしてください。";
 
 /* Dashboard */
 "dashboard.title"           = "ホーム";

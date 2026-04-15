@@ -18,6 +18,7 @@
 "auth.login"          = "Sign In";
 "auth.switch_signup"  = "Don't have an account?";
 "auth.switch_login"   = "Already have an account?";
+"auth.account_created" = "Account created. Please sign in.";
 
 /* Dashboard */
 "dashboard.title"            = "Home";

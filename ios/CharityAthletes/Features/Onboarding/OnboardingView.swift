@@ -197,10 +197,17 @@ struct AthleteAuthSheet: View {
         do {
             if isSignUp {
                 try await auth.signUpAthlete(email: email, password: password, displayName: displayName)
+                if case .signedIn = auth.state {
+                    dismiss()
+                } else {
+                    // Account created but email confirmation is required — guide the user to sign in
+                    isSignUp = false
+                    errorMsg = i18n.t(.authAccountCreated)
+                }
             } else {
                 try await auth.signIn(email: email, password: password)
+                dismiss()
             }
-            dismiss()
         } catch { errorMsg = error.localizedDescription }
     }
 

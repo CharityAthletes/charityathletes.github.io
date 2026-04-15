@@ -82,8 +82,10 @@ final class AuthManager: ObservableObject {
             api.setToken(s.accessToken)
             state = .signedIn(userId: s.user.id.uuidString)
             await refreshMe()
+        } else {
+            // Try signing in automatically — works when email confirmation is not required
+            try? await signIn(email: email, password: password)
         }
-        // else: email confirmation required; stay on signedOut
     }
 
     /// Nonprofit signup — creates pending profile via backend
