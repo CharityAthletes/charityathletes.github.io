@@ -42,9 +42,8 @@ enum L: String {
     case authDisplayName    = "auth.display_name"
     case authRegister       = "auth.register"
     case authLogin          = "auth.login"
-    case authSwitchToSignUp  = "auth.switch_signup"
-    case authSwitchToLogin   = "auth.switch_login"
-    case authAccountCreated  = "auth.account_created"
+    case authSwitchToSignUp = "auth.switch_signup"
+    case authSwitchToLogin  = "auth.switch_login"
 
     // Dashboard
     case dashboardTitle         = "dashboard.title"
