@@ -53,6 +53,7 @@ router.get('/:id', async (req: Request, res: Response) => {
 // ── GET /c/:id/data — JSON for the page ──────────────────────────────────────
 
 router.get('/:id/data', async (req: Request, res: Response) => {
+  res.setHeader('Cache-Control', 'no-store');
   try {
     const { data: campaign } = await db
       .from('campaigns')
