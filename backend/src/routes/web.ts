@@ -285,6 +285,8 @@ function renderPage(campaign: any, stripeKey: string, apiBase: string, campaignI
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/png" sizes="32x32" href="https://charityathletes.org/favicon.png">
+  <link rel="apple-touch-icon" href="https://charityathletes.org/icon.png">
   <title>${h(campaign.title_ja)} | チャリアス</title>
   <meta property="og:type"        content="website">
   <meta property="og:title"       content="${h(campaign.title_ja)} | チャリアス (Charity Athletes)">
