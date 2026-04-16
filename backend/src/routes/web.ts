@@ -91,7 +91,7 @@ router.get('/:id/data', async (req: Request, res: Response) => {
     let pledgesQuery = db.from('donor_pledges')
       .select('flat_amount_jpy, per_km_rate_jpy, status')
       .eq('campaign_id', req.params.id)
-      .in('status', ['pending', 'confirmed', 'charged']);
+      .not('status', 'eq', 'cancelled');
     if (req.query.a && athleteId) pledgesQuery = pledgesQuery.eq('athlete_user_id', athleteId);
 
     const [{ data: activities }, { data: pledges }] = await Promise.all([
