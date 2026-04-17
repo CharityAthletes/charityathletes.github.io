@@ -76,13 +76,13 @@
 <div class="hero-banner">
   <h1 data-lang="ja">プライバシーポリシー</h1>
   <h1 data-lang="en">Privacy Policy</h1>
-  <p data-lang="ja">最終更新日：2025年5月</p>
-  <p data-lang="en">Last updated: May 2025</p>
+  <p data-lang="ja">最終更新日：2025年4月</p>
+  <p data-lang="en">Last updated: April 2025</p>
 </div>
 
 <div class="content">
-  <div class="updated" data-lang="ja">📋 最終更新：2025年5月</div>
-  <div class="updated" data-lang="en">📋 Last updated: May 2025</div>
+  <div class="updated" data-lang="ja">📋 最終更新：2025年4月</div>
+  <div class="updated" data-lang="en">📋 Last updated: April 2025</div>
 
   <!-- JAPANESE -->
   <div data-lang="ja">
@@ -105,8 +105,10 @@
       <li>活動距離（メートル）</li>
       <li>活動開始日時（ローカル時間）</li>
       <li>アスリートID（Stravaの数値ID）</li>
+      <li>ルートの概略ポリライン（地図表示用の簡略化されたGPSデータ）</li>
+      <li>プロフィール写真のURL（Stravaアカウントの画像）</li>
     </ul>
-    <p>心拍数、位置情報、ルートデータ、写真などの詳細な個人データは取得・保存しません。</p>
+    <p>心拍数、詳細な位置情報（個々のGPS座標）などのデータは取得・保存しません。</p>
 
     <h3>1.3 決済情報</h3>
     <p>クレジットカード番号等の決済情報は、Stripe, Inc.が安全に管理します。本アプリのサーバーにはカード番号は保存されません。本アプリが保存するのは、StripeのカスタマーIDのみです。</p>
@@ -179,8 +181,10 @@
       <li>Distance (in meters)</li>
       <li>Activity start date and time (local time)</li>
       <li>Athlete ID (Strava's numeric ID)</li>
+      <li>Route summary polyline (a simplified GPS trace used for map display)</li>
+      <li>Profile photo URL (your Strava account avatar)</li>
     </ul>
-    <p>We do not access or store heart rate data, GPS routes, photos, or other detailed personal data from Strava.</p>
+    <p>We do not access or store heart rate data or detailed GPS coordinates (individual location points) from Strava.</p>
 
     <h3>1.3 Payment Information</h3>
     <p>Credit card and payment information is handled securely by Stripe, Inc. We do not store card numbers on our servers. We only store your Stripe Customer ID for processing recurring charges.</p>
@@ -203,7 +207,7 @@
       <tr><th>Recipient</th><th>Data Shared</th><th>Purpose</th></tr>
       <tr><td><strong>Stripe, Inc.</strong></td><td>Name, email, payment info</td><td>Payment processing</td></tr>
       <tr><td><strong>Strava, Inc.</strong></td><td>Access token</td><td>Fetching your activity data</td></tr>
-      <tr><td><strong>Supabase</strong></td><td>Account & activity data</td><td>Database hosting (outside Japan)</td></tr>
+      <tr><td><strong>Supabase</strong></td><td>Account &amp; activity data</td><td>Database hosting (outside Japan)</td></tr>
       <tr><td><strong>Partner nonprofits</strong></td><td>Name, email (optional)</td><td>Donation records and receipts</td></tr>
     </table>
 

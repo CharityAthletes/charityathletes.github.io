@@ -24,7 +24,7 @@ const SYSTEM_PROMPT = `You are a friendly support assistant for Charity Athletes
 - App available on iOS App Store
 - Sign in with Apple ID
 - Payments processed securely by Stripe (card numbers never stored by the app)
-- Strava data used: activity type, distance, start date/time only
+- Strava data used: activity type, distance, start date/time, route summary, profile photo URL
 - Available in Japanese and English
 
 ## Common Issues & Solutions
@@ -84,7 +84,7 @@ router.post('/', async (req: Request, res: Response) => {
     ];
 
     const response = await anthropic.messages.create({
-      model: 'claude-haiku-4-5',
+      model: 'claude-haiku-4-5-20251001',
       max_tokens: 500,
       system: SYSTEM_PROMPT,
       messages,
