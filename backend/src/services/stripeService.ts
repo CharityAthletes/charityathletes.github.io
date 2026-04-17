@@ -114,14 +114,15 @@ export const stripeService = {
   // ── Charge a specific saved payment method (used for per-km billing) ────────
 
   async chargeWithMethod(params: {
-    customerId:      string;
-    paymentMethodId: string;
-    amountJpy:       number;
-    campaignId:      string;
-    donorName:       string;
-    description:     string;
+    customerId:         string;
+    paymentMethodId:    string;
+    amountJpy:          number;
+    campaignId:         string;
+    donorName:          string;
+    description:        string;
+    connectedAccountId?: string;
   }): Promise<Stripe.PaymentIntent> {
-    return stripe.paymentIntents.create({
+    const intentParams: Stripe.PaymentIntentCreateParams = {
       amount:         params.amountJpy,
       currency:       'jpy',
       customer:       params.customerId,
@@ -134,7 +135,53 @@ export const stripeService = {
         donor_name:  params.donorName,
         trigger:     'campaign_finalize',
       },
+    };
+
+    if (params.connectedAccountId) {
+      intentParams.transfer_data = { destination: params.connectedAccountId };
+    }
+
+    return stripe.paymentIntents.create(intentParams);
+  },
+
+  // ── Stripe Connect: create Express account + onboarding link ─────────────
+  async createConnectOnboardingLink(params: {
+    nonprofitId:   string;
+    nonprofitName: string;
+    returnUrl:     string;
+    refreshUrl:    string;
+  }): Promise<{ accountId: string; url: string }> {
+    const account = await stripe.accounts.create({
+      type: 'express',
+      country: 'JP',
+      capabilities: { card_payments: { requested: true }, transfers: { requested: true } },
+      business_profile: { name: params.nonprofitName },
+      metadata: { nonprofit_id: params.nonprofitId },
     });
+
+    const link = await stripe.accountLinks.create({
+      account: account.id,
+      refresh_url: params.refreshUrl,
+      return_url: params.returnUrl,
+      type: 'account_onboarding',
+    });
+
+    return { accountId: account.id, url: link.url };
+  },
+
+  // ── Stripe Connect: create new onboarding link for existing account ───────
+  async createConnectAccountLink(params: {
+    accountId:  string;
+    returnUrl:  string;
+    refreshUrl: string;
+  }): Promise<string> {
+    const link = await stripe.accountLinks.create({
+      account: params.accountId,
+      refresh_url: params.refreshUrl,
+      return_url: params.returnUrl,
+      type: 'account_onboarding',
+    });
+    return link.url;
   },
 
   // ── Webhook ───────────────────────────────────────────────────────────────

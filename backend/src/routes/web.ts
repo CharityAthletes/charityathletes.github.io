@@ -142,6 +142,14 @@ router.post('/:id/pledge', pledgeRateLimit, async (req: Request, res: Response) 
   const { donor_name, donor_email, flat_amount_jpy, per_km_rate_jpy, currency, tip_amount, is_anonymous, athlete_user_id } = parsed.data;
   const isFlat = flat_amount_jpy != null;
 
+  // Look up nonprofit stripe_account_id for this campaign
+  const { data: campaignData } = await db
+    .from('campaigns')
+    .select('nonprofit_id, nonprofits(stripe_account_id)')
+    .eq('id', req.params.id)
+    .single();
+  const connectedAccountId = (campaignData?.nonprofits as any)?.stripe_account_id ?? null;
+
   // Convert human-readable amount to Stripe units.
   // JPY is zero-decimal (no conversion); USD/AUD use cents (multiply by 100).
   const toStripeUnits = (v: number) => currency === 'jpy' ? v : v * 100;
@@ -157,13 +165,20 @@ router.post('/:id/pledge', pledgeRateLimit, async (req: Request, res: Response) 
     // ── Flat: charge immediately via PaymentIntent ───────────────────────────
     const baseUnits = toStripeUnits(flat_amount_jpy!);
     const tipUnits  = tip_amount ? toStripeUnits(tip_amount) : 0;
-    const paymentIntent = await stripe.paymentIntents.create({
+    const paymentIntentParams: Stripe.PaymentIntentCreateParams = {
       amount:   baseUnits + tipUnits,
       currency,
       customer: customer.id,
       payment_method_types: ['card'],
       metadata: { campaign_id: req.params.id, donor_name, donor_email, tip_amount: String(tip_amount ?? 0) },
-    });
+    };
+    if (connectedAccountId) {
+      paymentIntentParams.transfer_data = {
+        destination: connectedAccountId,
+        amount: baseUnits, // only transfer the donation, not the tip
+      };
+    }
+    const paymentIntent = await stripe.paymentIntents.create(paymentIntentParams);
 
     const { error } = await db.from('donor_pledges').insert({
       campaign_id:              req.params.id,
@@ -448,23 +463,6 @@ ${(campaign.description_ja || campaign.description_en) ? `
 <div class="card">
   <div class="section-title"><span class="ja">寄付を申し込む</span><span class="en">Pledge to Donate</span></div>
 
-  ${np?.donation_url ? `
-  <div style="text-align:center;padding:16px 0">
-    ${np.logo_url ? `<img src="${h(np.logo_url)}" alt="${h(np.name_en)}" style="height:60px;object-fit:contain;margin-bottom:16px;display:block;margin-left:auto;margin-right:auto">` : ''}
-    <p style="color:#444;font-size:15px;margin-bottom:6px">
-      <span class="ja">このキャンペーンの寄付は<strong>${h(np.name_ja)}</strong>の外部プラットフォームで受け付けています。</span>
-      <span class="en">Donations for this campaign are processed directly through <strong>${h(np.name_en)}</strong>'s platform.</span>
-    </p>
-    <p style="color:#86868b;font-size:13px;margin-bottom:20px">
-      <span class="ja">下のボタンをタップして寄付ページへ進んでください。</span>
-      <span class="en">Tap the button below to go to the donation page.</span>
-    </p>
-    <a href="${h(np.donation_url)}" target="_blank" rel="noopener noreferrer"
-       style="display:inline-block;background:#007B83;color:#fff;font-size:16px;font-weight:600;padding:14px 32px;border-radius:12px;text-decoration:none">
-      <span class="ja">寄付する →</span><span class="en">Donate Now →</span>
-    </a>
-  </div>
-  ` : `
   <form id="pledge-form" onsubmit="return false">
     <label><span class="ja">お名前</span><span class="en">Your Name</span></label>
     <input id="donor-name" type="text" placeholder="山田 太郎">
@@ -556,7 +554,6 @@ ${(campaign.description_ja || campaign.description_en) ? `
     <h3>✅ <span class="ja">申し込み完了！</span><span class="en">Done!</span></h3>
     <p><span class="ja">ご支援ありがとうございます。<br>キャンペーン終了後にメールをお送りします。</span><span class="en">Thank you for your support!</span></p>
   </div>
-  `}
 </div>
 
 <div style="text-align:center;padding:24px;font-size:12px;color:#86868b;display:flex;align-items:center;justify-content:center;gap:8px">

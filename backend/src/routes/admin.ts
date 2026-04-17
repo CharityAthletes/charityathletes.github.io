@@ -7,6 +7,8 @@ import { db } from '../config/supabase';
 import { requireAuth } from '../middleware/auth';
 import { requireRole } from '../middleware/requireRole';
 import { z } from 'zod';
+import { stripe } from '../config/stripe';
+import { stripeService } from '../services/stripeService';
 
 const router = Router();
 const guard = [requireAuth, requireRole('admin')];
@@ -110,6 +112,82 @@ router.patch('/users/:userId/role', ...guard, async (req: Request, res: Response
 
   if (error) return res.status(500).json({ error: error.message });
   res.json({ ok: true });
+});
+
+// POST /admin/nonprofits/:id/connect — start Stripe Connect onboarding
+router.post('/nonprofits/:id/connect', ...guard, async (req: Request, res: Response) => {
+  const { data: nonprofit } = await db
+    .from('nonprofits')
+    .select('id, name_en, stripe_account_id')
+    .eq('id', req.params.id)
+    .single();
+
+  if (!nonprofit) return res.status(404).json({ error: 'Nonprofit not found' });
+
+  const appUrl = process.env.APP_URL ?? 'https://charityathletes-production.up.railway.app';
+  const returnUrl  = `${appUrl}/admin/connect/complete?nonprofit_id=${nonprofit.id}`;
+  const refreshUrl = `${appUrl}/admin/nonprofits/${nonprofit.id}/connect`;
+
+  try {
+    if (nonprofit.stripe_account_id) {
+      // Already has an account — just generate a new link
+      const url = await stripeService.createConnectAccountLink({
+        accountId:  nonprofit.stripe_account_id,
+        returnUrl,
+        refreshUrl,
+      });
+      return res.json({ url, accountId: nonprofit.stripe_account_id });
+    }
+
+    // Create new Express account
+    const { accountId, url } = await stripeService.createConnectOnboardingLink({
+      nonprofitId:   nonprofit.id,
+      nonprofitName: nonprofit.name_en,
+      returnUrl,
+      refreshUrl,
+    });
+
+    // Save account ID immediately (before onboarding completes)
+    await db.from('nonprofits').update({ stripe_account_id: accountId }).eq('id', nonprofit.id);
+
+    return res.json({ url, accountId });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /admin/connect/complete — callback after nonprofit completes onboarding
+router.get('/connect/complete', async (req: Request, res: Response) => {
+  const nonprofitId = req.query.nonprofit_id as string;
+  if (!nonprofitId) return res.status(400).send('Missing nonprofit_id');
+
+  const { data: nonprofit } = await db
+    .from('nonprofits')
+    .select('name_en, stripe_account_id')
+    .eq('id', nonprofitId)
+    .single();
+
+  if (!nonprofit?.stripe_account_id) {
+    return res.send('<h2>Setup incomplete. Please try again.</h2>');
+  }
+
+  // Verify the account is actually enabled
+  try {
+    const account = await stripe.accounts.retrieve(nonprofit.stripe_account_id);
+    const ready = account.charges_enabled && account.payouts_enabled;
+    return res.send(`
+      <html><body style="font-family:sans-serif;max-width:500px;margin:60px auto;text-align:center">
+        <h2>${ready ? '✅' : '⏳'} Stripe Connect ${ready ? 'Active' : 'Pending'}</h2>
+        <p><strong>${nonprofit.name_en}</strong> ${ready
+          ? 'is now connected. Donations will go directly to their Stripe account.'
+          : 'has started onboarding but setup is not complete yet. They may need to provide more information.'
+        }</p>
+        <p style="color:#86868b;font-size:13px">Account ID: ${nonprofit.stripe_account_id}</p>
+      </body></html>
+    `);
+  } catch (err: any) {
+    return res.status(500).send(`<h2>Error: ${err.message}</h2>`);
+  }
 });
 
 export default router;

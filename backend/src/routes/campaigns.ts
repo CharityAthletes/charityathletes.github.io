@@ -395,12 +395,14 @@ router.post('/:id/finalize', requireAuth, async (req: Request, res: Response) =>
   // Verify ownership
   const { data: campaign } = await db
     .from('campaigns')
-    .select('id, created_by, start_date, end_date, max_distance_km, sport_types')
+    .select('id, created_by, start_date, end_date, max_distance_km, sport_types, nonprofits(stripe_account_id)')
     .eq('id', req.params.id)
     .single();
 
   if (!campaign) return res.status(404).json({ error: 'Campaign not found' });
   if (campaign.created_by !== req.userId) return res.status(403).json({ error: 'Not your campaign' });
+
+  const connectedAccountId: string | null = (campaign as any)?.nonprofits?.stripe_account_id ?? null;
 
   // Calculate total km from creator's activities during campaign period
   const sportTypeAliases: Record<string, string[]> = {
@@ -470,12 +472,13 @@ router.post('/:id/finalize', requireAuth, async (req: Request, res: Response) =>
 
     try {
       const pi = await stripeService.chargeWithMethod({
-        customerId:      pledge.stripe_customer_id,
-        paymentMethodId: pledge.stripe_payment_method_id,
+        customerId:         pledge.stripe_customer_id,
+        paymentMethodId:    pledge.stripe_payment_method_id,
         amountJpy,
-        campaignId:      req.params.id,
-        donorName:       pledge.donor_name,
-        description:     `チャリアス per-km donation — ${pledgeKm} km × ¥${pledge.per_km_rate_jpy}/km`,
+        campaignId:         req.params.id,
+        donorName:          pledge.donor_name,
+        description:        `チャリアス per-km donation — ${pledgeKm} km × ¥${pledge.per_km_rate_jpy}/km`,
+        connectedAccountId: connectedAccountId ?? undefined,
       });
 
       await db.from('donor_pledges').update({
