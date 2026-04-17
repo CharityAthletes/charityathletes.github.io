@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>使い方ガイド | CharityAthletes</title>
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f9f9f9;
+      color: #1a1a1a;
+      line-height: 1.6;
+    }
+
+    header {
+      background: #fff;
+      border-bottom: 1px solid #eee;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .logo {
+      font-size: 20px;
+      font-weight: 700;
+      color: #F26419;
+      text-decoration: none;
+    }
+    .lang-toggle { display: flex; gap: 8px; }
+    .lang-toggle button {
+      border: 1px solid #ddd;
+      background: #fff;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .lang-toggle button.active {
+      background: #F26419;
+      color: #fff;
+      border-color: #F26419;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #F26419, #e05515);
+      color: #fff;
+      text-align: center;
+      padding: 60px 24px;
+    }
+    .hero h1 { font-size: 32px; font-weight: 800; margin-bottom: 12px; }
+    .hero p { font-size: 16px; opacity: 0.9; max-width: 500px; margin: 0 auto; }
+
+    .tabs {
+      display: flex;
+      justify-content: center;
+      background: #fff;
+      border-bottom: 2px solid #eee;
+      position: sticky;
+      top: 57px;
+      z-index: 99;
+    }
+    .tab-btn {
+      padding: 16px 32px;
+      font-size: 15px;
+      font-weight: 600;
+      border: none;
+      background: none;
+      cursor: pointer;
+      color: #888;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      transition: all 0.2s;
+    }
+    .tab-btn.active { color: #F26419; border-bottom-color: #F26419; }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .section {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 48px 24px;
+    }
+    .section-title {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 32px;
+      text-align: center;
+    }
+
+    .step {
+      display: flex;
+      gap: 24px;
+      margin-bottom: 48px;
+      align-items: flex-start;
+    }
+    .step:last-child { margin-bottom: 0; }
+
+    .step-left {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .step-number {
+      width: 40px;
+      height: 40px;
+      background: #F26419;
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 18px;
+    }
+    .step-line {
+      width: 2px;
+      flex: 1;
+      min-height: 220px;
+      background: #eee;
+    }
+    .step:last-child .step-line { display: none; }
+
+    .step-right { flex: 1; }
+    .step-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .step-desc {
+      font-size: 14px;
+      color: #555;
+      margin-bottom: 16px;
+      line-height: 1.7;
+    }
+
+    .screenshot {
+      width: 100%;
+      max-width: 220px;
+      border-radius: 20px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      display: block;
+      margin-top: 12px;
+    }
+    .screenshot-web {
+      width: 100%;
+      max-width: 340px;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      display: block;
+      margin-top: 12px;
+    }
+
+    .tip {
+      background: #fff8f4;
+      border-left: 4px solid #F26419;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 40px;
+      font-size: 14px;
+      color: #555;
+    }
+    .tip strong { color: #F26419; }
+
+    footer {
+      text-align: center;
+      padding: 32px 24px;
+      color: #aaa;
+      font-size: 13px;
+      border-top: 1px solid #eee;
+      background: #fff;
+    }
+    footer a { color: #F26419; text-decoration: none; }
+
+    @media (max-width: 600px) {
+      .hero h1 { font-size: 24px; }
+      .tab-btn { padding: 12px 16px; font-size: 13px; }
+      .step { flex-direction: column; gap: 12px; }
+      .step-left { flex-direction: row; }
+      .step-line { display: none; }
+      .screenshot { max-width: 100%; }
+      .screenshot-web { max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <a href="index.html" class="logo">🏃 CharityAthletes</a>
+  <div class="lang-toggle">
+    <button class="active" onclick="setLang('ja')">日本語</button>
+    <button onclick="setLang('en')">English</button>
+  </div>
+</header>
+
+<div class="hero">
+  <h1 class="ja">使い方ガイド</h1>
+  <h1 class="en" style="display:none">How to Use</h1>
+  <p class="ja">CharityAthletesの使い方をステップごとに解説します</p>
+  <p class="en" style="display:none">Step-by-step guide to using CharityAthletes</p>
+</div>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="showTab('athlete', this)">
+    <span class="ja">アスリート向け</span>
+    <span class="en" style="display:none">For Athletes</span>
+  </button>
+  <button class="tab-btn" onclick="showTab('donor', this)">
+    <span class="ja">寄付者向け</span>
+    <span class="en" style="display:none">For Donors</span>
+  </button>
+</div>
+
+<div id="tab-athlete" class="tab-content active">
+  <div class="section">
+    <h2 class="section-title">
+      <span class="ja">キャンペーンの作成方法</span>
+      <span class="en" style="display:none">How to Create a Campaign</span>
+    </h2>
+
+    <div class="step">
+      <div class="step-left">
+        <div class="step-number">1</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-right">
+        <div class="step-title">
+          <span class="ja">ホーム画面を確認する</span>
+          <span class="en" style="display:none">Start from the Home Screen</span>
+        </div>
+        <div class="step-desc">
+          <span class="ja">ログイン後、ダッシュボードが表示されます。「＋キャンペーンを作成」ボタンからキャンペーン作成を始めます。</span>
+          <span class="en" style="display:none">After logging in, you'll see the dashboard. Tap the "+ Create Campaign" button to get started.</span>
+        </div>
+        <img src="img_dashboard.jpg" alt="Dashboard" class="screenshot">
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-left">
+        <div class="step-number">2</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-right">
+        <div class="step-title">
+          <span class="ja">支援する団体を選ぶ</span>
+          <span class="en" style="display:none">Select a Nonprofit</span>
+        </div>
+        <div class="step-desc">
+          <span class="ja">一覧から支援したい非営利団体を選択します。カテゴリで絞り込むことができます。</span>
+          <span class="en" style="display:none">Choose a nonprofit from the list. You can filter by category to find the right one.</span>
+        </div>
+        <img src="img_select_nonprofit.jpg" alt="Select nonprofit" class="screenshot">
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-left">
+        <div class="step-number">3</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-right">
+        <div class="step-title">
+          <span class="ja">寄付の方法を選ぶ</span>
+          <span class="en" style="display:none">Choose a Donation Type</span>
+        </div>
+        <div class="step-desc">
+          <span class="ja">
+            <strong>定額寄付</strong>：アクティビティ1回ごとに寄付者が金額を選んで即時寄付。<br><br>
+            <strong>距離連動</strong>：寄付者が1kmあたりの金額を選び、キャンペーン終了後に走行距離に基づいて請求。
+          </span>
+          <span class="en" style="display:none">
+            <strong>Flat Donation</strong>: Donors choose a fixed amount per activity, charged immediately.<br><br>
+            <strong>Per-km Pledge</strong>: Donors choose a rate per km, charged at campaign end based on your total distance.
+          </span>
+        </div>
+        <img src="img_donation_type.jpg" alt="Donation type" class="screenshot">
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-left">
+        <div class="step-number">4</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-right">
+        <div class="step-title">
+          <span class="ja">詳細を設定する</span>
+          <span class="en" style="display:none">Set Campaign Details</span>
+        </div>
+        <div class="step-desc">
+          <span class="ja">キャンペーン名・説明・対象スポーツ・終了日などを設定します。公開・非公開も選べます。</span>
+          <span class="en" style="display:none">Set the campaign name, description, sport types, end date, and visibility (public or private).</span>
+        </div>
+        <img src="img_campaign_details.jpg" alt="Campaign details" class="screenshot">
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-left">
+        <div class="step-number">5</div>
+      </div>
+      <div class="step-right">
+        <div class="step-title">
+          <span class="ja">個人リンクをシェアする</span>
+          <span class="en" style="display:none">Share Your Personal Link</span>
+        </div>
+        <div class="step-desc">
+          <span class="ja">キャンペーン詳細画面の「シェア」ボタンから、あなた専用のリンクをSNSやLINEでシェアしましょう。寄付者はアプリなしでブラウザから寄付できます。</span>
+          <span class="en" style="display:none">Tap "Share" on the campaign detail screen to share your personal link via SNS or LINE. Donors can donate through a browser — no app needed.</span>
+        </div>
+        <img src="img_share.jpg" alt="Share link" class="screenshot">
+      </div>
+    </div>
+
+    <div class="tip">
+      <strong>💡 <span class="ja">ヒント</span><span class="en" style="display:none">Tips</span></strong><br>
+      <span class="ja">複数のキャンペーンに同時に参加・作成できます。同じキャンペーンに複数のアスリートが参加でき、それぞれ個別のリンクを持ちます。</span>
+      <span class="en" style="display:none">You can join or create multiple campaigns at once. Multiple athletes can join the same campaign, each with their own personal link.</span>
+    </div>
+  </div>
+</div>
+
+<div id="tab-donor" class="tab-content">
+  <div class="section">
+    <h2 class="section-title">
+      <span class="ja">寄付の方法</span>
+      <span class="en" style="display:none">How to Donate</span>
+    </h2>
+
+    <div class="step">
+      <div class="step-left">
+        <div class="step-number">1</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-right">
+        <div class="step-title">
+          <span class="ja">キャンペーンリンクを開く</span>
+          <span class="en" style="display:none">Open the Campaign Link</span>
+        </div>
+        <div class="step-desc">
+          <span class="ja">アスリートからSNSやLINEでシェアされたリンクをブラウザで開きます。アプリのインストールは不要です。</span>
+          <span class="en" style="display:none">Open the link shared by the athlete via SNS or LINE in your browser. No app installation needed.</span>
+        </div>
+        <img src="img_donor_campaign.jpg" alt="Campaign page" class="screenshot-web">
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-left">
+        <div class="step-number">2</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-right">
+        <div class="step-title">
+          <span class="ja">定額寄付をする</span>
+          <span class="en" style="display:none">Make a Flat Donation</span>
+        </div>
+        <div class="step-desc">
+          <span class="ja">¥500・¥1,000・¥2,000・¥5,000などから金額を選んで寄付。今すぐ請求されます。</span>
+          <span class="en" style="display:none">Choose ¥500, ¥1,000, ¥2,000, ¥5,000, etc. and donate. Charged immediately.</span>
+        </div>
+        <img src="img_flat_donation.jpg" alt="Flat donation form" class="screenshot-web">
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-left">
+        <div class="step-number">3</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-right">
+        <div class="step-title">
+          <span class="ja">距離連動プレッジをする</span>
+          <span class="en" style="display:none">Make a Per-km Pledge</span>
+        </div>
+        <div class="step-desc">
+          <span class="ja">1kmあたりの金額（例：¥10/km）を選択。キャンペーン終了後に、そのアスリートの総走行距離に基づいて請求されます。</span>
+          <span class="en" style="display:none">Choose a rate per km (e.g. ¥10/km). Charged after the campaign ends based on that athlete's total distance.</span>
+        </div>
+        <img src="img_perkm_pledge.jpg" alt="Per-km pledge form" class="screenshot-web">
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-left">
+        <div class="step-number">4</div>
+      </div>
+      <div class="step-right">
+        <div class="step-title">
+          <span class="ja">完了！アスリートを応援しよう</span>
+          <span class="en" style="display:none">Done! Cheer On Your Athlete</span>
+        </div>
+        <div class="step-desc">
+          <span class="ja">寄付が完了しました。アスリートがアクティビティを記録するたびに、ページの距離がリアルタイムで更新されます。</span>
+          <span class="en" style="display:none">You're all set! As the athlete records activities, the distance updates in real time. Cheer them on!</span>
+        </div>
+        <img src="img_complete.jpg" alt="Completion screen" class="screenshot-web">
+      </div>
+    </div>
+
+    <div class="tip">
+      <strong>💡 <span class="ja">請求について</span><span class="en" style="display:none">About Charges</span></strong><br>
+      <span class="ja">距離連動プレッジの請求はキャンペーン終了後です。請求額は<strong>そのアスリート個人の走行距離</strong>に基づきます（キャンペーン全体の合計距離ではありません）。上限距離が設定されている場合、最大請求額が事前に確認できます。</span>
+      <span class="en" style="display:none">Per-km pledges are charged after the campaign ends. The charge is based on <strong>that individual athlete's distance</strong> — not the combined campaign total. If a distance cap is set, you can see the maximum charge upfront.</span>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>
+    <a href="index.html">CharityAthletes</a> ·
+    <a href="support.html"><span class="ja">サポート</span><span class="en" style="display:none">Support</span></a>
+  </p>
+  <p style="margin-top:8px;">© 2025 CharityAthletes</p>
+</footer>
+
+<script>
+  function showTab(tab, btn) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  function setLang(lang) {
+    document.querySelectorAll('.ja').forEach(el => el.style.display = lang === 'ja' ? '' : 'none');
+    document.querySelectorAll('.en').forEach(el => el.style.display = lang === 'en' ? '' : 'none');
+    document.querySelectorAll('.lang-toggle button').forEach((btn, i) => {
+      btn.classList.toggle('active', (i === 0 && lang === 'ja') || (i === 1 && lang === 'en'));
+    });
+  }
+</script>
+
+</body>
+</html>
