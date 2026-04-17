@@ -54,7 +54,14 @@
       padding: 60px 24px;
     }
     .hero h1 { font-size: 32px; font-weight: 800; margin-bottom: 12px; }
-    .hero p { font-size: 16px; opacity: 0.9; max-width: 500px; margin: 0 auto; }
+    .hero p { font-size: 16px; opacity: 0.9; max-width: 500px; margin: 0 auto 16px; }
+    .hero a {
+      display: inline-block;
+      color: rgba(255,255,255,0.85);
+      font-size: 13px;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
 
     .tabs {
       display: flex;
@@ -90,8 +97,14 @@
     .section-title {
       font-size: 22px;
       font-weight: 700;
-      margin-bottom: 32px;
+      margin-bottom: 8px;
       text-align: center;
+    }
+    .section-sub {
+      text-align: center;
+      font-size: 14px;
+      color: #888;
+      margin-bottom: 40px;
     }
 
     .step {
@@ -202,29 +215,36 @@
 </header>
 
 <div class="hero">
-  <h1 class="ja">使い方ガイド</h1>
-  <h1 class="en" style="display:none">How to Use</h1>
-  <p class="ja">CharityAthletesの使い方をステップごとに解説します</p>
-  <p class="en" style="display:none">Step-by-step guide to using CharityAthletes</p>
+  <h1 class="ja">アプリ詳細ガイド</h1>
+  <h1 class="en" style="display:none">Detailed App Guide</h1>
+  <p class="ja">スクリーンショット付きで操作方法を解説します</p>
+  <p class="en" style="display:none">Step-by-step walkthrough with screenshots</p>
+  <a href="index.html#how" class="ja">概要を見る →</a>
+  <a href="index.html#how" class="en" style="display:none">View overview →</a>
 </div>
 
 <div class="tabs">
   <button class="tab-btn active" onclick="showTab('athlete', this)">
-    <span class="ja">アスリート向け</span>
-    <span class="en" style="display:none">For Athletes</span>
+    🏃 <span class="ja">アスリートとして参加</span>
+    <span class="en" style="display:none">Join as an Athlete</span>
   </button>
   <button class="tab-btn" onclick="showTab('donor', this)">
-    <span class="ja">寄付者向け</span>
-    <span class="en" style="display:none">For Donors</span>
+    💳 <span class="ja">寄付者として参加</span>
+    <span class="en" style="display:none">Join as a Donor</span>
   </button>
 </div>
 
+<!-- ATHLETE TAB -->
 <div id="tab-athlete" class="tab-content active">
   <div class="section">
     <h2 class="section-title">
-      <span class="ja">キャンペーンの作成方法</span>
-      <span class="en" style="display:none">How to Create a Campaign</span>
+      <span class="ja">キャンペーンを作成する</span>
+      <span class="en" style="display:none">Create a Campaign</span>
     </h2>
+    <p class="section-sub">
+      <span class="ja">Stravaと連携して、チャリティキャンペーンを立ち上げましょう</span>
+      <span class="en" style="display:none">Connect Strava and launch your charity campaign</span>
+    </p>
 
     <div class="step">
       <div class="step-left">
@@ -233,12 +253,12 @@
       </div>
       <div class="step-right">
         <div class="step-title">
-          <span class="ja">ホーム画面を確認する</span>
-          <span class="en" style="display:none">Start from the Home Screen</span>
+          <span class="ja">🏃 アスリートとして参加する</span>
+          <span class="en" style="display:none">🏃 Join as an Athlete</span>
         </div>
         <div class="step-desc">
-          <span class="ja">ログイン後、ダッシュボードが表示されます。「＋キャンペーンを作成」ボタンからキャンペーン作成を始めます。</span>
-          <span class="en" style="display:none">After logging in, you'll see the dashboard. Tap the "+ Create Campaign" button to get started.</span>
+          <span class="ja">アプリをダウンロードしてログイン後、ダッシュボードが表示されます。Stravaと連携すると、ランニング・サイクリング・水泳などのアクティビティが自動で同期されます。</span>
+          <span class="en" style="display:none">Download the app and log in. Connect your Strava account from the Profile tab so your runs, rides, and swims sync automatically.</span>
         </div>
         <img src="img_dashboard.jpg" alt="Dashboard" class="screenshot">
       </div>
@@ -269,15 +289,17 @@
       </div>
       <div class="step-right">
         <div class="step-title">
-          <span class="ja">寄付の方法を選ぶ</span>
-          <span class="en" style="display:none">Choose a Donation Type</span>
+          <span class="ja">💪 いつも通り活動する</span>
+          <span class="en" style="display:none">💪 Train as Usual</span>
         </div>
         <div class="step-desc">
           <span class="ja">
+            キャンペーンの寄付方法を設定します。<br><br>
             <strong>定額寄付</strong>：アクティビティ1回ごとに寄付者が金額を選んで即時寄付。<br><br>
             <strong>距離連動</strong>：寄付者が1kmあたりの金額を選び、キャンペーン終了後に走行距離に基づいて請求。
           </span>
           <span class="en" style="display:none">
+            Configure your campaign's donation type.<br><br>
             <strong>Flat Donation</strong>: Donors choose a fixed amount per activity, charged immediately.<br><br>
             <strong>Per-km Pledge</strong>: Donors choose a rate per km, charged at campaign end based on your total distance.
           </span>
@@ -310,8 +332,8 @@
       </div>
       <div class="step-right">
         <div class="step-title">
-          <span class="ja">個人リンクをシェアする</span>
-          <span class="en" style="display:none">Share Your Personal Link</span>
+          <span class="ja">❤️ 寄付者に個人リンクをシェアする</span>
+          <span class="en" style="display:none">❤️ Share Your Link with Donors</span>
         </div>
         <div class="step-desc">
           <span class="ja">キャンペーン詳細画面の「シェア」ボタンから、あなた専用のリンクをSNSやLINEでシェアしましょう。寄付者はアプリなしでブラウザから寄付できます。</span>
@@ -329,12 +351,17 @@
   </div>
 </div>
 
+<!-- DONOR TAB -->
 <div id="tab-donor" class="tab-content">
   <div class="section">
     <h2 class="section-title">
-      <span class="ja">寄付の方法</span>
-      <span class="en" style="display:none">How to Donate</span>
+      <span class="ja">寄付者として参加する</span>
+      <span class="en" style="display:none">Join as a Donor</span>
     </h2>
+    <p class="section-sub">
+      <span class="ja">アプリ不要。ブラウザだけで寄付できます</span>
+      <span class="en" style="display:none">No app needed. Donate entirely from your browser</span>
+    </p>
 
     <div class="step">
       <div class="step-left">
@@ -343,8 +370,8 @@
       </div>
       <div class="step-right">
         <div class="step-title">
-          <span class="ja">キャンペーンリンクを開く</span>
-          <span class="en" style="display:none">Open the Campaign Link</span>
+          <span class="ja">🔗 キャンペーンリンクを受け取る</span>
+          <span class="en" style="display:none">🔗 Receive a Campaign Link</span>
         </div>
         <div class="step-desc">
           <span class="ja">アスリートからSNSやLINEでシェアされたリンクをブラウザで開きます。アプリのインストールは不要です。</span>
@@ -361,14 +388,14 @@
       </div>
       <div class="step-right">
         <div class="step-title">
-          <span class="ja">定額寄付をする</span>
-          <span class="en" style="display:none">Make a Flat Donation</span>
+          <span class="ja">💳 寄付レートを選ぶ</span>
+          <span class="en" style="display:none">💳 Choose a Pledge Rate</span>
         </div>
         <div class="step-desc">
-          <span class="ja">¥500・¥1,000・¥2,000・¥5,000などから金額を選んで寄付。今すぐ請求されます。</span>
-          <span class="en" style="display:none">Choose ¥500, ¥1,000, ¥2,000, ¥5,000, etc. and donate. Charged immediately.</span>
+          <span class="ja">1kmあたりの寄付額（例：¥10/km）または定額を選び、クレジットカードを登録します。定額はすぐに請求、距離連動はキャンペーン終了後に請求されます。</span>
+          <span class="en" style="display:none">Choose a per-km rate (e.g. ¥10/km) or a flat amount. Flat donations are charged immediately; per-km pledges are charged at campaign end.</span>
         </div>
-        <img src="img_flat_donation.jpg" alt="Flat donation form" class="screenshot-web">
+        <img src="img_flat_donation.jpg" alt="Donation form" class="screenshot-web">
       </div>
     </div>
 
@@ -379,12 +406,12 @@
       </div>
       <div class="step-right">
         <div class="step-title">
-          <span class="ja">距離連動プレッジをする</span>
-          <span class="en" style="display:none">Make a Per-km Pledge</span>
+          <span class="ja">📊 活動に連動して寄付</span>
+          <span class="en" style="display:none">📊 Give as They Move</span>
         </div>
         <div class="step-desc">
-          <span class="ja">1kmあたりの金額（例：¥10/km）を選択。キャンペーン終了後に、そのアスリートの総走行距離に基づいて請求されます。</span>
-          <span class="en" style="display:none">Choose a rate per km (e.g. ¥10/km). Charged after the campaign ends based on that athlete's total distance.</span>
+          <span class="ja">距離連動プレッジの場合、1kmあたりの金額（例：¥10/km）を選択。キャンペーン終了後に、そのアスリートの総走行距離に基づいて請求されます。</span>
+          <span class="en" style="display:none">For per-km pledges, choose a rate (e.g. ¥10/km). Charged after the campaign ends based on that athlete's total distance.</span>
         </div>
         <img src="img_perkm_pledge.jpg" alt="Per-km pledge form" class="screenshot-web">
       </div>
