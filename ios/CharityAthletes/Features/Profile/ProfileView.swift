@@ -359,6 +359,11 @@ struct ProfileView: View {
                         Label(i18n.language == .ja ? "使い方" : "How It Works",
                               systemImage: "questionmark.circle")
                     }
+                    Link(destination: URL(string: "https://charityathletes.org")!) {
+                        Label(i18n.language == .ja ? "ウェブサイト" : "Website",
+                              systemImage: "globe")
+                            .foregroundStyle(Color("BrandOrange"))
+                    }
                 }
 
                 // ── Sign out ───────────────────────────────────────────────────
