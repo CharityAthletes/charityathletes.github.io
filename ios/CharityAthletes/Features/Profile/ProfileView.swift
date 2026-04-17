@@ -364,6 +364,11 @@ struct ProfileView: View {
                               systemImage: "questionmark.circle")
                     }
                 }
+                    Link(destination: URL(string: "https://charityathletes.org")!) {
+                        Label(i18n.language == .ja ? "ウェブサイト" : "Website",
+                              systemImage: "globe")
+                            .foregroundStyle(Color("BrandOrange"))
+                    }
 
                 // ── Sign out ───────────────────────────────────────────────────
                 Section {
