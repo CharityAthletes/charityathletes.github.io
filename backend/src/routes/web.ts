@@ -396,7 +396,15 @@ function renderPage(campaign: any, stripeKey: string, apiBase: string, campaignI
     }
     <div>
       ${athlete?.display_name ? `<div style="font-weight:600;font-size:15px">${h(athlete.display_name)}</div>` : ''}
-      ${np ? `<div style="font-size:13px;opacity:.85;margin-top:2px">🏢 <span class="ja">${h(np.name_ja)}</span><span class="en">${h(np.name_en || np.name_ja)}</span></div>` : ''}
+      ${np ? `<div style="font-size:13px;opacity:.85;margin-top:2px">
+        <span class="ja">寄付先：</span><span class="en">Beneficiary: </span>
+        ${np.website_url
+          ? `<a href="${h(np.website_url)}" target="_blank" rel="noopener noreferrer" style="color:#fff;font-weight:600;text-decoration:underline;text-underline-offset:2px">
+               <span class="ja">${h(np.name_ja)}</span><span class="en">${h(np.name_en || np.name_ja)}</span>
+             </a>`
+          : `<span style="font-weight:600"><span class="ja">${h(np.name_ja)}</span><span class="en">${h(np.name_en || np.name_ja)}</span></span>`
+        }
+      </div>` : ''}
       <div style="font-size:12px;opacity:.75;margin-top:2px">📅 <span class="ja">${endDate}まで</span><span class="en">Ends ${endDateEn}</span></div>
     </div>
   </div>
