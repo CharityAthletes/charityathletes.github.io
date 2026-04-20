@@ -94,6 +94,22 @@ struct DashboardView: View {
                 }
                 return i18n.t(.dashboardTitle)
             }())
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    // Compact language toggle: tap to flip between JA and EN
+                    Button {
+                        i18n.language = i18n.language == .ja ? .en : .ja
+                    } label: {
+                        Text(i18n.language == .ja ? "EN" : "日本語")
+                            .font(.caption.bold())
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 5)
+                            .background(Color("BrandOrange").opacity(0.12))
+                            .foregroundStyle(Color("BrandOrange"))
+                            .clipShape(Capsule())
+                    }
+                }
+            }
             .refreshable { await vm.load() }
             .task { await vm.load() }
         }
