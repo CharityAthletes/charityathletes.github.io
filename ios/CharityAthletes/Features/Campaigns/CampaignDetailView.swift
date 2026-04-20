@@ -142,7 +142,7 @@ struct CampaignDetailView: View {
 
                 // Progress
                 VStack(alignment: .leading, spacing: 6) {
-                    ProgressView(value: c.progress).tint(Color("BrandOrange"))
+                    SportProgressBar(progress: c.progress, sportTypes: c.sportTypes)
                     HStack {
                         Text("¥\(c.raisedAmountJpy.formatted())")
                             .font(.headline).foregroundStyle(Color("BrandOrange"))
@@ -812,6 +812,67 @@ struct FinalizeResultSheet: View {
                 }
             }
         }
+    }
+}
+
+// MARK: - Sport Progress Bar
+
+struct SportProgressBar: View {
+    let progress: Double      // 0.0 – 1.0
+    let sportTypes: [String]
+    var compact: Bool = false // true → smaller icon for mini cards / rows
+
+    private var iconD: CGFloat { compact ? 20 : 26 }
+    private var barH: CGFloat  { compact ? 4  : 6  }
+
+    private var iconName: String {
+        for sport in sportTypes {
+            switch sport {
+            case "Ride", "VirtualRide": return "figure.outdoor.cycle"
+            case "Run":                 return "figure.run"
+            case "Walk":                return "figure.walk"
+            case "Swim":                return "figure.pool.swim"
+            default: break
+            }
+        }
+        return "figure.mixed.cardio"
+    }
+
+    var body: some View {
+        GeometryReader { proxy in
+            let clamped = min(max(progress, 0), 1)
+            let w = proxy.size.width
+            let r = iconD / 2
+            // Clamp icon center so it never overflows the track edges
+            let cx = min(max(clamped * w, r), w - r)
+
+            ZStack(alignment: .topLeading) {
+                // Grey track
+                Capsule()
+                    .fill(Color.gray.opacity(0.18))
+                    .frame(width: w, height: barH)
+                    .offset(y: (iconD - barH) / 2)
+
+                // Orange fill — from left edge to icon centre
+                Capsule()
+                    .fill(Color("BrandOrange"))
+                    .frame(width: cx, height: barH)
+                    .offset(y: (iconD - barH) / 2)
+
+                // Sport icon bubble sitting on the bar
+                Circle()
+                    .fill(Color("BrandOrange"))
+                    .frame(width: iconD, height: iconD)
+                    .overlay(
+                        Image(systemName: iconName)
+                            .font(.system(size: compact ? 10 : 13, weight: .semibold))
+                            .foregroundStyle(.white)
+                    )
+                    .shadow(color: Color("BrandOrange").opacity(0.4), radius: 3, x: 0, y: 2)
+                    .offset(x: cx - r)
+            }
+        }
+        .frame(height: iconD)
     }
 }
 

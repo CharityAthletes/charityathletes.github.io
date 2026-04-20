@@ -242,7 +242,7 @@ struct CampaignMiniCard: View {
                 .font(.caption2)
                 .foregroundStyle(.secondary)
             Spacer()
-            ProgressView(value: campaign.progress).tint(Color("BrandOrange"))
+            SportProgressBar(progress: campaign.progress, sportTypes: campaign.sportTypes, compact: true)
             HStack(spacing: 6) {
                 Text("¥\(campaign.raisedAmountJpy.formatted())")
                     .font(.caption.bold())

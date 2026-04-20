@@ -239,7 +239,7 @@ struct CampaignRow: View {
                 }
             }
 
-            ProgressView(value: campaign.progress).tint(Color("BrandOrange"))
+            SportProgressBar(progress: campaign.progress, sportTypes: campaign.sportTypes, compact: true)
 
             HStack {
                 Text("¥\(campaign.raisedAmountJpy.formatted())")
