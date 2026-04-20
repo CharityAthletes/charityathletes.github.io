@@ -305,7 +305,7 @@ function renderPage(campaign: any, stripeKey: string, apiBase: string, campaignI
   <title>${h(campaign.title_ja)} | チャリアス</title>
   <meta property="og:type"        content="website">
   <meta property="og:title"       content="${h(campaign.title_ja)} | チャリアス (Charity Athletes)">
-  <meta property="og:description" content="${h(campaign.description_ja || campaign.description_en || 'チャリアスのチャリティキャンペーンを応援してください！')}">
+  <meta property="og:description" content="${h(campaign.description_ja || campaign.description_en || 'チャリアスのチャリティイベントを応援してください！')}">
   <meta property="og:url"         content="https://charityathletes-production.up.railway.app/c/${h(campaignId)}">
   <meta property="og:image"       content="${safeUrl(np?.logo_url) || 'https://charityathletes-production.up.railway.app/static/logo.png'}">
   <meta name="twitter:card"       content="summary_large_image">
@@ -426,7 +426,7 @@ function renderPage(campaign: any, stripeKey: string, apiBase: string, campaignI
 
 ${(campaign.description_ja || campaign.description_en) ? `
 <div class="card">
-  <div class="section-title"><span class="ja">キャンペーンについて</span><span class="en">About</span></div>
+  <div class="section-title"><span class="ja">イベントについて</span><span class="en">About</span></div>
   ${campaign.description_ja ? `<p class="ja" style="font-size:14px;line-height:1.6;color:#444">${h(campaign.description_ja)}</p>` : ''}
   ${campaign.description_en ? `<p class="en" style="font-size:14px;line-height:1.6;color:#444">${h(campaign.description_en)}</p>` : ''}
 </div>` : ''}
@@ -460,7 +460,7 @@ ${(campaign.description_ja || campaign.description_en) ? `
         <div style="background:#007B83;color:#fff;font-weight:700;font-size:13px;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">3</div>
         <div>
           <div style="font-weight:600;font-size:14px"><span class="ja">✅ 寄付が届く</span><span class="en">✅ Your donation goes to the charity</span></div>
-          <div class="ja" style="font-size:13px;color:#86868b;margin-top:2px">定額寄付はすぐに請求されます。距離連動はキャンペーン終了後に<strong>このアスリート</strong>の総走行距離をもとに請求されます。</div>
+          <div class="ja" style="font-size:13px;color:#86868b;margin-top:2px">定額寄付はすぐに請求されます。距離連動はイベント終了後に<strong>このアスリート</strong>の総走行距離をもとに請求されます。</div>
           <div class="en" style="font-size:13px;color:#86868b;margin-top:2px">Flat donations charge immediately. Per-km pledges charge at campaign end based on <strong>this athlete's</strong> total distance — not the combined total of all participants.</div>
         </div>
       </div>
@@ -519,7 +519,7 @@ ${(campaign.description_ja || campaign.description_en) ? `
     ${campaign.has_per_km_donation ? `
     <div class="donation-panel${!campaign.has_flat_donation ? ' active' : ''}" id="panel-perkm">
       <div style="font-size:12px;color:#86868b;margin-bottom:8px">
-        <span class="ja">🕐 キャンペーン終了後に請求されます — <strong>このアスリート</strong>の走行距離 × あなたのレート${campaign.max_distance_km ? `（上限 ${campaign.max_distance_km} km）` : ''}</span>
+        <span class="ja">🕐 イベント終了後に請求されます — <strong>このアスリート</strong>の走行距離 × あなたのレート${campaign.max_distance_km ? `（上限 ${campaign.max_distance_km} km）` : ''}</span>
         <span class="en">🕐 Charged after campaign ends · <strong>this athlete's</strong> distance × your rate${campaign.max_distance_km ? ` (max ${campaign.max_distance_km} km cap)` : ''}</span>
       </div>
       <div id="rate-grid" class="rate-grid">
@@ -542,7 +542,7 @@ ${(campaign.description_ja || campaign.description_en) ? `
 
     <label style="display:flex;align-items:center;gap:10px;margin-top:20px;cursor:pointer;font-size:14px;color:#444;user-select:none">
       <input type="checkbox" id="anon-check" style="width:18px;height:18px;accent-color:#007B83;cursor:pointer;flex-shrink:0">
-      <span><span class="ja">匿名で寄付する</span><span class="en">Donate anonymously</span><br><span style="font-size:11px;color:#86868b"><span class="ja">キャンペーン作成者にお名前は表示されません</span><span class="en">Your name won't be shown to the campaign creator</span></span></span>
+      <span><span class="ja">匿名で寄付する</span><span class="en">Donate anonymously</span><br><span style="font-size:11px;color:#86868b"><span class="ja">イベント作成者にお名前は表示されません</span><span class="en">Your name won't be shown to the campaign creator</span></span></span>
     </label>
 
     <label style="margin-top:20px"><span class="ja">カード情報</span><span class="en">Payment Card</span></label>
@@ -566,7 +566,7 @@ ${(campaign.description_ja || campaign.description_en) ? `
 
     <div style="font-size:11px;color:#86868b;margin-top:10px;line-height:1.5">
       <span class="ja">🔒 カード情報はStripeにより安全に処理されます。<br>
-      定額寄付はすぐに請求されます。距離連動はキャンペーン終了後にこのアスリートの走行距離をもとに請求されます。</span>
+      定額寄付はすぐに請求されます。距離連動はイベント終了後にこのアスリートの走行距離をもとに請求されます。</span>
       <span class="en">🔒 Your card details are securely processed by Stripe.<br>
       Flat donations are charged immediately. Per-km pledges are charged after the campaign ends based on this athlete's distance.</span>
     </div>
@@ -576,7 +576,7 @@ ${(campaign.description_ja || campaign.description_en) ? `
 
   <div class="success-box" id="success-box">
     <h3>✅ <span class="ja">申し込み完了！</span><span class="en">Done!</span></h3>
-    <p><span class="ja">ご支援ありがとうございます。<br>キャンペーン終了後にメールをお送りします。</span><span class="en">Thank you for your support!</span></p>
+    <p><span class="ja">ご支援ありがとうございます。<br>イベント終了後にメールをお送りします。</span><span class="en">Thank you for your support!</span></p>
   </div>
 </div>
 
@@ -989,7 +989,7 @@ async function submitPledge() {
     const successBox = document.getElementById('success-box');
     successBox.innerHTML = pledgeData.type === 'payment'
       ? '<h3>✅ 寄付完了！</h3><p>ご支援ありがとうございます。カードへの請求が完了しました。<br><br>Thank you! Your donation has been charged.</p>'
-      : "<h3>✅ 申し込み完了！</h3><p>ご支援ありがとうございます。<br>キャンペーン終了後、アスリートの走行距離に応じて請求されます。<br><br>Thank you! Your card will be charged at campaign end based on the athlete's total distance.</p>";
+      : "<h3>✅ 申し込み完了！</h3><p>ご支援ありがとうございます。<br>イベント終了後、アスリートの走行距離に応じて請求されます。<br><br>Thank you! Your card will be charged at campaign end based on the athlete's total distance.</p>";
 
     document.getElementById('pledge-form').style.display = 'none';
     successBox.style.display = 'block';
