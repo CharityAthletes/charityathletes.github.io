@@ -193,16 +193,22 @@ struct CampaignMiniCard: View {
     var joined: Bool = false
     @ObservedObject private var i18n = I18n.shared
 
-    private static let dateFmt: DateFormatter = {
+    private static let dateFmtJa: DateFormatter = {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "ja_JP")
+        f.dateFormat = "M月d日"
+        return f
+    }()
+    private static let dateFmtEn: DateFormatter = {
         let f = DateFormatter()
         f.dateFormat = "MMM d"
         return f
     }()
 
     private var dateRange: String {
-        let s = Self.dateFmt.string(from: campaign.startDate)
-        let e = Self.dateFmt.string(from: campaign.endDate)
-        return "\(s) – \(e)"
+        let fmt = i18n.language == .ja ? Self.dateFmtJa : Self.dateFmtEn
+        let sep = i18n.language == .ja ? "〜" : " – "
+        return "\(fmt.string(from: campaign.startDate))\(sep)\(fmt.string(from: campaign.endDate))"
     }
 
     private func sportIcon(for t: String) -> String {
