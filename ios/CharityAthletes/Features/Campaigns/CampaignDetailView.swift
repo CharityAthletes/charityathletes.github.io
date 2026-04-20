@@ -105,14 +105,23 @@ struct CampaignDetailView: View {
     private var c: Campaign { vm.campaign }
     private var isCreator: Bool { c.createdBy == auth.profile?.userId }
 
-    private static let dateFmt: DateFormatter = {
+    private static let dateFmtJa: DateFormatter = {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "ja_JP")
+        f.dateFormat = "yyyy年M月d日"
+        return f
+    }()
+
+    private static let dateFmtEn: DateFormatter = {
         let f = DateFormatter()
         f.dateFormat = "MMM d, yyyy"
         return f
     }()
 
     private func dateRangeString(start: Date, end: Date) -> String {
-        "\(Self.dateFmt.string(from: start)) – \(Self.dateFmt.string(from: end))"
+        let fmt = i18n.language == .ja ? Self.dateFmtJa : Self.dateFmtEn
+        let sep = i18n.language == .ja ? "〜" : " – "
+        return "\(fmt.string(from: start))\(sep)\(fmt.string(from: end))"
     }
 
     var body: some View {
