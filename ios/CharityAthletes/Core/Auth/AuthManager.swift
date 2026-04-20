@@ -239,11 +239,25 @@ final class AuthManager: ObservableObject {
     func refreshMe() async {
         guard case .signedIn = state else { return }
         do {
+            // Always pull the latest token from Supabase — it auto-refreshes if expired
+            // but the refresh token is still valid.
+            let session = try await supabase.auth.session
+            api.setToken(session.accessToken)
+
             let me = try await api.getMe()
             profile = me
             role    = me.role
+        } catch let apiErr as APIError {
+            print("[refreshMe] API error:", apiErr.localizedDescription)
+            if case .unauthorized = apiErr {
+                // Access token is rejected and couldn't be refreshed — sign out cleanly
+                print("[refreshMe] unauthorized, signing out")
+                await signOut()
+            }
         } catch {
-            print("[refreshMe] error:", error)
+            // supabase.auth.session threw — no valid session or refresh token left
+            print("[refreshMe] session error:", error, "— signing out")
+            await signOut()
         }
     }
 }
