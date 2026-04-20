@@ -39,7 +39,7 @@
       height: 60px;
     }
     .nav-logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; color: var(--text); text-decoration: none; }
-    .nav-logo svg { width: 36px; height: 36px; border-radius: 8px; }
+    .nav-logo img { width: 36px; height: 36px; border-radius: 8px; }
     .nav-links { display: flex; align-items: center; gap: 24px; font-size: 14px; }
     .nav-links a { color: var(--text-light); font-weight: 500; }
     .nav-links a:hover { color: var(--orange); text-decoration: none; }
@@ -91,20 +91,47 @@
     .section-sub { color: var(--text-light); font-size: 16px; margin-bottom: 48px; display: block; width: 100%; }
     .tag { display: block; width: fit-content; background: var(--orange-pale); color: var(--orange); font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 20px; margin-bottom: 12px; letter-spacing: 0.5px; text-transform: uppercase; }
 
-    /* HOW IT WORKS */
-    .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 32px; }
-    .step { text-align: center; }
-    .step-num {
-      width: 56px; height: 56px; border-radius: 50%;
-      background: linear-gradient(135deg, var(--orange), var(--orange-light));
-      color: white; font-size: 22px; font-weight: 800;
-      display: flex; align-items: center; justify-content: center;
-      margin: 0 auto 16px;
-      box-shadow: 0 4px 16px rgba(0,123,131,0.35);
+    /* HOW IT WORKS — role tabs */
+    .role-tabs { display: flex; gap: 10px; margin-bottom: 40px; flex-wrap: wrap; }
+    .role-tab {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 22px; border-radius: 40px; font-size: 15px; font-weight: 600;
+      border: 2px solid var(--orange); color: var(--orange); background: white;
+      cursor: pointer; transition: all 0.18s;
     }
-    .step h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
-    .step p { font-size: 14px; color: var(--text-light); }
-    .step-icon { font-size: 32px; margin-bottom: 8px; }
+    .role-tab.active { background: var(--orange); color: white; }
+    .role-tab:hover:not(.active) { background: var(--orange-pale); }
+
+    .how-panel { display: none; }
+    .how-panel.active { display: block; }
+
+    /* HOW IT WORKS — steps */
+    .steps-list { display: flex; flex-direction: column; gap: 0; }
+    .how-step {
+      display: flex; gap: 20px; align-items: flex-start;
+      padding: 28px 0;
+      border-bottom: 1px solid #eee;
+    }
+    .how-step:last-child { border-bottom: none; }
+    .how-step-left { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+    .how-step-num {
+      width: 44px; height: 44px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--orange), var(--orange-light));
+      color: white; font-size: 18px; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 12px rgba(0,123,131,0.3); flex-shrink: 0;
+    }
+    .how-step-icon { font-size: 22px; margin-top: 10px; }
+    .how-step-body { flex: 1; padding-top: 6px; }
+    .how-step-body h3 { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+    .how-step-body p { font-size: 14px; color: var(--text-light); line-height: 1.7; }
+
+    .tip-box {
+      background: #f0fafb; border-left: 4px solid var(--orange);
+      border-radius: 10px; padding: 16px 20px; margin-top: 32px;
+      font-size: 14px; color: #444; line-height: 1.7;
+    }
+    .tip-box strong { color: var(--orange); }
 
     /* FEATURES */
     .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; }
@@ -134,7 +161,7 @@
     .nonprofit-icon { font-size: 40px; margin-bottom: 14px; }
 
     /* SPORTS */
-    .sports-row { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 32px; }
+    .sports-row { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 48px; }
     .sport-chip {
       display: flex; align-items: center; gap: 8px;
       background: white; border: 1.5px solid #eee; border-radius: 40px;
@@ -171,11 +198,8 @@
     [data-lang="en"] { display: none; }
     body.en [data-lang="ja"] { display: none; }
     body.en [data-lang="en"] { display: block; }
-    /* Inline elements stay inline when shown */
     body.en span[data-lang="en"],
     body.en a[data-lang="en"] { display: inline; }
-
-    /* Block-level defaults — element selectors only (lower specificity than [data-lang]) */
     h1, h2, h3, h4, h5, h6 { display: block; }
     p { display: block; }
     .tag { width: fit-content; }
@@ -204,6 +228,9 @@
       .tab-bar { display: block; }
       .tab-panel { display: none; }
       .tab-panel.active { display: block; }
+      .how-step { flex-direction: column; gap: 12px; }
+      .how-step-left { flex-direction: row; }
+      .how-step-icon { margin-top: 0; }
     }
   </style>
 </head>
@@ -212,7 +239,7 @@
 <!-- NAV -->
 <nav>
   <a class="nav-logo" href="/">
-    <img src="icon.png" alt="チャリアス" style="width:36px;height:36px;border-radius:8px;"/>
+    <img src="icon.png" alt="チャリアス"/>
     <span>チャリアス</span>
   </a>
   <div class="nav-links">
@@ -224,7 +251,7 @@
   <button class="lang-btn" onclick="toggleLang()">EN / JA</button>
 </nav>
 
-<!-- MOBILE TAB BAR (hidden on desktop) -->
+<!-- MOBILE TAB BAR -->
 <div class="tab-bar" id="tab-bar">
   <button class="active" data-tab="home" onclick="switchTab('home')">🏠 <span data-lang="ja">ホーム</span><span data-lang="en">Home</span></button>
   <button data-tab="how" onclick="switchTab('how')">💡 <span data-lang="ja">使い方</span><span data-lang="en">How It Works</span></button>
@@ -269,74 +296,158 @@
   <div class="section-inner">
     <div class="tag" data-lang="ja">使い方</div>
     <div class="tag" data-lang="en">How It Works</div>
-    <h2 class="section-title" data-lang="ja">シンプルな3ステップ</h2>
+    <h2 class="section-title" data-lang="ja">シンプルで自動。意味のある寄付へ。</h2>
     <h2 class="section-title" data-lang="en">Simple. Automatic. Meaningful.</h2>
-    <p class="section-sub" data-lang="ja">アプリをダウンロードして、Stravaを連携するだけ。あとは走るだけで寄付が自動的に行われます。</p>
-    <p class="section-sub" data-lang="en">Download the app, connect Strava, and join a campaign. Your activities do the rest.</p>
+    <p class="section-sub" data-lang="ja">アスリートとして参加するか、寄付者として応援するか — どちらも数ステップで始められます。</p>
+    <p class="section-sub" data-lang="en">Whether you're an athlete or a donor, you can get started in just a few steps.</p>
 
-    <div class="steps">
-      <div class="step">
-        <div class="step-icon">🏃</div>
-        <div class="step-num">1</div>
-        <h3 data-lang="ja">アスリートとして参加</h3>
-        <h3 data-lang="en">Join as an Athlete</h3>
-        <p data-lang="ja">Stravaアカウントと連携し、チャリティキャンペーンに参加します。</p>
-        <p data-lang="en">Connect your Strava account and join a charity campaign that matches your sport.</p>
-      </div>
-      <div class="step">
-        <div class="step-icon">💪</div>
-        <div class="step-num">2</div>
-        <h3 data-lang="ja">いつも通り活動する</h3>
-        <h3 data-lang="en">Train as Usual</h3>
-        <p data-lang="ja">サイクリング・ランニング・ウォーキング・スイミングなど、普段通りの活動を記録するだけ。</p>
-        <p data-lang="en">Ride, run, walk, or swim. Every activity recorded on Strava counts toward the campaign.</p>
-      </div>
-      <div class="step">
-        <div class="step-icon">❤️</div>
-        <div class="step-num">3</div>
-        <h3 data-lang="ja">寄付者が自動寄付</h3>
-        <h3 data-lang="en">Donors Give Automatically</h3>
-        <p data-lang="ja">寄付者はあなたの1kmあたりの金額を設定。活動が記録されるたびに自動的に寄付されます。</p>
-        <p data-lang="en">Donors pledge a rate per km. When you log an activity, they're charged automatically via Stripe.</p>
-      </div>
+    <!-- Role selector -->
+    <div class="role-tabs">
+      <button class="role-tab active" id="role-tab-athlete" onclick="switchHowTab('athlete')">
+        🏃 <span data-lang="ja">アスリートとして参加</span><span data-lang="en">Join as an Athlete</span>
+      </button>
+      <button class="role-tab" id="role-tab-donor" onclick="switchHowTab('donor')">
+        💳 <span data-lang="ja">寄付者として応援</span><span data-lang="en">Support as a Donor</span>
+      </button>
     </div>
 
-    <div style="margin-top: 60px;">
-      <div class="tag" data-lang="ja">寄付者の場合</div>
-      <div class="tag" data-lang="en">For Donors</div>
-      <div class="steps" style="margin-top: 24px;">
-        <div class="step">
-          <div class="step-icon">🔗</div>
-          <div class="step-num">1</div>
-          <h3 data-lang="ja">キャンペーンリンクを受け取る</h3>
-          <h3 data-lang="en">Receive a Campaign Link</h3>
-          <p data-lang="ja">アスリートからシェアリンクを受け取り、キャンペーンページを開きます。</p>
-          <p data-lang="en">An athlete shares their campaign link with you via SNS, email, or messaging.</p>
-        </div>
-        <div class="step">
-          <div class="step-icon">💳</div>
-          <div class="step-num">2</div>
-          <h3 data-lang="ja">寄付レートを選ぶ</h3>
-          <h3 data-lang="en">Choose a Pledge Rate</h3>
-          <p data-lang="ja">1kmあたりの寄付額（例：¥10/km）または定額を選び、クレジットカードを登録します。</p>
-          <p data-lang="en">Choose a per-km rate (e.g. ¥10/km) or a flat amount. Register your card once via Stripe.</p>
-        </div>
-        <div class="step">
-          <div class="step-icon">📊</div>
-          <div class="step-num">3</div>
-          <h3 data-lang="ja">活動に連動して寄付</h3>
-          <h3 data-lang="en">Give as They Move</h3>
-          <p data-lang="ja">アスリートが活動を記録するたびに、その距離に応じて自動的に寄付が行われます。</p>
-          <p data-lang="en">Each time the athlete logs an activity, your donation is calculated and charged automatically.</p>
-        </div>
-      </div>
-    </div>
+    <!-- ATHLETE STEPS -->
+    <div class="how-panel active" id="how-athlete">
+      <div class="steps-list">
 
-    <!-- Sport types -->
-    <div style="text-align:center; margin-top: 56px;">
-      <p style="font-size:14px; color: var(--text-light); margin-bottom: 4px;" data-lang="ja">対応スポーツ</p>
-      <p style="font-size:14px; color: var(--text-light); margin-bottom: 4px;" data-lang="en">Supported Sports</p>
-      <div class="sports-row">
+        <div class="how-step">
+          <div class="how-step-left">
+            <div class="how-step-num">1</div>
+            <div class="how-step-icon">📲</div>
+          </div>
+          <div class="how-step-body">
+            <h3 data-lang="ja">アプリをダウンロードしてStravaと連携</h3>
+            <h3 data-lang="en">Download the App &amp; Connect Strava</h3>
+            <p data-lang="ja">App Storeからチャリアスをダウンロードしてログイン。プロフィール画面からStravaと連携すると、ランニング・サイクリング・水泳などのアクティビティが自動で同期されます。</p>
+            <p data-lang="en">Download Charity Athletes from the App Store and sign in. Connect your Strava account from the Profile tab — runs, rides, and swims sync automatically from that point on.</p>
+          </div>
+        </div>
+
+        <div class="how-step">
+          <div class="how-step-left">
+            <div class="how-step-num">2</div>
+            <div class="how-step-icon">🏢</div>
+          </div>
+          <div class="how-step-body">
+            <h3 data-lang="ja">支援先と寄付スタイルを選んでイベントを作る</h3>
+            <h3 data-lang="en">Pick a Nonprofit &amp; Create a Campaign</h3>
+            <p data-lang="ja">一覧から支援したい非営利団体を選択。イベント名・期間・対象スポーツ・寄付方式（定額 or 距離連動）を設定します。公開・非公開も選べます。</p>
+            <p data-lang="en">Choose a nonprofit from the list, then set your campaign name, date range, sport types, and donation style — flat amount or per-km pledge. You can make it public or keep it private.</p>
+          </div>
+        </div>
+
+        <div class="how-step">
+          <div class="how-step-left">
+            <div class="how-step-num">3</div>
+            <div class="how-step-icon">💪</div>
+          </div>
+          <div class="how-step-body">
+            <h3 data-lang="ja">いつも通り活動するだけ</h3>
+            <h3 data-lang="en">Train as Usual</h3>
+            <p data-lang="ja">Stravaに活動を記録するだけで、アプリが自動的に距離を取得して寄付を計算します。手動操作は一切不要です。</p>
+            <p data-lang="en">Just keep moving. Every Strava activity is automatically fetched and counted toward your campaign. Nothing extra to do.</p>
+          </div>
+        </div>
+
+        <div class="how-step">
+          <div class="how-step-left">
+            <div class="how-step-num">4</div>
+            <div class="how-step-icon">🔗</div>
+          </div>
+          <div class="how-step-body">
+            <h3 data-lang="ja">個人リンクをシェアして寄付者を集める</h3>
+            <h3 data-lang="en">Share Your Personal Link with Donors</h3>
+            <p data-lang="ja">イベント詳細画面の「シェア」ボタンから、あなた専用のリンクをSNSやLINEでシェアしましょう。寄付者はアプリ不要 — ブラウザから寄付できます。</p>
+            <p data-lang="en">Tap "Share" on the campaign screen to copy your personal link. Share it via SNS or LINE. Donors can pledge directly in their browser — no app download needed.</p>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="tip-box">
+        <strong>💡 <span data-lang="ja">ヒント</span><span data-lang="en">Tips</span></strong><br>
+        <span data-lang="ja">複数のイベントに同時に参加・作成できます。同じイベントに複数のアスリートが参加でき、それぞれ個別のリンクと走行距離を持ちます。</span>
+        <span data-lang="en">You can join or create multiple campaigns at once. Multiple athletes can join the same campaign — each gets their own personal link and tracks their own distance independently.</span>
+      </div>
+    </div><!-- /how-athlete -->
+
+    <!-- DONOR STEPS -->
+    <div class="how-panel" id="how-donor">
+      <div class="steps-list">
+
+        <div class="how-step">
+          <div class="how-step-left">
+            <div class="how-step-num">1</div>
+            <div class="how-step-icon">🔗</div>
+          </div>
+          <div class="how-step-body">
+            <h3 data-lang="ja">キャンペーンリンクを受け取る</h3>
+            <h3 data-lang="en">Receive a Campaign Link</h3>
+            <p data-lang="ja">アスリートからSNSやLINEでシェアされたリンクをブラウザで開くだけ。アプリのインストールは不要です。</p>
+            <p data-lang="en">Click the link shared by the athlete via SNS or LINE. It opens in your browser — no app installation needed.</p>
+          </div>
+        </div>
+
+        <div class="how-step">
+          <div class="how-step-left">
+            <div class="how-step-num">2</div>
+            <div class="how-step-icon">💳</div>
+          </div>
+          <div class="how-step-body">
+            <h3 data-lang="ja">寄付の種類とレートを選ぶ</h3>
+            <h3 data-lang="en">Choose Your Pledge Type &amp; Rate</h3>
+            <p data-lang="ja"><strong>定額寄付</strong> — 金額を選んで申し込むと、すぐにクレジットカードに請求されます。<br/><strong>距離連動プレッジ</strong> — 1kmあたりの金額（例：¥10/km）を選びます。イベント終了後に、<em>そのアスリートの</em>走行距離に基づいて請求されます。</p>
+            <p data-lang="en"><strong>Flat donation</strong> — Choose an amount and your card is charged immediately.<br/><strong>Per-km pledge</strong> — Choose a rate (e.g. ¥10/km). You're charged after the campaign ends, based on <em>that athlete's</em> distance — not the combined total.</p>
+          </div>
+        </div>
+
+        <div class="how-step">
+          <div class="how-step-left">
+            <div class="how-step-num">3</div>
+            <div class="how-step-icon">📊</div>
+          </div>
+          <div class="how-step-body">
+            <h3 data-lang="ja">アスリートの活動に連動して寄付が積み上がる</h3>
+            <h3 data-lang="en">Give as They Move</h3>
+            <p data-lang="ja">距離連動プレッジの場合、アスリートが活動を記録するたびにキャンペーンページがリアルタイムで更新されます。上限距離が設定されている場合、最大請求額を事前に確認できます。</p>
+            <p data-lang="en">For per-km pledges, the campaign page updates in real time as the athlete logs activities. If a distance cap is set, you can see the maximum possible charge upfront before pledging.</p>
+          </div>
+        </div>
+
+        <div class="how-step">
+          <div class="how-step-left">
+            <div class="how-step-num">4</div>
+            <div class="how-step-icon">✅</div>
+          </div>
+          <div class="how-step-body">
+            <h3 data-lang="ja">完了！アスリートを応援しよう</h3>
+            <h3 data-lang="en">Done — Cheer On Your Athlete!</h3>
+            <p data-lang="ja">申し込み完了後は何もする必要はありません。イベント終了後に自動で請求が行われ、寄付が支援先団体に届きます。</p>
+            <p data-lang="en">After pledging, there's nothing else to do. At campaign end, you're charged automatically and the donation goes directly to the nonprofit.</p>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="tip-box">
+        <strong>💡 <span data-lang="ja">請求について</span><span data-lang="en">About Charges</span></strong><br>
+        <span data-lang="ja">距離連動プレッジの請求はイベント終了後です。請求額は<strong>そのアスリート個人の走行距離</strong>に基づきます（イベント全体の合計距離ではありません）。安心してご支援いただけます。</span>
+        <span data-lang="en">Per-km pledges are only charged after the campaign ends. The amount is based on <strong>that individual athlete's distance</strong> — not everyone's combined total. Pledge with confidence.</span>
+      </div>
+    </div><!-- /how-donor -->
+
+    <!-- Sports row -->
+    <div style="text-align:center; margin-top: 56px; padding-top: 40px; border-top: 1px solid #e0e0e0;">
+      <p style="font-size:14px; color: var(--text-light); margin-bottom: 16px;">
+        <span data-lang="ja">対応スポーツ</span>
+        <span data-lang="en">Supported Sports</span>
+      </p>
+      <div class="sports-row" style="margin-top:0">
         <div class="sport-chip">🚴 <span data-lang="ja">サイクリング</span><span data-lang="en">Cycling</span></div>
         <div class="sport-chip">🚴 <span data-lang="ja">バーチャルライド</span><span data-lang="en">Virtual Ride</span></div>
         <div class="sport-chip">🏃 <span data-lang="ja">ランニング</span><span data-lang="en">Running</span></div>
@@ -344,6 +455,7 @@
         <div class="sport-chip">🏊 <span data-lang="ja">スイミング</span><span data-lang="en">Swimming</span></div>
       </div>
     </div>
+
   </div>
 </section>
 </div><!-- /panel-how -->
@@ -368,9 +480,9 @@
       </div>
       <div class="feature-card">
         <div class="feature-icon">📅</div>
-        <h3 data-lang="ja">キャンペーン管理</h3>
+        <h3 data-lang="ja">イベント管理</h3>
         <h3 data-lang="en">Campaign Management</h3>
-        <p data-lang="ja">キャンペーンの作成、期間設定、対象スポーツの設定、公開・非公開の切り替えが可能。</p>
+        <p data-lang="ja">イベントの作成、期間設定、対象スポーツの設定、公開・非公開の切り替えが可能。</p>
         <p data-lang="en">Create campaigns with custom date ranges, sport types, and visibility settings.</p>
       </div>
       <div class="feature-card">
@@ -383,7 +495,7 @@
       <div class="feature-card">
         <div class="feature-icon">🌏</div>
         <h3 data-lang="ja">日本語・英語対応</h3>
-        <h3 data-lang="en">Japanese & English</h3>
+        <h3 data-lang="en">Japanese &amp; English</h3>
         <p data-lang="ja">アプリ内のすべての画面が日本語と英語の両方に対応しています。</p>
         <p data-lang="en">The full app experience is available in both Japanese and English.</p>
       </div>
@@ -391,14 +503,14 @@
         <div class="feature-icon">📊</div>
         <h3 data-lang="ja">リアルタイム統計</h3>
         <h3 data-lang="en">Real-time Stats</h3>
-        <p data-lang="ja">アスリートの累計距離・寄付額、キャンペーンの進捗をリアルタイムで確認できます。</p>
+        <p data-lang="ja">アスリートの累計距離・寄付額、イベントの進捗をリアルタイムで確認できます。</p>
         <p data-lang="en">Track total distance, donations raised, and campaign progress in real time.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">🔗</div>
         <h3 data-lang="ja">シェアリンク</h3>
         <h3 data-lang="en">Share Links</h3>
-        <p data-lang="ja">キャンペーンページをSNSやメッセージで簡単にシェア。アプリなしでも寄付者が参加できます。</p>
+        <p data-lang="ja">イベントページをSNSやメッセージで簡単にシェア。アプリなしでも寄付者が参加できます。</p>
         <p data-lang="en">Share your campaign link via SNS or messaging. Donors can pledge without downloading the app.</p>
       </div>
     </div>
@@ -414,37 +526,29 @@
     <div class="tag" data-lang="en">Supported Nonprofits</div>
     <h2 class="section-title" data-lang="ja">信頼できる支援先</h2>
     <h2 class="section-title" data-lang="en">Trusted Nonprofits</h2>
-    <p class="section-sub" data-lang="ja">チャリアスは以下の非営利団体と連携しています。寄付はDonorboxを通じて直接各団体に届きます。</p>
-    <p class="section-sub" data-lang="en">Charity Athletes partners with the following nonprofits. Funds go directly to each organization via Donorbox.</p>
+    <p class="section-sub" data-lang="ja">チャリアスは以下の非営利団体と連携しています。</p>
+    <p class="section-sub" data-lang="en">Charity Athletes partners with the following nonprofits.</p>
     <div class="nonprofits-grid">
       <div class="nonprofit-card">
         <div class="nonprofit-icon">🚴</div>
         <h3 data-lang="ja">サイクリング・フォー・チャリティ</h3>
         <h3 data-lang="en">Cycling for Charity</h3>
-        <p class="np-en" data-lang="ja">Cycling for Charity</p>
+        <p class="np-en" data-lang="ja">Cycling for Charity Japan</p>
         <p class="np-en" data-lang="en">サイクリング・フォー・チャリティ</p>
         <p data-lang="ja">チャリティサイクリングイベントを通じて社会課題の解決に取り組む団体です。</p>
         <p data-lang="en">An organization driving social change through charity cycling events.</p>
         <a class="np-link" href="https://cyclingforcharityjapan.com" target="_blank">Website →</a>
       </div>
       <div class="nonprofit-card">
-        <div class="nonprofit-icon">🌱</div>
-        <h3 data-lang="ja">あしなが育英会</h3>
-        <h3 data-lang="en">Ashinaga</h3>
-        <p class="np-en" data-lang="ja">Ashinaga</p>
-        <p class="np-en" data-lang="en">あしなが育英会</p>
-        <p data-lang="ja">病気・災害・自殺などで親を亡くした子どもたちの進学と自立を支援する奨学金団体。</p>
-        <p data-lang="en">Supporting the education and independence of children who have lost a parent to illness, disaster, or suicide.</p>
-        <a class="np-link" href="https://www.ashinaga.org/" target="_blank">Website →</a>
-      </div>
-      <div class="nonprofit-card">
-        <div class="nonprofit-icon">💙</div>
-        <h3>TELL Japan</h3>
-        <p class="np-en" data-lang="ja">テル・ジャパン</p>
-        <p class="np-en" data-lang="en">テル・ジャパン</p>
-        <p data-lang="ja">在日外国人・日本人を対象とした英語でのメンタルヘルスサポートを提供するNPO。</p>
-        <p data-lang="en">Providing mental health support in English for the international and Japanese community in Japan.</p>
-        <a class="np-link" href="https://telljp.com" target="_blank">Website →</a>
+        <img src="nonprofit-logos/mirai-no-mori.png" alt="みらいの森" style="height:48px;object-fit:contain;margin-bottom:12px;display:block;margin-left:auto;margin-right:auto">
+        <h3 data-lang="ja">みらいの森</h3>
+        <h3 data-lang="en">Mirai no Mori</h3>
+        <p class="np-en" data-lang="ja">Mirai no Mori</p>
+        <p class="np-en" data-lang="en">みらいの森</p>
+        <p data-lang="ja">社会的養護のもとで育つ子どもたちに、自然体験を通じた成長の機会を提供するNPO。</p>
+        <p data-lang="en">A nonprofit providing nature-based experiences and growth opportunities for children in social care.</p>
+        <a class="np-link" href="https://mirai-no-mori.jp/ja/" data-lang="ja" target="_blank">ウェブサイト →</a>
+        <a class="np-link" href="https://mirai-no-mori.jp/" data-lang="en" target="_blank">Website →</a>
       </div>
     </div>
   </div>
@@ -491,13 +595,12 @@
     document.documentElement.lang = isEn ? 'en' : 'ja';
     localStorage.setItem('lang', isEn ? 'en' : 'ja');
   }
-  // Restore saved language
   if (localStorage.getItem('lang') === 'en') {
     document.body.classList.add('en');
     document.documentElement.lang = 'en';
   }
 
-  // Mobile tab switching
+  // Mobile page tab switching
   function switchTab(id) {
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.tab-bar button').forEach(b => b.classList.remove('active'));
@@ -505,6 +608,14 @@
     var btn = document.querySelector('.tab-bar [data-tab="' + id + '"]');
     if (btn) btn.classList.add('active');
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // Athlete / Donor role tab switching within #how
+  function switchHowTab(role) {
+    document.querySelectorAll('.how-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.role-tab').forEach(b => b.classList.remove('active'));
+    document.getElementById('how-' + role).classList.add('active');
+    document.getElementById('role-tab-' + role).classList.add('active');
   }
 </script>
 
