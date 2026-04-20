@@ -125,7 +125,7 @@ struct EditCampaignView: View {
                     }
                 }
 
-                Section(header: Text(i18n.language == .ja ? "キャンペーン期間" : "Campaign Period")) {
+                Section(header: Text(i18n.language == .ja ? "イベント期間" : "Campaign Period")) {
                     DatePicker(
                         i18n.language == .ja ? "開始日" : "Start Date",
                         selection: $vm.startDate,
@@ -182,7 +182,7 @@ struct EditCampaignView: View {
                     }
                 }
             }
-            .navigationTitle(i18n.language == .ja ? "キャンペーンを編集" : "Edit Campaign")
+            .navigationTitle(i18n.language == .ja ? "イベントを編集" : "Edit Campaign")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

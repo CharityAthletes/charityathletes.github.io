@@ -136,7 +136,7 @@ struct SupportCampaignSheet: View {
                     mainForm
                 }
             }
-            .navigationTitle(i18n.language == .ja ? "キャンペーンを応援" : "Support Campaign")
+            .navigationTitle(i18n.language == .ja ? "イベントを応援" : "Support Campaign")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -295,7 +295,7 @@ struct SupportCampaignSheet: View {
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                 Text(i18n.language == .ja
-                     ? "アスリートが走った距離に応じてキャンペーン終了時に請求されます"
+                     ? "アスリートが走った距離に応じてイベント終了時に請求されます"
                      : "You'll be charged based on the athlete's total distance when the campaign closes")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
@@ -421,7 +421,7 @@ struct SupportCampaignSheet: View {
                 Text(i18n.language == .ja ? "匿名で寄付する" : "Donate anonymously")
                     .font(.subheadline)
                 Text(i18n.language == .ja
-                     ? "キャンペーン作成者にお名前は表示されません"
+                     ? "イベント作成者にお名前は表示されません"
                      : "Your name won't be shown to the campaign creator")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
@@ -465,7 +465,7 @@ struct SupportCampaignSheet: View {
                 Text(i18n.language == .ja ? "プレッジ完了！" : "Pledge confirmed!")
                     .font(.title2.bold())
                 Text(i18n.language == .ja
-                     ? "¥\(vm.effectiveRate)/km のプレッジを登録しました。\nキャンペーン終了時にカードに請求されます。"
+                     ? "¥\(vm.effectiveRate)/km のプレッジを登録しました。\nイベント終了時にカードに請求されます。"
                      : "Your pledge of ¥\(vm.effectiveRate)/km has been saved.\nYour card will be charged when the campaign ends.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)

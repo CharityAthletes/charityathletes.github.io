@@ -123,7 +123,7 @@ struct CreateCampaignView: View {
                 }
 
                 // Title
-                Section(header: Text(i18n.language == .ja ? "キャンペーン名" : "Campaign Title")) {
+                Section(header: Text(i18n.language == .ja ? "イベント名" : "Campaign Title")) {
                     TextField(i18n.language == .ja ? "タイトル（日本語）" : "Title (Japanese)", text: $vm.titleJa)
                     TextField(i18n.language == .ja ? "タイトル（英語・任意）" : "Title (English, optional)", text: $vm.titleEn)
                 }
@@ -252,7 +252,7 @@ struct CreateCampaignView: View {
                 Section(header: Text(i18n.language == .ja ? "公開設定" : "Visibility"),
                         footer: Text(vm.isPublic
                             ? (i18n.language == .ja
-                                ? "このキャンペーンはアプリ内のすべてのユーザーに表示されます。"
+                                ? "このイベントはアプリ内のすべてのユーザーに表示されます。"
                                 : "This campaign is visible to all users in the app.")
                             : (i18n.language == .ja
                                 ? "非公開です。シェアリンクを知っている人だけが閲覧できます。"
@@ -276,7 +276,7 @@ struct CreateCampaignView: View {
                                      : (i18n.language == .ja ? "非公開" : "Private"))
                                     .font(.body)
                                 Text(vm.isPublic
-                                     ? (i18n.language == .ja ? "キャンペーン一覧に表示" : "Shown in community feed")
+                                     ? (i18n.language == .ja ? "イベント一覧に表示" : "Shown in community feed")
                                      : (i18n.language == .ja ? "リンクでのみ共有" : "Share via link only"))
                                     .font(.caption).foregroundStyle(.secondary)
                             }
@@ -295,7 +295,7 @@ struct CreateCampaignView: View {
                     Button(i18n.language == .ja ? "キャンセル" : "Cancel", role: .cancel) { }
                 } message: {
                     Text(i18n.language == .ja
-                         ? "公開すると、このアプリのすべてのユーザーにキャンペーンが表示されます。"
+                         ? "公開すると、このアプリのすべてのユーザーにイベントが表示されます。"
                          : "Are you sure you want to make it public? All users of this app will be able to see this campaign.")
                 }
 
@@ -313,7 +313,7 @@ struct CreateCampaignView: View {
                             Spacer()
                             if vm.isLoading { ProgressView() }
                             else {
-                                Text(i18n.language == .ja ? "キャンペーンを作成" : "Create Campaign")
+                                Text(i18n.language == .ja ? "イベントを作成" : "Create Campaign")
                                     .bold().foregroundStyle(Color("BrandOrange"))
                             }
                             Spacer()
@@ -322,7 +322,7 @@ struct CreateCampaignView: View {
                     .disabled(vm.isLoading || (!vm.flatEnabled && !vm.perKmEnabled))
                 }
             }
-            .navigationTitle(i18n.language == .ja ? "キャンペーン作成" : "Create Campaign")
+            .navigationTitle(i18n.language == .ja ? "イベント作成" : "Create Campaign")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

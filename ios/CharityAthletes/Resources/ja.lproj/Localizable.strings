@@ -1,6 +1,6 @@
 /* Tabs */
 "tab.dashboard"  = "ホーム";
-"tab.campaigns"  = "キャンペーン";
+"tab.campaigns"  = "イベント";
 "tab.activities" = "アクティビティ";
 "tab.charities"  = "団体一覧";
 "tab.profile"    = "プロフィール";
@@ -25,11 +25,11 @@
 "dashboard.total_distance"  = "累計距離";
 "dashboard.connect_strava"  = "Stravaを連携する";
 "dashboard.connect_hint"    = "活動を自動で記録・連携します";
-"dashboard.active_campaigns" = "参加中のキャンペーン";
+"dashboard.active_campaigns" = "参加中のイベント";
 
 /* Campaigns */
-"campaigns.title"       = "キャンペーン";
-"campaigns.empty"       = "現在募集中のキャンペーンはありません";
+"campaigns.title"       = "イベント";
+"campaigns.empty"       = "現在募集中のイベントはありません";
 "campaign.join"         = "参加する";
 "campaign.donate"       = "寄付する";
 "campaign.raised"       = "集まった金額";
@@ -38,7 +38,7 @@
 "campaign.leaderboard"  = "ランキング";
 "campaign.flat_label"   = "活動ごとの寄付";
 "campaign.per_km_label" = "距離に応じた寄付 (1kmあたり)";
-"campaign.join_title"   = "キャンペーンに参加";
+"campaign.join_title"   = "イベントに参加";
 "campaign.join_confirm" = "参加を確定する";
 
 /* Activities */
@@ -89,7 +89,7 @@
 /* Nonprofit dashboard */
 "np_dash.title"             = "ダッシュボード";
 "np_dash.total_raised"      = "累計寄付受領額";
-"np_dash.campaigns"         = "キャンペーン別";
+"np_dash.campaigns"         = "イベント別";
 "np_dash.top_athletes"      = "トップアスリート";
 "np_dash.recent_donations"  = "最近の寄付";
 
@@ -105,7 +105,7 @@
 "admin.rejected"        = "却下済み";
 "admin.total_athletes"  = "アスリート数";
 "admin.total_nonprofits" = "登録団体数";
-"admin.active_campaigns" = "進行中キャンペーン";
+"admin.active_campaigns" = "進行中イベント";
 "admin.total_donated"   = "累計寄付額";
 
 /* Common */

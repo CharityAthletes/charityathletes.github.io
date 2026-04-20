@@ -85,7 +85,7 @@ struct CampaignListView: View {
                                     .listRowSeparator(.hidden)
                                 }
                             } header: {
-                                Label(i18n.language == .ja ? "参加中のキャンペーン" : "Joined Campaigns",
+                                Label(i18n.language == .ja ? "参加中のイベント" : "Joined Campaigns",
                                       systemImage: "checkmark.circle.fill")
                                     .foregroundStyle(Color("BrandOrange"))
                                     .font(.subheadline.bold())
@@ -104,7 +104,7 @@ struct CampaignListView: View {
                                     .listRowSeparator(.hidden)
                                 }
                             } header: {
-                                Label(i18n.language == .ja ? "作成したキャンペーン" : "My Created Campaigns",
+                                Label(i18n.language == .ja ? "作成したイベント" : "My Created Campaigns",
                                       systemImage: "star.circle.fill")
                                     .foregroundStyle(Color("BrandOrange"))
                                     .font(.subheadline.bold())
@@ -123,7 +123,7 @@ struct CampaignListView: View {
                                     .listRowSeparator(.hidden)
                                 }
                             } header: {
-                                Label(i18n.language == .ja ? "キャンペーンに参加する" : "Join a Campaign",
+                                Label(i18n.language == .ja ? "イベントに参加する" : "Join a Campaign",
                                       systemImage: "magnifyingglass")
                                     .foregroundStyle(.secondary)
                                     .font(.subheadline.bold())

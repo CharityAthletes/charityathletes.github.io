@@ -47,7 +47,7 @@ struct DashboardView: View {
                     // My joined campaigns
                     if !vm.myCampaigns.isEmpty {
                         VStack(alignment: .leading, spacing: 10) {
-                            Text(i18n.language == .ja ? "参加中のキャンペーン" : "My Campaigns")
+                            Text(i18n.language == .ja ? "参加中のイベント" : "My Campaigns")
                                 .font(.headline)
                                 .padding(.horizontal)
 
@@ -68,7 +68,7 @@ struct DashboardView: View {
                     // Discover campaigns
                     if !vm.discoverCampaigns.isEmpty {
                         VStack(alignment: .leading, spacing: 10) {
-                            Text(i18n.language == .ja ? "キャンペーンに参加する" : "Join a Campaign")
+                            Text(i18n.language == .ja ? "イベントに参加する" : "Join a Campaign")
                                 .font(.headline)
                                 .padding(.horizontal)
 

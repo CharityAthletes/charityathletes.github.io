@@ -188,7 +188,7 @@ struct CampaignDetailView: View {
                     vm.showSupportSheet = true
                 } label: {
                     Label(
-                        i18n.language == .ja ? "このキャンペーンを応援する" : "Support This Campaign",
+                        i18n.language == .ja ? "このイベントを応援する" : "Support This Campaign",
                         systemImage: "heart"
                     )
                     .font(.headline)
@@ -227,21 +227,21 @@ struct CampaignDetailView: View {
                     ShareLink(
                         item: URL(string: "\(AppConfig.backendURL)/c/\(c.id)")!,
                         subject: Text(c.titleJa),
-                        message: Text(i18n.language == .ja ? "私のチャリティキャンペーンを応援してください！" : "Please support my charity campaign!")
+                        message: Text(i18n.language == .ja ? "私のチャリティイベントを応援してください！" : "Please support my charity campaign!")
                     )
                     if isCreator {
                         Menu {
                             Button {
                                 vm.showEditSheet = true
                             } label: {
-                                Label(i18n.language == .ja ? "キャンペーンを編集" : "Edit Campaign",
+                                Label(i18n.language == .ja ? "イベントを編集" : "Edit Campaign",
                                       systemImage: "pencil")
                             }
                             Divider()
                             Button {
                                 vm.showFinalizeConfirm = true
                             } label: {
-                                Label(i18n.language == .ja ? "キャンペーンを確定・請求" : "Finalize & Charge Donors",
+                                Label(i18n.language == .ja ? "イベントを確定・請求" : "Finalize & Charge Donors",
                                       systemImage: "checkmark.seal")
                             }
                             Divider()
@@ -249,14 +249,14 @@ struct CampaignDetailView: View {
                                 Button(role: .destructive) {
                                     vm.showDeleteConfirm = true
                                 } label: {
-                                    Label(i18n.language == .ja ? "キャンペーンを削除" : "Delete Campaign",
+                                    Label(i18n.language == .ja ? "イベントを削除" : "Delete Campaign",
                                           systemImage: "trash")
                                 }
                             } else {
                                 Button(role: .destructive) {
                                     vm.showArchiveConfirm = true
                                 } label: {
-                                    Label(i18n.language == .ja ? "キャンペーンを終了" : "End Campaign Early",
+                                    Label(i18n.language == .ja ? "イベントを終了" : "End Campaign Early",
                                           systemImage: "archivebox")
                                 }
                             }
@@ -303,7 +303,7 @@ struct CampaignDetailView: View {
             .environmentObject(i18n)
         }
         .confirmationDialog(
-            i18n.language == .ja ? "キャンペーンを退会しますか？" : "Leave this campaign?",
+            i18n.language == .ja ? "イベントを退会しますか？" : "Leave this campaign?",
             isPresented: $vm.showUnjoinConfirm,
             titleVisibility: .visible
         ) {
@@ -317,7 +317,7 @@ struct CampaignDetailView: View {
                  : "Your past donations will not be affected.")
         }
         .confirmationDialog(
-            i18n.language == .ja ? "キャンペーンを削除しますか？" : "Delete this campaign?",
+            i18n.language == .ja ? "イベントを削除しますか？" : "Delete this campaign?",
             isPresented: $vm.showDeleteConfirm,
             titleVisibility: .visible
         ) {
@@ -329,7 +329,7 @@ struct CampaignDetailView: View {
             Text(i18n.language == .ja ? "この操作は取り消せません。" : "This cannot be undone.")
         }
         .confirmationDialog(
-            i18n.language == .ja ? "キャンペーンを終了しますか？" : "End this campaign early?",
+            i18n.language == .ja ? "イベントを終了しますか？" : "End this campaign early?",
             isPresented: $vm.showArchiveConfirm,
             titleVisibility: .visible
         ) {
@@ -343,7 +343,7 @@ struct CampaignDetailView: View {
                  : "Can't delete because others have joined. Ending the campaign stops new activities from counting.")
         }
         .confirmationDialog(
-            i18n.language == .ja ? "キャンペーンを確定して請求しますか？" : "Finalize campaign and charge donors?",
+            i18n.language == .ja ? "イベントを確定して請求しますか？" : "Finalize campaign and charge donors?",
             isPresented: $vm.showFinalizeConfirm,
             titleVisibility: .visible
         ) {
@@ -353,7 +353,7 @@ struct CampaignDetailView: View {
             Button(i18n.t(.commonCancel), role: .cancel) {}
         } message: {
             Text(i18n.language == .ja
-                 ? "距離連動プレッジの寄付者に実際の走行距離に基づいて請求されます。キャンペーンは終了します。この操作は取り消せません。"
+                 ? "距離連動プレッジの寄付者に実際の走行距離に基づいて請求されます。イベントは終了します。この操作は取り消せません。"
                  : "Per-km pledge donors will be charged based on actual distance covered. The campaign will be closed. This cannot be undone.")
         }
         .sheet(isPresented: $vm.showFinalizeResult) {
@@ -389,7 +389,7 @@ private struct DonationTypesExplainer: View {
                     VStack(alignment: .trailing) {
                         Text(i18n.language == .ja ? "レートを選択" : "Donor's choice").bold()
                         if let cap = campaign.maxDistanceKm {
-                            Text("max \(cap) km").font(.caption).foregroundStyle(.secondary)
+                            Text(i18n.language == .ja ? "最大\(cap) km" : "max \(cap) km").font(.caption).foregroundStyle(.secondary)
                         }
                     }
                 }
@@ -425,7 +425,7 @@ struct JoinCampaignSheet: View {
                         .font(.title3.bold())
                         .multilineTextAlignment(.center)
                     Text(i18n.language == .ja
-                         ? "このキャンペーンに参加して、あなたの活動で寄付を集めましょう。寄付者があなたの走行距離に応じて寄付します。"
+                         ? "このイベントに参加して、あなたの活動で寄付を集めましょう。寄付者があなたの走行距離に応じて寄付します。"
                          : "Join this campaign and fundraise through your activities. Donors will pledge donations based on your distance.")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
@@ -483,7 +483,7 @@ private struct SocialShareSection: View {
     private var shareMessage: String {
         let title = i18n.pick(ja: campaign.titleJa, en: campaign.titleEn)
         return i18n.language == .ja
-            ? "チャリアスのキャンペーン「\(title)」に参加しています！ぜひ応援してください🏃‍♂️ \(donorURL) #チャリアス #チャリティ"
+            ? "チャリアスのイベント「\(title)」に参加しています！ぜひ応援してください🏃‍♂️ \(donorURL) #チャリアス #チャリティ"
             : "I'm fundraising on Charity Athletes! Support my campaign \"\(title)\" 🏃 \(donorURL) #CharityAthletes"
     }
 
@@ -732,7 +732,7 @@ struct FinalizeResultSheet: View {
                     .font(.system(size: 72))
                     .foregroundStyle(Color("BrandOrange"))
 
-                Text(i18n.language == .ja ? "キャンペーン確定完了" : "Campaign Finalized")
+                Text(i18n.language == .ja ? "イベント確定完了" : "Campaign Finalized")
                     .font(.title2.bold())
 
                 VStack(spacing: 16) {

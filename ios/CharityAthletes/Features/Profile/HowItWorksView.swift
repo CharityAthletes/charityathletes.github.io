@@ -39,9 +39,9 @@ struct HowItWorksView: View {
                     StepCard(
                         number: 2,
                         icon: "flag.fill",
-                        title: i18n.language == .ja ? "キャンペーンを作成・参加する" : "Create or Join a Campaign",
+                        title: i18n.language == .ja ? "イベントを作成・参加する" : "Create or Join a Campaign",
                         description: i18n.language == .ja
-                            ? "NPOを選んで自分のキャンペーンを作成するか、他のアスリートが作ったキャンペーンに参加しましょう。距離連動型（1kmごとに寄付）または定額型を選べます。"
+                            ? "NPOを選んで自分のイベントを作成するか、他のアスリートが作ったイベントに参加しましょう。距離連動型（1kmごとに寄付）または定額型を選べます。"
                             : "Create your own campaign for a charity, or join a campaign started by another athlete. Choose per-km (donors give per km you cover) or flat donation — or both."
                     )
                     StepCard(
@@ -49,7 +49,7 @@ struct HowItWorksView: View {
                         icon: "square.and.arrow.up",
                         title: i18n.language == .ja ? "個人リンクをシェアする" : "Share Your Personal Link",
                         description: i18n.language == .ja
-                            ? "キャンペーン詳細画面からあなた専用のURLをコピーして友人・家族・SNSにシェアしましょう。そのリンクからの寄付はあなたの活動に紐づきます。"
+                            ? "イベント詳細画面からあなた専用のURLをコピーして友人・家族・SNSにシェアしましょう。そのリンクからの寄付はあなたの活動に紐づきます。"
                             : "Copy your personal campaign link from the campaign detail screen. Donors who open your link will see your activities and pledge based on your distance."
                     )
                     StepCard(
@@ -65,7 +65,7 @@ struct HowItWorksView: View {
                         icon: "person.2.fill",
                         title: i18n.language == .ja ? "寄付者を確認する" : "See Your Donors",
                         description: i18n.language == .ja
-                            ? "キャンペーン詳細画面の「あなたの寄付者」で、あなたのリンクから応援してくれた人を確認できます。匿名希望の寄付者は非表示になります。"
+                            ? "イベント詳細画面の「あなたの寄付者」で、あなたのリンクから応援してくれた人を確認できます。匿名希望の寄付者は非表示になります。"
                             : "View supporters who pledged through your personal link in the \"Your Donors\" section on the campaign detail screen. Anonymous donors will show as Anonymous."
                     )
                     StepCard(
@@ -73,7 +73,7 @@ struct HowItWorksView: View {
                         icon: "yensign.circle.fill",
                         title: i18n.language == .ja ? "寄付が集まる" : "Donations Roll In",
                         description: i18n.language == .ja
-                            ? "定額寄付はすぐに処理されます。距離連動の寄付はキャンペーン終了後に、あなた個人の総走行距離をもとに請求されます。"
+                            ? "定額寄付はすぐに処理されます。距離連動の寄付はイベント終了後に、あなた個人の総走行距離をもとに請求されます。"
                             : "Flat donations are charged immediately. Per-km pledges are charged at campaign end based on your individual total distance — not the combined campaign total."
                     )
                 }
@@ -86,19 +86,19 @@ struct HowItWorksView: View {
                         .foregroundStyle(Color("BrandOrange"))
 
                     tipRow(i18n.language == .ja
-                           ? "複数のキャンペーンに同時に参加・作成できます。"
+                           ? "複数のイベントに同時に参加・作成できます。"
                            : "You can create or join multiple campaigns at the same time.")
                     tipRow(i18n.language == .ja
-                           ? "同じキャンペーンに複数のアスリートが参加でき、それぞれ個別のリンクを持ちます。"
+                           ? "同じイベントに複数のアスリートが参加でき、それぞれ個別のリンクを持ちます。"
                            : "Multiple athletes can join the same campaign, each with their own personal link and donor list.")
                     tipRow(i18n.language == .ja
-                           ? "非公開キャンペーンはURLを持っている人だけが見られます。"
+                           ? "非公開イベントはURLを持っている人だけが見られます。"
                            : "Private campaigns are only visible to people with the link.")
                     tipRow(i18n.language == .ja
                            ? "寄付者ページはブラウザで開けるので、アプリ不要で寄付者が寄付できます。"
                            : "Donors give through a web page — no app needed.")
                     tipRow(i18n.language == .ja
-                           ? "アプリからも「応援する」ボタンでキャンペーンに寄付できます。"
+                           ? "アプリからも「応援する」ボタンでイベントに寄付できます。"
                            : "Athletes can also donate to campaigns directly in the app using the Support button.")
                 }
                 .padding()
