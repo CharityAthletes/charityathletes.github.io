@@ -377,11 +377,12 @@ function renderPage(campaign: any, stripeKey: string, apiBase: string, campaignI
 
 <div class="hero">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-    <div style="display:flex;align-items:center;gap:10px">
+    <a href="https://charityathletes.org/index.html#how" target="_blank" rel="noopener noreferrer"
+       style="display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit">
       <img src="/static/logo.png" alt="チャリアス"
            style="width:44px;height:44px;border-radius:10px;object-fit:cover;flex-shrink:0">
       <span style="font-size:14px;font-weight:600;opacity:.9"><span class="ja">チャリアス</span><span class="en">Charity Athletes</span></span>
-    </div>
+    </a>
     <div class="lang-toggle">
       <button class="lang-btn" id="btn-lang-ja">日本語</button>
       <button class="lang-btn" id="btn-lang-en">EN</button>
