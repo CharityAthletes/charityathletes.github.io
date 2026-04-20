@@ -842,6 +842,10 @@ struct SportProgressBar: View {
         return "figure.mixed.cardio"
     }
 
+    private var goalReached: Bool { progress >= 1.0 }
+    private var iconColor: Color { goalReached ? Color(red: 0.85, green: 0.65, blue: 0.0) : Color("BrandOrange") }
+    private var fillColor: Color { goalReached ? Color(red: 0.85, green: 0.65, blue: 0.0) : Color("BrandOrange") }
+
     var body: some View {
         GeometryReader { proxy in
             let clamped = min(max(progress, 0), 1)
@@ -857,23 +861,43 @@ struct SportProgressBar: View {
                     .frame(width: w, height: barH)
                     .offset(y: (iconD - barH) / 2)
 
-                // Orange fill — from left edge to icon centre
+                // Fill — gold when goal reached
                 Capsule()
-                    .fill(Color("BrandOrange"))
+                    .fill(fillColor)
                     .frame(width: cx, height: barH)
                     .offset(y: (iconD - barH) / 2)
 
-                // Sport icon bubble sitting on the bar
-                Circle()
-                    .fill(Color("BrandOrange"))
-                    .frame(width: iconD, height: iconD)
-                    .overlay(
-                        Image(systemName: iconName)
-                            .font(.system(size: compact ? 10 : 13, weight: .semibold))
+                // Sport icon bubble — gold with glow + star badge when goal reached
+                ZStack(alignment: .topTrailing) {
+                    Circle()
+                        .fill(iconColor)
+                        .frame(width: iconD, height: iconD)
+                        .overlay(
+                            Image(systemName: iconName)
+                                .font(.system(size: compact ? 10 : 13, weight: .semibold))
+                                .foregroundStyle(.white)
+                        )
+                        .shadow(
+                            color: goalReached
+                                ? Color(red: 0.85, green: 0.65, blue: 0.0).opacity(0.7)
+                                : Color("BrandOrange").opacity(0.4),
+                            radius: goalReached ? 6 : 3,
+                            x: 0, y: 2
+                        )
+
+                    // ⭐ badge when goal reached
+                    if goalReached {
+                        Image(systemName: "star.fill")
+                            .font(.system(size: compact ? 7 : 9, weight: .bold))
                             .foregroundStyle(.white)
-                    )
-                    .shadow(color: Color("BrandOrange").opacity(0.4), radius: 3, x: 0, y: 2)
-                    .offset(x: cx - r)
+                            .frame(width: compact ? 12 : 15, height: compact ? 12 : 15)
+                            .background(Color(red: 0.85, green: 0.65, blue: 0.0))
+                            .clipShape(Circle())
+                            .overlay(Circle().stroke(Color.white, lineWidth: 1))
+                            .offset(x: compact ? 4 : 5, y: compact ? -4 : -5)
+                    }
+                }
+                .offset(x: cx - r)
             }
         }
         .frame(height: iconD)
