@@ -463,6 +463,21 @@ ${(campaign.description_ja || campaign.description_en) ? `
 <div class="card">
   <div class="section-title"><span class="ja">寄付を申し込む</span><span class="en">Pledge to Donate</span></div>
 
+  <div style="display:flex;align-items:center;gap:12px;background:#f0f9f9;border:1px solid #c8e8e9;border-radius:12px;padding:14px;margin-bottom:18px">
+    ${np?.logo_url ? `<img src="${h(np.logo_url)}" alt="${h(np?.name_en ?? '')}" style="width:48px;height:48px;object-fit:contain;border-radius:8px;flex-shrink:0">` : '<div style="width:48px;height:48px;background:#007B83;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px">❤️</div>'}
+    <div>
+      <div style="font-size:12px;color:#86868b;margin-bottom:2px">
+        <span class="ja">寄付先</span><span class="en">Beneficiary</span>
+      </div>
+      <div style="font-weight:600;font-size:15px;color:#1a1a1a">
+        <span class="ja">${h(np?.name_ja ?? '')}</span><span class="en">${h(np?.name_en ?? '')}</span>
+      </div>
+      ${np?.website_url ? `<a href="${h(np.website_url)}" target="_blank" rel="noopener noreferrer" style="font-size:12px;color:#007B83;text-decoration:none">
+        <span class="ja">ウェブサイトを見る →</span><span class="en">Visit their website →</span>
+      </a>` : ''}
+    </div>
+  </div>
+
   <form id="pledge-form" onsubmit="return false">
     <label><span class="ja">お名前</span><span class="en">Your Name</span></label>
     <input id="donor-name" type="text" placeholder="山田 太郎">
