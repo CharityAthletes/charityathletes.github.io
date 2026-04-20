@@ -167,24 +167,28 @@ struct CampaignDetailView: View {
                     Button {
                         vm.showJoinSheet = true
                     } label: {
-                        Text(i18n.t(.campaignJoin))
-                            .font(.headline)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color("BrandOrange"))
-                            .foregroundStyle(.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 14))
+                        Label(
+                            i18n.language == .ja ? "アスリートとして参加する" : "Join as an Athlete",
+                            systemImage: "figure.run"
+                        )
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color("BrandOrange"))
+                        .foregroundStyle(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
                     }
                 } else {
                     HStack {
-                        Label(i18n.language == .ja ? "参加中" : "Joined", systemImage: "checkmark.circle.fill")
+                        Label(i18n.language == .ja ? "アスリートとして参加中" : "Joined as an Athlete",
+                              systemImage: "checkmark.circle.fill")
                             .foregroundStyle(Color("BrandOrange"))
                             .font(.headline)
                         Spacer()
                         Button {
                             vm.showUnjoinConfirm = true
                         } label: {
-                            Text(i18n.language == .ja ? "キャンセル" : "Leave")
+                            Text(i18n.language == .ja ? "退会する" : "Leave")
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
                         }
@@ -192,13 +196,13 @@ struct CampaignDetailView: View {
                     }
                 }
 
-                // Support button — donate as a donor (shown for everyone)
+                // Donate button — shown for everyone
                 Button {
                     vm.showSupportSheet = true
                 } label: {
                     Label(
-                        i18n.language == .ja ? "このイベントを応援する" : "Support This Campaign",
-                        systemImage: "heart"
+                        i18n.language == .ja ? "このイベントに寄付する" : "Donate to This Campaign",
+                        systemImage: "heart.fill"
                     )
                     .font(.headline)
                     .frame(maxWidth: .infinity)
