@@ -864,7 +864,6 @@ struct SportProgressBar: View {
                     .offset(y: (iconD - barH) / 2)
 
                 // Sport icon bubble sitting on the bar
-                // SF Symbols figures face left by default — flip horizontally so they face right
                 Circle()
                     .fill(Color("BrandOrange"))
                     .frame(width: iconD, height: iconD)
@@ -872,7 +871,6 @@ struct SportProgressBar: View {
                         Image(systemName: iconName)
                             .font(.system(size: compact ? 10 : 13, weight: .semibold))
                             .foregroundStyle(.white)
-                            .scaleEffect(x: -1, y: 1) // face right (direction of progress)
                     )
                     .shadow(color: Color("BrandOrange").opacity(0.4), radius: 3, x: 0, y: 2)
                     .offset(x: cx - r)
