@@ -111,11 +111,22 @@ struct ActivityListView: View {
 
 struct ActivityRow: View {
     let activity: Activity
-    private static let dateFormatter: DateFormatter = {
+    @EnvironmentObject private var i18n: I18n
+
+    private static let dateFmtJa: DateFormatter = {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "ja_JP")
+        f.dateFormat = "yyyy年M月d日"
+        return f
+    }()
+    private static let dateFmtEn: DateFormatter = {
         let f = DateFormatter()
         f.dateStyle = .medium; f.timeStyle = .none
         return f
     }()
+    private var dateFormatter: DateFormatter {
+        i18n.language == .ja ? Self.dateFmtJa : Self.dateFmtEn
+    }
 
     var body: some View {
         HStack(spacing: 14) {
@@ -128,7 +139,7 @@ struct ActivityRow: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(activity.name).font(.subheadline.bold()).lineLimit(1)
-                Text(Self.dateFormatter.string(from: activity.startDate))
+                Text(dateFormatter.string(from: activity.startDate))
                     .font(.caption).foregroundStyle(.secondary)
                 HStack(spacing: 12) {
                     Label(String(format: "%.1f km", activity.distanceKm), systemImage: "arrow.forward")
