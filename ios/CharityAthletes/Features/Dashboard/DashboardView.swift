@@ -34,6 +34,26 @@ struct DashboardView: View {
         NavigationStack {
             ScrollView {
                 LazyVStack(spacing: 20) {
+                    // Greeting header with avatar
+                    HStack(spacing: 12) {
+                        AvatarView(url: auth.profile?.avatarUrl, size: 44)
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text(i18n.language == .ja ? "おかえりなさい" : "Welcome back")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            if let name = auth.profile?.displayName.split(separator: " ").first.map(String.init), !name.isEmpty {
+                                Text(i18n.language == .ja ? "\(name)さん" : name)
+                                    .font(.title2.bold())
+                            } else {
+                                Text(i18n.t(.dashboardTitle))
+                                    .font(.title2.bold())
+                            }
+                        }
+                        Spacer()
+                    }
+                    .padding(.horizontal)
+                    .padding(.top, 4)
+
                     // Stats banner
                     StatsBanner(summary: vm.summary)
                         .padding(.horizontal)
@@ -88,12 +108,8 @@ struct DashboardView: View {
                 }
                 .padding(.vertical)
             }
-            .navigationTitle({
-                if let name = auth.profile?.displayName.split(separator: " ").first.map(String.init), !name.isEmpty {
-                    return i18n.language == .ja ? "\(name)さんのホーム" : "\(name)'s Home"
-                }
-                return i18n.t(.dashboardTitle)
-            }())
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationTitle("")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     // Compact language toggle: tap to flip between JA and EN
@@ -113,6 +129,45 @@ struct DashboardView: View {
             .refreshable { await vm.load() }
             .task { await vm.load() }
         }
+    }
+}
+
+// MARK: - Avatar View
+
+struct AvatarView: View {
+    let url: String?
+    var size: CGFloat = 44
+
+    var body: some View {
+        Group {
+            if let urlStr = url, let imageURL = URL(string: urlStr) {
+                AsyncImage(url: imageURL) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image.resizable().scaledToFill()
+                    case .failure, .empty:
+                        placeholder
+                    @unknown default:
+                        placeholder
+                    }
+                }
+            } else {
+                placeholder
+            }
+        }
+        .frame(width: size, height: size)
+        .clipShape(Circle())
+        .overlay(Circle().stroke(Color("BrandOrange").opacity(0.3), lineWidth: 1.5))
+    }
+
+    private var placeholder: some View {
+        Circle()
+            .fill(Color("BrandOrange").opacity(0.15))
+            .overlay(
+                Image(systemName: "person.fill")
+                    .font(.system(size: size * 0.45))
+                    .foregroundStyle(Color("BrandOrange"))
+            )
     }
 }
 
