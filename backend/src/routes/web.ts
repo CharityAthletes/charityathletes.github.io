@@ -1087,6 +1087,19 @@ if (customRateInput) {
 
 loadData();
 </script>
+
+<div style="text-align:center;padding:28px 16px 20px;font-size:12px;color:#86868b">
+  <a href="https://charityathletes.org/index.html#how" target="_blank" rel="noopener noreferrer"
+     style="display:inline-flex;align-items:center;gap:6px;color:#007B83;text-decoration:none;font-weight:500">
+    <img src="/static/logo.png" alt="Charity Athletes" style="width:20px;height:20px;border-radius:4px;object-fit:cover">
+    <span class="ja">チャリアスとは？</span><span class="en">About Charity Athletes</span>
+  </a>
+  <div style="margin-top:6px;opacity:.7">
+    <span class="ja">スポーツで社会を変える — charityathletes.org</span>
+    <span class="en">Sport for social good — charityathletes.org</span>
+  </div>
+</div>
+
 </body>
 </html>`;
 }
