@@ -22,7 +22,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2023-10
 router.get('/:id', async (req: Request, res: Response) => {
   const { data: campaign, error } = await db
     .from('campaigns')
-    .select('*, nonprofits(name_ja, name_en, logo_url, website_url, donation_url)')
+    .select('*, nonprofits(name_ja, name_en, logo_url, website_url, website_url_ja, donation_url)')
     .eq('id', req.params.id)
     .single();
 
@@ -398,10 +398,9 @@ function renderPage(campaign: any, stripeKey: string, apiBase: string, campaignI
       ${athlete?.display_name ? `<div style="font-weight:600;font-size:15px">${h(athlete.display_name)}</div>` : ''}
       ${np ? `<div style="font-size:13px;opacity:.85;margin-top:2px">
         <span class="ja">寄付先：</span><span class="en">Beneficiary: </span>
-        ${np.website_url
-          ? `<a href="${h(np.website_url)}" target="_blank" rel="noopener noreferrer" style="color:#fff;font-weight:600;text-decoration:underline;text-underline-offset:2px">
-               <span class="ja">${h(np.name_ja)}</span><span class="en">${h(np.name_en || np.name_ja)}</span>
-             </a>`
+        ${np.website_url || np.website_url_ja
+          ? `${np.website_url_ja ? `<a href="${h(np.website_url_ja)}" target="_blank" rel="noopener noreferrer" class="ja" style="color:#fff;font-weight:600;text-decoration:underline;text-underline-offset:2px">${h(np.name_ja)}</a>` : `<span class="ja" style="font-weight:600">${h(np.name_ja)}</span>`}
+             ${np.website_url ? `<a href="${h(np.website_url)}" target="_blank" rel="noopener noreferrer" class="en" style="color:#fff;font-weight:600;text-decoration:underline;text-underline-offset:2px">${h(np.name_en || np.name_ja)}</a>` : `<span class="en" style="font-weight:600">${h(np.name_en || np.name_ja)}</span>`}`
           : `<span style="font-weight:600"><span class="ja">${h(np.name_ja)}</span><span class="en">${h(np.name_en || np.name_ja)}</span></span>`
         }
       </div>` : ''}
@@ -480,9 +479,10 @@ ${(campaign.description_ja || campaign.description_en) ? `
       <div style="font-weight:600;font-size:15px;color:#1a1a1a">
         <span class="ja">${h(np?.name_ja ?? '')}</span><span class="en">${h(np?.name_en ?? '')}</span>
       </div>
-      ${np?.website_url ? `<a href="${h(np.website_url)}" target="_blank" rel="noopener noreferrer" style="font-size:12px;color:#007B83;text-decoration:none">
-        <span class="ja">ウェブサイトを見る →</span><span class="en">Visit their website →</span>
-      </a>` : ''}
+      ${np?.website_url || np?.website_url_ja ? `<div style="font-size:12px;color:#007B83">
+        ${np?.website_url_ja ? `<a href="${h(np.website_url_ja)}" target="_blank" rel="noopener noreferrer" class="ja" style="color:#007B83;text-decoration:none">ウェブサイトを見る →</a>` : `<span class="ja">ウェブサイトを見る</span>`}
+        ${np?.website_url ? `<a href="${h(np.website_url)}" target="_blank" rel="noopener noreferrer" class="en" style="color:#007B83;text-decoration:none">Visit their website →</a>` : `<span class="en">Visit their website</span>`}
+      </div>` : ''}
     </div>
   </div>
 
