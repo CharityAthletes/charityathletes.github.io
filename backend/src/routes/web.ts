@@ -535,7 +535,7 @@ ${(campaign.description_ja || campaign.description_en) ? `
       </div>
       <div class="calc-box" id="calc-box" style="display:none">
         <span class="ja">現在 </span><span id="calc-km">0</span> km × <span id="calc-curr-sym">¥</span><span id="calc-rate">0</span>/km = <strong id="calc-total">¥0</strong>
-        ${campaign.max_distance_km ? `<br><small style="color:#86868b"><span class="ja">（上限 ${campaign.max_distance_km} km 適用）</span><span class="en">(max ${campaign.max_distance_km} km cap applies)</span></small>` : ''}
+        ${campaign.max_distance_km ? `<br><small style="color:#86868b"><span class="ja">（上限 ${campaign.max_distance_km} km 適用）</span><span class="en">(max ${campaign.max_distance_km} km cap applies)</span></small><br><small style="color:#444;font-weight:600"><span class="ja">上限金額：<span id="calc-max">—</span></span><span class="en">Max charge: <span id="calc-max-en">—</span></span></small>` : ''}
       </div>
     </div>` : ''}
 
@@ -897,6 +897,13 @@ function updateCalc() {
   document.getElementById('calc-curr-sym').textContent = cfg.sym;
   document.getElementById('calc-rate').textContent     = cfg.rateDisplay(currentRate);
   document.getElementById('calc-total').textContent    = cfg.calcTotal(km, currentRate);
+  if (maxKm && currentRate > 0) {
+    var maxAmt = cfg.calcTotal(maxKm, currentRate);
+    var elJa = document.getElementById('calc-max');
+    var elEn = document.getElementById('calc-max-en');
+    if (elJa) elJa.textContent = maxAmt;
+    if (elEn) elEn.textContent = maxAmt;
+  }
 }
 
 async function submitPledge() {
