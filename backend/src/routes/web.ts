@@ -1342,11 +1342,12 @@ function getCurrentPRAmount() {
   if (currentType === 'flat') {
     var flatEl = document.getElementById('flat-amount');
     var val = flatEl ? parseInt(flatEl.value) : 0;
-    return (val && val > 0) ? val : (flatOptions && flatOptions.length > 0 ? flatOptions[0] : 1000);
+    return (val && val > 0) ? val : 1000;
   } else {
     // Per-km: show max possible charge so donor knows upper bound
-    var rate = currentRate || (suggestedRates && suggestedRates.length > 0 ? suggestedRates[0] : 10);
-    var maxKm = ${campaign.max_distance_km ?? 'null'};
+    var firstRateBtn = document.querySelector('#rate-grid .rate-btn:not(#btn-other)');
+    var defaultRate = firstRateBtn ? (parseInt(firstRateBtn.getAttribute('data-rate')) || 10) : 10;
+    var rate = currentRate || defaultRate;
     return maxKm ? rate * maxKm : rate * 100;
   }
 }
