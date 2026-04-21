@@ -14,7 +14,7 @@ final class CreateCampaignVM: ObservableObject {
 
     @Published var flatEnabled: Bool = true
     @Published var perKmEnabled: Bool = false
-    @Published var maxDistanceKm: String = "100"
+    @Published var maxDistanceKm: String = ""
     @Published var suggestedRates: Set<Int> = [10, 20, 50]
 
     @Published var goalAmount: String = ""
@@ -93,8 +93,14 @@ final class CreateCampaignVM: ObservableObject {
         guard !titleJa.isEmpty else { error = "タイトルを入力してください"; return }
         guard flatEnabled || perKmEnabled else { error = "寄付タイプを1つ以上選択してください"; return }
         guard !sportTypes.isEmpty else { error = "スポーツタイプを選択してください"; return }
+        if perKmEnabled {
+            guard let km = Int(maxDistanceKm), km > 0 else {
+                error = "距離連動寄付には最大距離の設定が必要です / Max distance cap is required for per-km donations"
+                return
+            }
+        }
 
-        let maxKm = perKmEnabled ? (Int(maxDistanceKm) ?? 100) : nil
+        let maxKm = perKmEnabled ? Int(maxDistanceKm) : nil
         let goal = Int(goalAmount) ?? 0
         let rates = suggestedRates.isEmpty ? [10, 20, 50] : Array(suggestedRates).sorted()
 
@@ -218,16 +224,24 @@ struct CreateCampaignView: View {
                 if vm.perKmEnabled {
                     Section(header: Text(i18n.language == .ja ? "距離連動の設定" : "Per-km Settings"),
                             footer: Text(i18n.language == .ja
-                                ? "上限距離を設定すると寄付者の負担が予測しやすくなります"
-                                : "A distance cap helps donors know their maximum contribution")) {
+                                ? "⚠️ 上限距離は必須です。上限を超えた距離は請求されません。寄付者が安心して支援できるよう適切な上限を設定してください。"
+                                : "⚠️ Distance cap is required. Donors won't be charged beyond this distance. Set a reasonable cap so donors know their maximum commitment.")) {
 
                         HStack {
-                            Text(i18n.language == .ja ? "最大距離（km上限）" : "Max distance cap (km)")
+                            VStack(alignment: .leading, spacing: 2) {
+                                HStack(spacing: 4) {
+                                    Text(i18n.language == .ja ? "最大距離（必須）" : "Max distance cap (required)")
+                                    Text("*").foregroundStyle(.red).font(.caption.bold())
+                                }
+                                Text(i18n.language == .ja ? "この距離を超えた分は請求されません" : "Distance beyond this won't be charged")
+                                    .font(.caption2).foregroundStyle(.secondary)
+                            }
                             Spacer()
-                            TextField("100", text: $vm.maxDistanceKm)
+                            TextField(i18n.language == .ja ? "例: 100" : "e.g. 100", text: $vm.maxDistanceKm)
                                 .keyboardType(.numberPad)
                                 .multilineTextAlignment(.trailing)
                                 .frame(width: 80)
+                                .foregroundStyle(vm.maxDistanceKm.isEmpty ? .red : .primary)
                             Text("km")
                         }
 
