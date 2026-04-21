@@ -660,9 +660,8 @@ private struct SocialShareSection: View {
             }
             .buttonStyle(.plain)
             .sheet(isPresented: $showShareSheet) {
-                if let img = shareImage {
-                    ShareSheet(items: [img, shareMessage])
-                }
+                let items: [Any] = shareImage.map { [$0, shareMessage] } ?? [shareMessage]
+                ShareSheet(items: items)
             }
 
             HStack(spacing: 16) {
@@ -703,18 +702,15 @@ private struct SocialShareSection: View {
 
     @MainActor
     private func renderShareCard() {
-        // Force light mode + explicit size so ImageRenderer doesn't produce a black image.
-        // Without .environment(\.colorScheme, .light), Color(.systemBackground) resolves
-        // to black and named asset colors also fail off-screen.
-        let card = CampaignShareCard(campaign: campaign, donorURL: donorURL)
+        let isJa = I18n.shared.language == .ja
+        let card = CampaignShareCard(campaign: campaign, donorURL: donorURL, isJapanese: isJa)
             .environment(\.colorScheme, .light)
         let renderer = ImageRenderer(content: card)
         renderer.scale = UIScreen.main.scale
         renderer.proposedSize = .init(width: 380, height: nil)
-        if let img = renderer.uiImage {
-            shareImage = img
-            showShareSheet = true
-        }
+        // Use rendered image if available; fall back to sharing text + URL only
+        shareImage = renderer.uiImage
+        showShareSheet = true
     }
 
     @ViewBuilder
@@ -758,13 +754,18 @@ private struct SocialShareSection: View {
 private struct CampaignShareCard: View {
     let campaign: Campaign
     let donorURL: String
-    @ObservedObject private var i18n = I18n.shared
+    let isJapanese: Bool   // passed explicitly — no @ObservedObject inside renderer
+
+    // Explicit colors so ImageRenderer doesn't need an asset catalogue environment
+    private let orange = Color(red: 1.0, green: 0.45, blue: 0.0)
+    private let gray   = Color(red: 0.56, green: 0.56, blue: 0.58)
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Top gradient header
             LinearGradient(
-                colors: [Color("BrandOrange"), Color("BrandRed")],
+                colors: [Color(red: 1.0, green: 0.45, blue: 0.0),
+                         Color(red: 0.9, green: 0.18, blue: 0.18)],
                 startPoint: .topLeading, endPoint: .bottomTrailing
             )
             .frame(height: 12)
@@ -773,21 +774,22 @@ private struct CampaignShareCard: View {
                 HStack(spacing: 8) {
                     Image(systemName: "figure.run.circle.fill")
                         .font(.title2)
-                        .foregroundStyle(Color("BrandOrange"))
+                        .foregroundStyle(orange)
                     Text("チャリアス / Charity Athletes")
                         .font(.caption.bold())
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(gray)
                 }
 
-                Text(i18n.pick(ja: campaign.titleJa, en: campaign.titleEn))
+                Text(isJapanese ? (campaign.titleJa ?? campaign.titleEn ?? "") : (campaign.titleEn ?? campaign.titleJa ?? ""))
                     .font(.title3.bold())
+                    .foregroundStyle(Color.black)
                     .lineLimit(2)
 
                 if let np = campaign.nonprofits {
-                    Label(i18n.pick(ja: np.nameJa, en: np.nameEn),
-                          systemImage: "heart.fill")
+                    let npName = isJapanese ? (np.nameJa ?? np.nameEn ?? "") : (np.nameEn ?? np.nameJa ?? "")
+                    Label(npName, systemImage: "heart.fill")
                         .font(.subheadline)
-                        .foregroundStyle(Color("BrandOrange"))
+                        .foregroundStyle(orange)
                 }
 
                 // Progress
@@ -796,27 +798,27 @@ private struct CampaignShareCard: View {
                     HStack {
                         Text("¥\(campaign.raisedAmountJpy.formatted())")
                             .font(.headline.bold())
-                            .foregroundStyle(Color("BrandOrange"))
+                            .foregroundStyle(orange)
                         Text("/ ¥\(campaign.goalAmountJpy.formatted())")
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(gray)
                         Spacer()
                         Text("\(Int(campaign.progress * 100))%")
                             .font(.caption.bold())
-                            .foregroundStyle(Color("BrandOrange"))
+                            .foregroundStyle(orange)
                     }
                 }
 
                 Divider()
 
-                // QR placeholder text (can't render actual QR in ImageRenderer easily)
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(i18n.language == .ja ? "寄付はこちらから" : "Support this campaign")
+                        Text(isJapanese ? "寄付はこちらから" : "Support this campaign")
                             .font(.caption.bold())
+                            .foregroundStyle(Color.black)
                         Text(donorURL)
                             .font(.system(size: 9, design: .monospaced))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(gray)
                             .lineLimit(1)
                     }
                     Spacer()
