@@ -642,11 +642,14 @@ router.post('/:id/thankyou', requireAuth, async (req: Request, res: Response) =>
   }
 
   // Store message in DB for display in app (donors can see it on their receipt page)
-  await db.from('campaign_thank_you_notes').insert({
-    campaign_id: req.params.id,
-    athlete_user_id: req.userId!,
-    message: parsed.data.message,
-  }).then(() => {}).catch(() => {}); // table may not exist yet — silently ignore
+  // Silently ignore errors — table may not exist yet
+  try {
+    await db.from('campaign_thank_you_notes').insert({
+      campaign_id: req.params.id,
+      athlete_user_id: req.userId!,
+      message: parsed.data.message,
+    });
+  } catch (_) {}
 
   res.json({ ok: true, sentTo: (donors ?? []).filter(d => !d.is_anonymous).length });
 });
