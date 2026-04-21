@@ -93,6 +93,11 @@ final class AuthManager: ObservableObject {
     }
 
     func signOut() async {
+        // Best-effort: remove push token from backend before invalidating the auth token.
+        if let token = UserDefaults.standard.string(forKey: "apns_device_token") {
+            try? await api.unregisterDeviceToken(token)
+            UserDefaults.standard.removeObject(forKey: "apns_device_token")
+        }
         try? await supabase.auth.signOut()
         api.setToken(nil)
         profile = nil

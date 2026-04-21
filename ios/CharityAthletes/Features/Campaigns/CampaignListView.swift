@@ -200,9 +200,16 @@ struct CampaignRow: View {
                         Text(i18n.pick(ja: np.nameJa, en: np.nameEn))
                             .font(.caption).foregroundStyle(.secondary)
                     }
-                    Label(dateRange, systemImage: "calendar")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
+                    HStack(spacing: 6) {
+                        Label(dateRange, systemImage: "calendar")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                        // #10 countdown badge
+                        let d = Calendar.current.dateComponents([.day], from: Date(), to: campaign.endDate).day ?? -1
+                        if d >= 0 {
+                            CountdownBadge(daysLeft: d, compact: true)
+                        }
+                    }
                 }
                 Spacer()
                 VStack(alignment: .trailing, spacing: 4) {

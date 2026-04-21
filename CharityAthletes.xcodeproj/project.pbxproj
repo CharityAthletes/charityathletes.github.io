@@ -11,33 +11,37 @@
 		079360B55089C8A33B8E8C59 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5276F3C45C33C5ADED9FA19B /* DashboardView.swift */; };
 		1438B4DD3B782DB461CD481C /* NonprofitSignupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E1C96D9A4822317E1BF4540 /* NonprofitSignupView.swift */; };
 		3D7DDDB4CB4414F4943CFDB2 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0CC13DCB0C1B66A64EB24A4 /* AuthManager.swift */; };
+		4B8CF2837E56151838699250 /* SupportCampaignSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1EA1D02532318E4079F460 /* SupportCampaignSheet.swift */; };
 		4F0ED94542F624CE50453B84 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = F245AE9D3100ED90DFC64B50 /* Localizable.strings */; };
 		4F3A42BEFF42744703AE2ACF /* CharityAthletesApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 686715B63A59B4262127EBA6 /* CharityAthletesApp.swift */; };
+		64B45FE37CD4FDC4082A951E /* AppLogo.png in Resources */ = {isa = PBXBuildFile; fileRef = 0CF67AD722CE1CE570F2194B /* AppLogo.png */; };
+		68B2705C6085117255B5B861 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 87B0216558714C4C04BE6EA7 /* Supabase */; };
 		7742F0ACB3E71EE886DB6847 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D96696FF9ACCBE8ECB641C1D /* ProfileView.swift */; };
 		80E3E97C60E5233E92F97F80 /* I18n.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA63DF739AF0698FCDF8DC7A /* I18n.swift */; };
-		AA11BB22CC33DD44EE55FF66 /* AppLogo.png in Resources */ = {isa = PBXBuildFile; fileRef = AA11BB22CC33DD44EE55FF67 /* AppLogo.png */; };
-		AB22CC33DD44EE55FF66AA11 /* SupportCampaignSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB22CC33DD44EE55FF66AA12 /* SupportCampaignSheet.swift */; };
+		96A54E970643552D8B66F7DC /* ActivityDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A13D06F9291665AA46F95E5 /* ActivityDetailView.swift */; };
+		A139925E6A8C4B9854FF17FA /* HowItWorksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41ABF6E01B622A0245CFDEF6 /* HowItWorksView.swift */; };
 		B0B33548F1D0650BD6B93B9B /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FC1A9DE964CA2D4E304F43F /* APIClient.swift */; };
 		BA97C0CAE930EA5CB463FE00 /* CampaignListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBF80F63113EE7DF0E6210D0 /* CampaignListView.swift */; };
 		C99D0C941DB3412ACA8B9A99 /* CreateCampaignView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 131F3E1AD325EFA29603666A /* CreateCampaignView.swift */; };
-		CC44AA11BB22DD33EE55FF77 /* CharityDirectoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC44AA11BB22DD33EE55FF78 /* CharityDirectoryView.swift */; };
 		CC7403A05ED2C7738853B439 /* AdminQueueView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DAE5014D89E4622405884B1 /* AdminQueueView.swift */; };
-		D24D27ACC820C9C2552D6D79 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 87B0216558714C4C04BE6EA7 /* Supabase */; };
 		D4FA4687F7E78343FDA23216 /* ActivityListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A801522369E7FA617044A13 /* ActivityListView.swift */; };
 		E0DDE28C5730D9919B2AE58E /* DonationListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C59837FD6264A90A64DB44B /* DonationListView.swift */; };
 		E366D74A9B79D76A96C581EF /* CampaignDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B90FDF2C0F6B3C17D3E6511E /* CampaignDetailView.swift */; };
 		E56E991E2C781673D1CFAE65 /* NonprofitDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ED7D098380533625AF5B96A /* NonprofitDashboardView.swift */; };
+		E70895A9FBC92743042934F3 /* EditCampaignView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA6B85F348410B4977D819F8 /* EditCampaignView.swift */; };
+		E8945F1EC072894691A05F1A /* CharityDirectoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E69695DF3C54A01B69DB2B4 /* CharityDirectoryView.swift */; };
 		EB419AE064F42384BA9A2F4A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ACFFC76104DE87A2A11E296C /* Assets.xcassets */; };
 		EBEA9EB832E988F7DF272D31 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29C369CE0AFDDB55402A583B /* Models.swift */; };
-		EC11AA22BB33CC44DD55EE66 /* EditCampaignView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC11AA22BB33CC44DD55EE67 /* EditCampaignView.swift */; };
 		F2C01E40A34C3DDE3120D53C /* Endpoints.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0BE9712727B9CE1E2B2EF61 /* Endpoints.swift */; };
+		F703044A9BE73560F6C899C3 /* PolylineDecoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2836568D8CEA3AF22B7E1D8 /* PolylineDecoder.swift */; };
 		F769388481B3BFA48A09C1FD /* SupabaseClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 685016F4459736251BFCBCBF /* SupabaseClient.swift */; };
 		F89F45A6412AAAC8D0D69431 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4CC3561266ADD4F741AC35A /* OnboardingView.swift */; };
-		FA11BB22CC33DD44EE55FF66 /* HowItWorksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA11BB22CC33DD44EE55FF67 /* HowItWorksView.swift */; };
 		FB902D85E3FF7B155DEC64E8 /* Keychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49D6D5CFCC02F95B03AB9EA9 /* Keychain.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0A13D06F9291665AA46F95E5 /* ActivityDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityDetailView.swift; sourceTree = "<group>"; };
+		0CF67AD722CE1CE570F2194B /* AppLogo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = AppLogo.png; sourceTree = "<group>"; };
 		131F3E1AD325EFA29603666A /* CreateCampaignView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateCampaignView.swift; sourceTree = "<group>"; };
 		1E1C96D9A4822317E1BF4540 /* NonprofitSignupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NonprofitSignupView.swift; sourceTree = "<group>"; };
 		1FC1A9DE964CA2D4E304F43F /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
@@ -45,31 +49,31 @@
 		29C369CE0AFDDB55402A583B /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		38B038FE1C3C6E70C74B3954 /* CharityAthletes.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = CharityAthletes.entitlements; sourceTree = "<group>"; };
 		3DAE5014D89E4622405884B1 /* AdminQueueView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminQueueView.swift; sourceTree = "<group>"; };
+		41ABF6E01B622A0245CFDEF6 /* HowItWorksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HowItWorksView.swift; sourceTree = "<group>"; };
 		44FC51C0DF026184DB94AF3F /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
 		49D6D5CFCC02F95B03AB9EA9 /* Keychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keychain.swift; sourceTree = "<group>"; };
 		5276F3C45C33C5ADED9FA19B /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		5A801522369E7FA617044A13 /* ActivityListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityListView.swift; sourceTree = "<group>"; };
 		5C59837FD6264A90A64DB44B /* DonationListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DonationListView.swift; sourceTree = "<group>"; };
+		5E69695DF3C54A01B69DB2B4 /* CharityDirectoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CharityDirectoryView.swift; sourceTree = "<group>"; };
 		685016F4459736251BFCBCBF /* SupabaseClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseClient.swift; sourceTree = "<group>"; };
 		686715B63A59B4262127EBA6 /* CharityAthletesApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CharityAthletesApp.swift; sourceTree = "<group>"; };
 		8ED7D098380533625AF5B96A /* NonprofitDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NonprofitDashboardView.swift; sourceTree = "<group>"; };
 		8F5232577C5DA52C1D37C9DC /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
 		A0BE9712727B9CE1E2B2EF61 /* Endpoints.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Endpoints.swift; sourceTree = "<group>"; };
-		AA11BB22CC33DD44EE55FF67 /* AppLogo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = AppLogo.png; sourceTree = "<group>"; };
-		AB22CC33DD44EE55FF66AA12 /* SupportCampaignSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportCampaignSheet.swift; sourceTree = "<group>"; };
+		A2836568D8CEA3AF22B7E1D8 /* PolylineDecoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolylineDecoder.swift; sourceTree = "<group>"; };
+		AA1EA1D02532318E4079F460 /* SupportCampaignSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportCampaignSheet.swift; sourceTree = "<group>"; };
 		ACFFC76104DE87A2A11E296C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B0A48A68103DFB404B9825B7 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		B90FDF2C0F6B3C17D3E6511E /* CampaignDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampaignDetailView.swift; sourceTree = "<group>"; };
+		BA6B85F348410B4977D819F8 /* EditCampaignView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditCampaignView.swift; sourceTree = "<group>"; };
 		C8DF9C602349229650080DB6 /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Localizable.strings; sourceTree = "<group>"; };
-		CC44AA11BB22DD33EE55FF78 /* CharityDirectoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CharityDirectoryView.swift; sourceTree = "<group>"; };
 		D96696FF9ACCBE8ECB641C1D /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		DA63DF739AF0698FCDF8DC7A /* I18n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = I18n.swift; sourceTree = "<group>"; };
 		DBF80F63113EE7DF0E6210D0 /* CampaignListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampaignListView.swift; sourceTree = "<group>"; };
 		E4CC3561266ADD4F741AC35A /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		EA723ACB1FFCEA03FF300374 /* AdminStatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminStatsView.swift; sourceTree = "<group>"; };
-		EC11AA22BB33CC44DD55EE67 /* EditCampaignView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditCampaignView.swift; sourceTree = "<group>"; };
 		F0CC13DCB0C1B66A64EB24A4 /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
-		FA11BB22CC33DD44EE55FF67 /* HowItWorksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HowItWorksView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -77,7 +81,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D24D27ACC820C9C2552D6D79 /* Supabase in Frameworks */,
+				68B2705C6085117255B5B861 /* Supabase in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -119,6 +123,7 @@
 		1B5FAB94684484FD550C3CA8 /* Activities */ = {
 			isa = PBXGroup;
 			children = (
+				0A13D06F9291665AA46F95E5 /* ActivityDetailView.swift */,
 				5A801522369E7FA617044A13 /* ActivityListView.swift */,
 			);
 			path = Activities;
@@ -161,8 +166,8 @@
 		6C057B5CFB7432CA2C13405F /* Profile */ = {
 			isa = PBXGroup;
 			children = (
+				41ABF6E01B622A0245CFDEF6 /* HowItWorksView.swift */,
 				D96696FF9ACCBE8ECB641C1D /* ProfileView.swift */,
-				FA11BB22CC33DD44EE55FF67 /* HowItWorksView.swift */,
 			);
 			path = Profile;
 			sourceTree = "<group>";
@@ -180,8 +185,8 @@
 			isa = PBXGroup;
 			children = (
 				F245AE9D3100ED90DFC64B50 /* Localizable.strings */,
+				0CF67AD722CE1CE570F2194B /* AppLogo.png */,
 				ACFFC76104DE87A2A11E296C /* Assets.xcassets */,
-				AA11BB22CC33DD44EE55FF67 /* AppLogo.png */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -234,10 +239,10 @@
 			path = Auth;
 			sourceTree = "<group>";
 		};
-		CC44AA11BB22DD33EE55FF79 /* Charities */ = {
+		D1EB513FADBA8642AAF4152E /* Charities */ = {
 			isa = PBXGroup;
 			children = (
-				CC44AA11BB22DD33EE55FF78 /* CharityDirectoryView.swift */,
+				5E69695DF3C54A01B69DB2B4 /* CharityDirectoryView.swift */,
 			);
 			path = Charities;
 			sourceTree = "<group>";
@@ -248,8 +253,8 @@
 				B90FDF2C0F6B3C17D3E6511E /* CampaignDetailView.swift */,
 				DBF80F63113EE7DF0E6210D0 /* CampaignListView.swift */,
 				131F3E1AD325EFA29603666A /* CreateCampaignView.swift */,
-				EC11AA22BB33CC44DD55EE67 /* EditCampaignView.swift */,
-				AB22CC33DD44EE55FF66AA12 /* SupportCampaignSheet.swift */,
+				BA6B85F348410B4977D819F8 /* EditCampaignView.swift */,
+				AA1EA1D02532318E4079F460 /* SupportCampaignSheet.swift */,
 			);
 			path = Campaigns;
 			sourceTree = "<group>";
@@ -268,7 +273,7 @@
 				1B5FAB94684484FD550C3CA8 /* Activities */,
 				B915D3AEE8ECCF6C9FB42083 /* Admin */,
 				E4D5CA079527FA873C29038D /* Campaigns */,
-				CC44AA11BB22DD33EE55FF79 /* Charities */,
+				D1EB513FADBA8642AAF4152E /* Charities */,
 				0BC9C4E0A591F7D99946EEE9 /* Dashboard */,
 				ED50060BD1B02E29F03872D8 /* Donations */,
 				0F1A30C5DB20817F77E68DBB /* Nonprofit */,
@@ -293,6 +298,7 @@
 				E8133379D6BB4CA8FD2A755B /* Localization */,
 				75D25BC92B79B19C9F28BB22 /* Network */,
 				396F49B4C6591C68EFA859F2 /* Storage */,
+				A2836568D8CEA3AF22B7E1D8 /* PolylineDecoder.swift */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -357,7 +363,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AA11BB22CC33DD44EE55FF66 /* AppLogo.png in Resources */,
+				64B45FE37CD4FDC4082A951E /* AppLogo.png in Resources */,
 				EB419AE064F42384BA9A2F4A /* Assets.xcassets in Resources */,
 				4F0ED94542F624CE50453B84 /* Localizable.strings in Resources */,
 			);
@@ -371,6 +377,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B0B33548F1D0650BD6B93B9B /* APIClient.swift in Sources */,
+				96A54E970643552D8B66F7DC /* ActivityDetailView.swift in Sources */,
 				D4FA4687F7E78343FDA23216 /* ActivityListView.swift in Sources */,
 				CC7403A05ED2C7738853B439 /* AdminQueueView.swift in Sources */,
 				06EB824EB0A5A9B9A53B87CE /* AdminStatsView.swift in Sources */,
@@ -378,22 +385,23 @@
 				E366D74A9B79D76A96C581EF /* CampaignDetailView.swift in Sources */,
 				BA97C0CAE930EA5CB463FE00 /* CampaignListView.swift in Sources */,
 				4F3A42BEFF42744703AE2ACF /* CharityAthletesApp.swift in Sources */,
-				CC44AA11BB22DD33EE55FF77 /* CharityDirectoryView.swift in Sources */,
+				E8945F1EC072894691A05F1A /* CharityDirectoryView.swift in Sources */,
 				C99D0C941DB3412ACA8B9A99 /* CreateCampaignView.swift in Sources */,
-				EC11AA22BB33CC44DD55EE66 /* EditCampaignView.swift in Sources */,
-				AB22CC33DD44EE55FF66AA11 /* SupportCampaignSheet.swift in Sources */,
 				079360B55089C8A33B8E8C59 /* DashboardView.swift in Sources */,
 				E0DDE28C5730D9919B2AE58E /* DonationListView.swift in Sources */,
+				E70895A9FBC92743042934F3 /* EditCampaignView.swift in Sources */,
 				F2C01E40A34C3DDE3120D53C /* Endpoints.swift in Sources */,
+				A139925E6A8C4B9854FF17FA /* HowItWorksView.swift in Sources */,
 				80E3E97C60E5233E92F97F80 /* I18n.swift in Sources */,
 				FB902D85E3FF7B155DEC64E8 /* Keychain.swift in Sources */,
 				EBEA9EB832E988F7DF272D31 /* Models.swift in Sources */,
 				E56E991E2C781673D1CFAE65 /* NonprofitDashboardView.swift in Sources */,
 				1438B4DD3B782DB461CD481C /* NonprofitSignupView.swift in Sources */,
 				F89F45A6412AAAC8D0D69431 /* OnboardingView.swift in Sources */,
+				F703044A9BE73560F6C899C3 /* PolylineDecoder.swift in Sources */,
 				7742F0ACB3E71EE886DB6847 /* ProfileView.swift in Sources */,
-				FA11BB22CC33DD44EE55FF66 /* HowItWorksView.swift in Sources */,
 				F769388481B3BFA48A09C1FD /* SupabaseClient.swift in Sources */,
+				4B8CF2837E56151838699250 /* SupportCampaignSheet.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -420,7 +428,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = BrandOrange;
 				CODE_SIGN_ENTITLEMENTS = ios/CharityAthletes/CharityAthletes.entitlements;
-				CURRENT_PROJECT_VERSION = 2;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 8BWX627Z83;
 				ENABLE_PREVIEWS = YES;
@@ -428,14 +436,20 @@
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = ios/CharityAthletes/Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 1.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.charityathletes.app;
 				PRODUCT_NAME = CharityAthletes;
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.9;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
@@ -447,7 +461,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = BrandOrange;
 				CODE_SIGN_ENTITLEMENTS = ios/CharityAthletes/CharityAthletes.entitlements;
-				CURRENT_PROJECT_VERSION = 2;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 8BWX627Z83;
 				ENABLE_BITCODE = NO;
@@ -455,12 +469,18 @@
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = ios/CharityAthletes/Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 1.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.charityathletes.app;
 				PRODUCT_NAME = CharityAthletes;
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
 				SWIFT_VERSION = 5.9;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -468,16 +488,119 @@
 		C57AEAA6FED04DF2742A2781 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};
 		D3F56125DE8DC1DF16041C08 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};

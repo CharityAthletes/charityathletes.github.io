@@ -85,6 +85,20 @@ final class APIClient {
 
     func getMe() async throws -> MeResponse { try await request(.me) }
 
+    // ── Push notification token ───────────────────────────────────────────────
+
+    func registerDeviceToken(_ token: String) async throws {
+        struct B: Encodable { let token: String; let platform: String }
+        struct R: Decodable { let ok: Bool }
+        let _: R = try await request(.registerDeviceToken, body: B(token: token, platform: "ios"))
+    }
+
+    func unregisterDeviceToken(_ token: String) async throws {
+        struct B: Encodable { let token: String }
+        struct R: Decodable { let ok: Bool }
+        let _: R = try await request(.unregisterDeviceToken, body: B(token: token))
+    }
+
     func disconnectStrava() async throws {
         struct R: Decodable { let ok: Bool }
         let _: R = try await request(.stravaDisconnect)
@@ -172,6 +186,13 @@ final class APIClient {
         try await request(.campaignParticipants(id))
     }
 
+    func sendThankYou(campaignId: String, message: String) async throws -> Int {
+        struct B: Encodable { let message: String }
+        struct R: Decodable { let ok: Bool; let sentTo: Int }
+        let r: R = try await request(.campaignThankYou(campaignId), body: B(message: message))
+        return r.sentTo
+    }
+
     func manualDonate(campaignId: String, amountJpy: Int) async throws -> CheckoutSession {
         struct B: Encodable { let amountJpy: Int }
         return try await request(.donateCampaign(campaignId), body: B(amountJpy: amountJpy))
@@ -196,6 +217,25 @@ final class APIClient {
     func getNonprofitProfile() async throws -> NonprofitProfile { try await request(.nonprofitProfile) }
     func getNonprofitDashboard() async throws -> NonprofitDashboard { try await request(.nonprofitDashboard) }
     func getNonprofitCampaigns() async throws -> [Campaign]     { try await request(.nonprofitCampaigns) }
+
+    /// #15 Downloads the CSV and saves it to a temp file; returns the local URL for sharing.
+    func getNonprofitDonationsCSV() async throws -> URL {
+        guard let url = URL(string: Endpoint.nonprofitDonationsCSV.path, relativeTo: base) else {
+            throw APIError.badURL
+        }
+        var req = URLRequest(url: url)
+        if let token { req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization") }
+        let (data, resp) = try await session.data(for: req)
+        guard let http = resp as? HTTPURLResponse else { throw APIError.httpError(0, "No response") }
+        if http.statusCode == 401 { throw APIError.unauthorized }
+        guard (200..<300).contains(http.statusCode) else {
+            throw APIError.httpError(http.statusCode, "Export failed")
+        }
+        let filename = "donations-\(Date().ISO8601Format()).csv"
+        let tmpURL = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
+        try data.write(to: tmpURL)
+        return tmpURL
+    }
 
     // ── Admin ─────────────────────────────────────────────────────────────────
 

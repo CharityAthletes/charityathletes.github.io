@@ -13,6 +13,7 @@ final class CampaignDetailVM: ObservableObject {
     @Published var showFinalizeResult = false
     @Published var finalizeResult: FinalizeResult?
     @Published var showSupportSheet = false
+    @Published var showThankYouSheet = false
     @Published var isLoading = false
     @Published var joined = false
     @Published var deleted = false
@@ -228,6 +229,26 @@ struct CampaignDetailView: View {
                 // Donor list — creator sees all; joined athletes see their own donors
                 if isCreator || vm.joined {
                     DonorPledgeSection(pledges: vm.donorPledges, isCreator: isCreator)
+
+                    // #6 — Thank-you message button (visible when there are donors)
+                    if !vm.donorPledges.isEmpty {
+                        Button {
+                            vm.showThankYouSheet = true
+                        } label: {
+                            Label(
+                                i18n.language == .ja ? "寄付者にお礼メッセージを送る" : "Send Thank-You to Donors",
+                                systemImage: "envelope.heart.fill"
+                            )
+                            .font(.subheadline.bold())
+                            .frame(maxWidth: .infinity)
+                            .padding(12)
+                            .background(Color(red: 0.1, green: 0.6, blue: 0.4).opacity(0.1))
+                            .foregroundStyle(Color(red: 0.1, green: 0.6, blue: 0.4))
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .overlay(RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color(red: 0.1, green: 0.6, blue: 0.4).opacity(0.4), lineWidth: 1))
+                        }
+                    }
                 }
             }
             .padding()
@@ -375,6 +396,110 @@ struct CampaignDetailView: View {
                     .environmentObject(i18n)
             }
         }
+        .sheet(isPresented: $vm.showThankYouSheet) {
+            ThankYouSheet(campaignId: vm.campaign.id)
+                .environmentObject(i18n)
+        }
+    }
+}
+
+// MARK: - Thank You Sheet (#6)
+
+struct ThankYouSheet: View {
+    let campaignId: String
+    @EnvironmentObject var i18n: I18n
+    @Environment(\.dismiss) private var dismiss
+    @State private var message = ""
+    @State private var isLoading = false
+    @State private var sentTo: Int? = nil
+    @State private var errorMsg: String?
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 24) {
+                if let n = sentTo {
+                    VStack(spacing: 16) {
+                        Image(systemName: "envelope.badge.checkmark.rtl.fill")
+                            .font(.system(size: 64))
+                            .foregroundStyle(Color(red: 0.1, green: 0.6, blue: 0.4))
+                        Text(i18n.language == .ja
+                             ? "✅ \(n) 名の寄付者にメッセージを送りました！"
+                             : "✅ Sent to \(n) donor\(n == 1 ? "" : "s")!")
+                            .font(.headline)
+                            .multilineTextAlignment(.center)
+                        Button(i18n.language == .ja ? "閉じる" : "Done") { dismiss() }
+                            .font(.headline)
+                            .frame(maxWidth: .infinity).padding()
+                            .background(Color(red: 0.1, green: 0.6, blue: 0.4))
+                            .foregroundStyle(.white)
+                            .clipShape(RoundedRectangle(cornerRadius: 14))
+                    }
+                    .padding()
+                } else {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(i18n.language == .ja
+                             ? "寄付してくださった方々に感謝のメッセージを送りましょう。匿名の方を除いたすべての寄付者にメールでお届けします。"
+                             : "Write a thank-you note to your donors. We'll email everyone who donated (except anonymous donors).")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+
+                        TextEditor(text: $message)
+                            .frame(minHeight: 150)
+                            .padding(8)
+                            .background(Color(.secondarySystemBackground))
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .overlay(RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.secondary.opacity(0.25), lineWidth: 1))
+
+                        if let err = errorMsg {
+                            Text(err).font(.caption).foregroundStyle(.red)
+                        }
+                    }
+                    .padding()
+
+                    Button {
+                        Task { await send() }
+                    } label: {
+                        HStack {
+                            Spacer()
+                            if isLoading { ProgressView().tint(.white) }
+                            else {
+                                Label(i18n.language == .ja ? "送信する" : "Send Message",
+                                      systemImage: "paperplane.fill")
+                                    .font(.headline)
+                            }
+                            Spacer()
+                        }
+                        .padding()
+                        .background(message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                                    ? Color.gray : Color(red: 0.1, green: 0.6, blue: 0.4))
+                        .foregroundStyle(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                    }
+                    .disabled(message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isLoading)
+                    .padding(.horizontal)
+                }
+                Spacer()
+            }
+            .navigationTitle(i18n.language == .ja ? "お礼メッセージ" : "Thank-You Message")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(i18n.language == .ja ? "閉じる" : "Close") { dismiss() }
+                }
+            }
+        }
+    }
+
+    private func send() async {
+        isLoading = true; errorMsg = nil
+        defer { isLoading = false }
+        do {
+            let n = try await APIClient.shared.sendThankYou(campaignId: campaignId, message: message)
+            sentTo = n
+        } catch {
+            errorMsg = error.localizedDescription
+        }
     }
 }
 
@@ -480,12 +605,14 @@ struct JoinCampaignSheet: View {
     }
 }
 
-// MARK: - Social Share
+// MARK: - Social Share (#3 enhanced with share card)
 
 private struct SocialShareSection: View {
     let campaign: Campaign
     let athleteId: String?
     @ObservedObject private var i18n = I18n.shared
+    @State private var shareImage: UIImage? = nil
+    @State private var showShareSheet = false
 
     private var donorURL: String {
         let base = "\(AppConfig.backendURL)/c/\(campaign.id)"
@@ -512,6 +639,31 @@ private struct SocialShareSection: View {
         VStack(alignment: .leading, spacing: 12) {
             Text(i18n.language == .ja ? "SNSでシェア" : "Share on Social Media")
                 .font(.headline)
+
+            // #3 — Share card button (renders a PNG for Instagram Stories / LINE etc.)
+            Button {
+                renderShareCard()
+            } label: {
+                HStack {
+                    Image(systemName: "photo.on.rectangle.angled")
+                    Text(i18n.language == .ja ? "シェア用カードを作成" : "Create Share Card")
+                        .font(.subheadline.bold())
+                }
+                .frame(maxWidth: .infinity)
+                .padding(10)
+                .background(
+                    LinearGradient(colors: [Color("BrandOrange"), Color("BrandRed")],
+                                   startPoint: .leading, endPoint: .trailing)
+                )
+                .foregroundStyle(.white)
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+            }
+            .buttonStyle(.plain)
+            .sheet(isPresented: $showShareSheet) {
+                if let img = shareImage {
+                    ShareSheet(items: [img, shareMessage])
+                }
+            }
 
             HStack(spacing: 16) {
                 // X (Twitter)
@@ -549,6 +701,17 @@ private struct SocialShareSection: View {
         .clipShape(RoundedRectangle(cornerRadius: 14))
     }
 
+    @MainActor
+    private func renderShareCard() {
+        let card = CampaignShareCard(campaign: campaign, donorURL: donorURL)
+        let renderer = ImageRenderer(content: card)
+        renderer.scale = UIScreen.main.scale
+        if let img = renderer.uiImage {
+            shareImage = img
+            showShareSheet = true
+        }
+    }
+
     @ViewBuilder
     private func socialLink(urlString: String, label: String, labelText: String, color: Color) -> some View {
         if let url = URL(string: urlString) {
@@ -560,7 +723,6 @@ private struct SocialShareSection: View {
 
     private var facebookButton: some View {
         Button {
-            // Facebook strips pre-filled content on mobile — copy link then open app
             UIPasteboard.general.string = donorURL
             let fbApp = URL(string: "fb://")!
             let fbWeb = URL(string: "https://www.facebook.com")!
@@ -574,7 +736,6 @@ private struct SocialShareSection: View {
 
     private var instagramButton: some View {
         Button {
-            // Copy donor URL to clipboard then open Instagram
             UIPasteboard.general.string = donorURL
             let igApp  = URL(string: "instagram://app")!
             let igWeb  = URL(string: "https://www.instagram.com")!
@@ -585,6 +746,94 @@ private struct SocialShareSection: View {
                        color: Color(red: 0.83, green: 0.19, blue: 0.53))
         }
     }
+}
+
+// MARK: - Campaign Share Card (rendered via ImageRenderer for #3)
+
+private struct CampaignShareCard: View {
+    let campaign: Campaign
+    let donorURL: String
+    @ObservedObject private var i18n = I18n.shared
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // Top gradient header
+            LinearGradient(
+                colors: [Color("BrandOrange"), Color("BrandRed")],
+                startPoint: .topLeading, endPoint: .bottomTrailing
+            )
+            .frame(height: 12)
+
+            VStack(alignment: .leading, spacing: 14) {
+                HStack(spacing: 8) {
+                    Image(systemName: "figure.run.circle.fill")
+                        .font(.title2)
+                        .foregroundStyle(Color("BrandOrange"))
+                    Text("チャリアス / Charity Athletes")
+                        .font(.caption.bold())
+                        .foregroundStyle(.secondary)
+                }
+
+                Text(i18n.pick(ja: campaign.titleJa, en: campaign.titleEn))
+                    .font(.title3.bold())
+                    .lineLimit(2)
+
+                if let np = campaign.nonprofits {
+                    Label(i18n.pick(ja: np.nameJa, en: np.nameEn),
+                          systemImage: "heart.fill")
+                        .font(.subheadline)
+                        .foregroundStyle(Color("BrandOrange"))
+                }
+
+                // Progress
+                VStack(alignment: .leading, spacing: 4) {
+                    SportProgressBar(progress: campaign.progress, sportTypes: campaign.sportTypes)
+                    HStack {
+                        Text("¥\(campaign.raisedAmountJpy.formatted())")
+                            .font(.headline.bold())
+                            .foregroundStyle(Color("BrandOrange"))
+                        Text("/ ¥\(campaign.goalAmountJpy.formatted())")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        Text("\(Int(campaign.progress * 100))%")
+                            .font(.caption.bold())
+                            .foregroundStyle(Color("BrandOrange"))
+                    }
+                }
+
+                Divider()
+
+                // QR placeholder text (can't render actual QR in ImageRenderer easily)
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(i18n.language == .ja ? "寄付はこちらから" : "Support this campaign")
+                            .font(.caption.bold())
+                        Text(donorURL)
+                            .font(.system(size: 9, design: .monospaced))
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
+                    Spacer()
+                }
+            }
+            .padding(20)
+        }
+        .background(Color(.systemBackground))
+        .frame(width: 380)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .shadow(color: .black.opacity(0.12), radius: 12, x: 0, y: 4)
+    }
+}
+
+// MARK: - Share Sheet wrapper
+
+struct ShareSheet: UIViewControllerRepresentable {
+    let items: [Any]
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: items, applicationActivities: nil)
+    }
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
 
 private struct SocialPill: View {

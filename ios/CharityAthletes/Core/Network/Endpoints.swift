@@ -6,7 +6,8 @@ enum Endpoint {
     // Athlete
     case nonprofits
     case campaigns, myCampaigns, createdCampaigns, createCampaign, campaign(String), leaderboard(String)
-    case joinCampaign(String), unjoinCampaign(String), deleteCampaign(String), archiveCampaign(String), updateCampaign(String), donateCampaign(String), finalizeCampaign(String), pledgeCampaign(String), campaignPledges(String), campaignParticipants(String)
+    case joinCampaign(String), unjoinCampaign(String), deleteCampaign(String), archiveCampaign(String), updateCampaign(String), donateCampaign(String), finalizeCampaign(String), pledgeCampaign(String), campaignPledges(String), campaignParticipants(String), campaignThankYou(String)
+    case registerDeviceToken, unregisterDeviceToken
     case donations, donationSummary, setupPayment, confirmSetup, paymentMethod
     case activities
     case stravaSync
@@ -15,6 +16,7 @@ enum Endpoint {
     case nonprofitProfile
     case nonprofitDashboard
     case nonprofitCampaigns
+    case nonprofitDonationsCSV
 
     // Charities
     case charities(String?, String?) // (query, category)
@@ -30,6 +32,7 @@ enum Endpoint {
 
     var path: String {
         switch self {
+        case .registerDeviceToken, .unregisterDeviceToken: return "/auth/device-token"
         case .me:                            return "/auth/me"
         case .stravaAuth:                    return "/auth/strava"
         case .stravaLogin:                   return "/auth/strava/login"
@@ -54,6 +57,7 @@ enum Endpoint {
         case .pledgeCampaign(let id):        return "/campaigns/\(id)/pledge"
         case .campaignPledges(let id):       return "/campaigns/\(id)/pledges"
         case .campaignParticipants(let id):  return "/campaigns/\(id)/participants"
+        case .campaignThankYou(let id):      return "/campaigns/\(id)/thankyou"
         case .donations:                     return "/donations"
         case .donationSummary:               return "/donations/summary"
         case .setupPayment:                  return "/donations/setup-payment"
@@ -65,6 +69,7 @@ enum Endpoint {
         case .nonprofitProfile:              return "/nonprofit/profile"
         case .nonprofitDashboard:            return "/nonprofit/dashboard"
         case .nonprofitCampaigns:            return "/nonprofit/campaigns"
+        case .nonprofitDonationsCSV:         return "/nonprofit/donations/export.csv"
 
         case .charities(let q, let cat):
             var parts: [String] = []
@@ -85,14 +90,15 @@ enum Endpoint {
 
     var method: String {
         switch self {
-        case .unjoinCampaign, .deleteCampaign, .stravaDisconnect, .deleteAccount:
+        case .unjoinCampaign, .deleteCampaign, .stravaDisconnect, .deleteAccount, .unregisterDeviceToken:
             return "DELETE"
         case .archiveCampaign, .updateCampaign:
             return "PATCH"
         case .nonprofitRegister,
+             .registerDeviceToken,
              .createCampaign,
              .joinCampaign, .donateCampaign, .setupPayment, .confirmSetup,
-             .finalizeCampaign, .pledgeCampaign,
+             .finalizeCampaign, .pledgeCampaign, .campaignThankYou,
              .adminApproveNonprofit, .adminRejectNonprofit,
              .charityRequest, .stravaSync:
             return "POST"

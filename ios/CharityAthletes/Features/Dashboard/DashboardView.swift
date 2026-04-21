@@ -105,6 +105,12 @@ struct DashboardView: View {
                             }
                         }
                     }
+
+                    // #9 Empty state — no campaigns at all yet
+                    if !vm.isLoading && vm.myCampaigns.isEmpty && vm.discoverCampaigns.isEmpty {
+                        DashboardEmptyState()
+                            .padding(.horizontal)
+                    }
                 }
                 .padding(.vertical)
             }
@@ -212,6 +218,48 @@ private struct StatCell: View {
     }
 }
 
+// MARK: - Dashboard Empty State (#9)
+
+struct DashboardEmptyState: View {
+    @ObservedObject private var i18n = I18n.shared
+
+    var body: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "figure.run.circle")
+                .font(.system(size: 56))
+                .foregroundStyle(Color("BrandOrange").opacity(0.7))
+
+            VStack(spacing: 6) {
+                Text(i18n.language == .ja ? "まだイベントに参加していません" : "You haven't joined a campaign yet")
+                    .font(.headline)
+                    .multilineTextAlignment(.center)
+                Text(i18n.language == .ja
+                     ? "イベントに参加してあなたのランニングや\nサイクリングで社会に貢献しましょう！"
+                     : "Join a campaign and turn your running,\ncycling or swimming into donations!")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+
+            NavigationLink {
+                CampaignListView()
+            } label: {
+                Label(i18n.language == .ja ? "イベントを探す" : "Browse Campaigns",
+                      systemImage: "heart.fill")
+                    .font(.headline)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color("BrandOrange"))
+                    .foregroundStyle(.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 14))
+            }
+        }
+        .padding(24)
+        .background(Color(.secondarySystemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 20))
+    }
+}
+
 // MARK: - Strava CTA
 
 struct StravaConnectCard: View {
@@ -282,6 +330,12 @@ struct CampaignMiniCard: View {
         return "\(fmt.string(from: campaign.startDate))\(sep)\(fmt.string(from: campaign.endDate))"
     }
 
+    /// Days until end date; nil if already ended
+    private var daysLeft: Int? {
+        let days = Calendar.current.dateComponents([.day], from: Date(), to: campaign.endDate).day ?? 0
+        return days >= 0 ? days : nil
+    }
+
     private func sportIcon(for t: String) -> String {
         switch t {
         case "Ride", "VirtualRide": return "bicycle"
@@ -309,9 +363,17 @@ struct CampaignMiniCard: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
-            Label(dateRange, systemImage: "calendar")
-                .font(.caption2)
-                .foregroundStyle(.secondary)
+
+            // #10 Countdown badge
+            HStack(spacing: 6) {
+                Label(dateRange, systemImage: "calendar")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                if let d = daysLeft {
+                    CountdownBadge(daysLeft: d, compact: true)
+                }
+            }
+
             Spacer()
             SportProgressBar(progress: campaign.progress, sportTypes: campaign.sportTypes, compact: true)
             HStack(spacing: 6) {
@@ -332,12 +394,43 @@ struct CampaignMiniCard: View {
             }
         }
         .padding()
-        .frame(width: 200, height: 145)
+        .frame(width: 200, height: 155)
         .background(joined ? Color("BrandOrange").opacity(0.1) : Color(.secondarySystemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .overlay(
             RoundedRectangle(cornerRadius: 16)
                 .strokeBorder(joined ? Color("BrandOrange").opacity(0.3) : Color.clear, lineWidth: 1)
         )
+    }
+}
+
+// MARK: - Countdown Badge (#10)
+
+/// Reusable countdown badge used in both DashboardView and CampaignListView
+struct CountdownBadge: View {
+    let daysLeft: Int
+    var compact: Bool = false
+    @ObservedObject private var i18n = I18n.shared
+
+    private var label: String {
+        if daysLeft == 0 { return i18n.language == .ja ? "本日終了" : "Last day!" }
+        if i18n.language == .ja { return "\(daysLeft)日" }
+        return daysLeft == 1 ? "1d left" : "\(daysLeft)d left"
+    }
+
+    private var urgentColor: Color {
+        if daysLeft <= 3  { return .red }
+        if daysLeft <= 7  { return Color("BrandOrange") }
+        return .secondary
+    }
+
+    var body: some View {
+        Text(label)
+            .font(compact ? .system(size: 9, weight: .bold) : .caption2.bold())
+            .padding(.horizontal, compact ? 5 : 7)
+            .padding(.vertical, compact ? 2 : 3)
+            .background(urgentColor.opacity(0.12))
+            .foregroundStyle(urgentColor)
+            .clipShape(Capsule())
     }
 }

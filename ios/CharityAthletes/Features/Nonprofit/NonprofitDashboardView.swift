@@ -5,12 +5,25 @@ final class NonprofitDashboardVM: ObservableObject {
     @Published var dashboard: NonprofitDashboard?
     @Published var isLoading = false
     @Published var error: String?
+    @Published var csvExportURL: URL? = nil
+    @Published var showCSVExport = false
 
     func load() async {
         isLoading = true; error = nil
         defer { isLoading = false }
         do { dashboard = try await APIClient.shared.getNonprofitDashboard() }
         catch let e { error = e.localizedDescription }
+    }
+
+    // #15 — Download CSV and share via system share sheet
+    func exportCSV() async {
+        do {
+            let url = try await APIClient.shared.getNonprofitDonationsCSV()
+            csvExportURL = url
+            showCSVExport = true
+        } catch let e {
+            error = e.localizedDescription
+        }
     }
 }
 
@@ -59,6 +72,21 @@ struct NonprofitDashboardView: View {
                 }
             }
             .navigationTitle(i18n.t(.npDashTitle))
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        Task { await vm.exportCSV() }
+                    } label: {
+                        Label(i18n.language == .ja ? "CSV出力" : "Export CSV",
+                              systemImage: "arrow.down.doc.fill")
+                    }
+                }
+            }
+            .sheet(isPresented: $vm.showCSVExport) {
+                if let url = vm.csvExportURL {
+                    ShareSheet(items: [url])
+                }
+            }
             .refreshable { await vm.load() }
             .task { await vm.load() }
         }

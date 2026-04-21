@@ -26,6 +26,40 @@ final class CreateCampaignVM: ObservableObject {
     @Published var error: String?
     @Published var created = false
 
+    // #14 — Goal auto-calculation
+    /// Estimated km over the campaign based on sport type and duration
+    var suggestedGoal: Int? {
+        let days = Calendar.current.dateComponents([.day], from: startDate, to: endDate).day ?? 0
+        guard days > 0, !sportTypes.isEmpty else { return nil }
+        // Typical daily km estimates per sport
+        let dailyKm: Double
+        if sportTypes.contains("Ride") || sportTypes.contains("VirtualRide") {
+            dailyKm = 15
+        } else if sportTypes.contains("Run") {
+            dailyKm = 5
+        } else if sportTypes.contains("Swim") {
+            dailyKm = 2
+        } else {
+            dailyKm = 4
+        }
+        let estimatedKm = dailyKm * Double(days) * 0.5 // assume ~50% activity rate
+        let rateJpy = Double(suggestedRates.min() ?? 20)
+        let goal = Int((estimatedKm * rateJpy / 1000).rounded()) * 1000
+        return max(goal, 5000)
+    }
+
+    /// Human-readable explanation for the suggestion footer
+    var goalSuggestion: String? {
+        guard let g = suggestedGoal else { return nil }
+        let days = Calendar.current.dateComponents([.day], from: startDate, to: endDate).day ?? 0
+        let i18n = I18n.shared
+        if i18n.language == .ja {
+            return "¥\(g.formatted()) を提案（\(days)日間 × 推定走行距離に基づく）"
+        } else {
+            return "Suggested ¥\(g.formatted()) based on \(days)-day campaign & estimated km"
+        }
+    }
+
     // Format a date as local-day start/end with the device's actual timezone offset
     // e.g. "2026-04-30T23:59:59+10:00" so iOS decodes it back as April 30 locally
     private func localDayString(_ date: Date, endOfDay: Bool) -> String {
@@ -221,7 +255,13 @@ struct CreateCampaignView: View {
                 }
 
                 // Goal & date range
-                Section(header: Text(i18n.language == .ja ? "目標と期間" : "Goal & Duration")) {
+                Section(header: Text(i18n.language == .ja ? "目標と期間" : "Goal & Duration"),
+                        footer: vm.goalSuggestion.map { s in
+                            HStack(spacing: 4) {
+                                Image(systemName: "lightbulb.fill").foregroundStyle(.yellow)
+                                Text(s).font(.caption)
+                            }
+                        }) {
                     HStack {
                         Text(i18n.language == .ja ? "目標金額（任意）¥" : "Fundraising goal (optional) ¥")
                         Spacer()
@@ -229,6 +269,18 @@ struct CreateCampaignView: View {
                             .keyboardType(.numberPad)
                             .multilineTextAlignment(.trailing)
                             .frame(width: 100)
+                        // #14 — suggest button
+                        Button {
+                            if let s = vm.suggestedGoal { vm.goalAmount = String(s) }
+                        } label: {
+                            Text(i18n.language == .ja ? "提案" : "Suggest")
+                                .font(.caption.bold())
+                                .padding(.horizontal, 8).padding(.vertical, 4)
+                                .background(Color("BrandOrange").opacity(0.15))
+                                .foregroundStyle(Color("BrandOrange"))
+                                .clipShape(Capsule())
+                        }
+                        .buttonStyle(.plain)
                     }
                     DatePicker(i18n.language == .ja ? "開始日" : "Start date",
                                selection: $vm.startDate,
