@@ -826,12 +826,14 @@ function selectRate(rate, btn) {
     if (customRow)  customRow.style.display = 'none';
     currentRate = rate;
     updateCalc();
+    syncPaymentRequest();
   }
 }
 
 function onCustomRate(val) {
   currentRate = parseInt(val) || 0;
   updateCalc();
+  syncPaymentRequest();
 }
 
 function updateFlatCalc() {}
@@ -887,6 +889,7 @@ function selectType(type, btn) {
     const firstRateBtn = document.querySelector('#panel-perkm .rate-btn:not(#btn-other)');
     if (firstRateBtn) firstRateBtn.click();
   }
+  syncPaymentRequest();
 }
 
 // ── HTML escape ────────────────────────────────────────────────────────────
@@ -1333,13 +1336,40 @@ loadData();
 
 // ── #13 Apple Pay / Google Pay (Stripe Payment Request Button) ────────────
 // Initialised after Stripe is set up; show only if browser supports it
+var _prInstance = null; // global ref so we can call pr.update() from outside
+
+function getCurrentPRAmount() {
+  if (currentType === 'flat') {
+    var flatEl = document.getElementById('flat-amount');
+    var val = flatEl ? parseInt(flatEl.value) : 0;
+    return (val && val > 0) ? val : (flatOptions && flatOptions.length > 0 ? flatOptions[0] : 1000);
+  } else {
+    // Per-km: show max possible charge so donor knows upper bound
+    var rate = currentRate || (suggestedRates && suggestedRates.length > 0 ? suggestedRates[0] : 10);
+    var maxKm = ${campaign.max_distance_km ?? 'null'};
+    return maxKm ? rate * maxKm : rate * 100;
+  }
+}
+
+function syncPaymentRequest() {
+  if (!_prInstance) return;
+  try {
+    _prInstance.update({
+      total: {
+        label: ${JSON.stringify(campaign.title_ja || campaign.title_en || 'Donation')},
+        amount: Math.max(1, getCurrentPRAmount()),
+      }
+    });
+  } catch(e) { /* ignore if sheet already open */ }
+}
+
 function initPaymentRequestButton() {
   if (!stripe) return;
   var prBtn = document.getElementById('payment-request-btn');
   var prDiv = document.getElementById('payment-request-divider');
   if (!prBtn) return;
 
-  var amount = ${campaign.goal_amount_jpy ? Math.min(campaign.goal_amount_jpy, 10000) : 1000};
+  var amount = getCurrentPRAmount();
   var pr = stripe.paymentRequest({
     country:  'JP',
     currency: 'jpy',
@@ -1350,6 +1380,7 @@ function initPaymentRequestButton() {
     requestPayerName:  true,
     requestPayerEmail: true,
   });
+  _prInstance = pr;
 
   var prElement = stripe.elements().create('paymentRequestButton', {
     paymentRequest: pr,
@@ -1408,6 +1439,15 @@ function initPaymentRequestButton() {
 }
 // Wire up after Stripe is initialised
 if (stripe) { try { initPaymentRequestButton(); } catch(e) { console.warn('[PayReq]', e); } }
+
+// Keep Apple Pay / Google Pay amount in sync with flat-amount input
+(function() {
+  var flatInput = document.getElementById('flat-amount');
+  if (flatInput) {
+    flatInput.addEventListener('input', syncPaymentRequest);
+    flatInput.addEventListener('change', syncPaymentRequest);
+  }
+})();
 </script>
 
 <div style="text-align:center;padding:28px 16px 20px;font-size:12px;color:#86868b">
