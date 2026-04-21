@@ -122,6 +122,47 @@ router.get('/:id', async (req: Request, res: Response) => {
     .single();
 
   if (error) return res.status(404).json({ error: 'Not found' });
+
+  // Compute live estimated total so the app matches the donor page:
+  // charged flat donations + (per-km rate × each athlete's capped distance)
+  try {
+    const [{ data: pledges }, { data: participations }] = await Promise.all([
+      db.from('donor_pledges')
+        .select('flat_amount_jpy, per_km_rate_jpy, athlete_user_id, charged_amount_jpy, status')
+        .eq('campaign_id', req.params.id)
+        .neq('status', 'cancelled'),
+      db.from('campaign_participations')
+        .select('user_id, total_distance_km')
+        .eq('campaign_id', req.params.id),
+    ]);
+
+    const kmByAthlete: Record<string, number> = {};
+    for (const p of participations ?? []) {
+      const raw = p.total_distance_km ?? 0;
+      const capped = data.max_distance_km ? Math.min(raw, data.max_distance_km) : raw;
+      kmByAthlete[p.user_id] = capped;
+    }
+    const totalKm = Object.values(kmByAthlete).reduce((s, k) => s + k, 0);
+
+    let estimatedTotal = 0;
+    for (const pledge of pledges ?? []) {
+      if (pledge.flat_amount_jpy) {
+        // Flat: use charged amount if already charged, otherwise the pledge amount
+        estimatedTotal += pledge.charged_amount_jpy ?? pledge.flat_amount_jpy;
+      } else if (pledge.per_km_rate_jpy) {
+        // Per-km: use the specific athlete's km if available, else total
+        const km = pledge.athlete_user_id && kmByAthlete[pledge.athlete_user_id] !== undefined
+          ? kmByAthlete[pledge.athlete_user_id]
+          : totalKm;
+        estimatedTotal += pledge.per_km_rate_jpy * km;
+      }
+    }
+
+    data.raised_amount_jpy = Math.round(estimatedTotal);
+  } catch (_) {
+    // Fall back to stored value if calculation fails
+  }
+
   res.json(data);
 });
 
