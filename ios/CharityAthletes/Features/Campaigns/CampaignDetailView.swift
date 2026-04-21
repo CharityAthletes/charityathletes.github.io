@@ -237,7 +237,7 @@ struct CampaignDetailView: View {
                         } label: {
                             Label(
                                 i18n.language == .ja ? "寄付者にお礼メッセージを送る" : "Send Thank-You to Donors",
-                                systemImage: "envelope.heart.fill"
+                                systemImage: "envelope.fill"
                             )
                             .font(.subheadline.bold())
                             .frame(maxWidth: .infinity)
