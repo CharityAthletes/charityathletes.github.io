@@ -703,9 +703,14 @@ private struct SocialShareSection: View {
 
     @MainActor
     private func renderShareCard() {
+        // Force light mode + explicit size so ImageRenderer doesn't produce a black image.
+        // Without .environment(\.colorScheme, .light), Color(.systemBackground) resolves
+        // to black and named asset colors also fail off-screen.
         let card = CampaignShareCard(campaign: campaign, donorURL: donorURL)
+            .environment(\.colorScheme, .light)
         let renderer = ImageRenderer(content: card)
         renderer.scale = UIScreen.main.scale
+        renderer.proposedSize = .init(width: 380, height: nil)
         if let img = renderer.uiImage {
             shareImage = img
             showShareSheet = true
@@ -819,7 +824,7 @@ private struct CampaignShareCard: View {
             }
             .padding(20)
         }
-        .background(Color(.systemBackground))
+        .background(Color.white)
         .frame(width: 380)
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .shadow(color: .black.opacity(0.12), radius: 12, x: 0, y: 4)
