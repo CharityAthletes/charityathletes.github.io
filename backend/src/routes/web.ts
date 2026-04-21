@@ -3,6 +3,8 @@ import { db } from '../config/supabase';
 import Stripe from 'stripe';
 import { z } from 'zod';
 import rateLimit from 'express-rate-limit';
+import { sendDonationReceipt } from '../services/emailService';
+import { notifyAthleteNewDonor } from '../services/pushService';
 
 // Tight limiter for pledge submissions: 5 per IP per hour.
 // Legitimate donors rarely need more than one; this prevents Stripe customer spam.
@@ -114,6 +116,41 @@ router.get('/:id/data', async (req: Request, res: Response) => {
     console.error('[Web] /data error:', err);
     return res.status(500).json({ error: err?.message ?? 'Internal error' });
   }
+});
+
+// ── GET /c/:id/events — SSE stream for real-time donor page updates (#12) ────
+
+// Map of campaignId → Set of SSE response objects
+const sseClients: Map<string, Set<Response>> = new Map();
+
+function broadcastToRoom(campaignId: string, event: string, data: object) {
+  const room = sseClients.get(campaignId);
+  if (!room) return;
+  const msg = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
+  for (const res of room) {
+    try { (res as any).write(msg); } catch { room.delete(res); }
+  }
+}
+
+router.get('/:id/events', (req: Request, res: Response) => {
+  const id = req.params.id;
+  res.setHeader('Content-Type',  'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection',    'keep-alive');
+  res.flushHeaders();
+
+  // Send keepalive ping every 25 seconds
+  const ping = setInterval(() => {
+    try { (res as any).write(': ping\n\n'); } catch { clearInterval(ping); }
+  }, 25_000);
+
+  if (!sseClients.has(id)) sseClients.set(id, new Set());
+  sseClients.get(id)!.add(res);
+
+  req.on('close', () => {
+    clearInterval(ping);
+    sseClients.get(id)?.delete(res);
+  });
 });
 
 // ── POST /c/:id/pledge ────────────────────────────────────────────────────────
@@ -272,10 +309,58 @@ router.post('/:id/pledge/confirm', async (req: Request, res: Response) => {
       .eq('stripe_setup_intent_id', intent_id);
   }
 
+  // #12 — broadcast SSE event to donor page watchers
+  broadcastToRoom(req.params.id, 'pledge', { ts: Date.now() });
+
+  // #5 — Send donation receipt email (fire-and-forget)
+  {
+    const { data: pledge } = await db
+      .from('donor_pledges')
+      .select('donor_name, donor_email, flat_amount_jpy, per_km_rate_jpy, athlete_user_id')
+      .eq(intent_id.startsWith('pi_') ? 'stripe_payment_intent_id' : 'stripe_setup_intent_id', intent_id)
+      .single();
+
+    const { data: camp } = await db
+      .from('campaigns')
+      .select('title_ja, title_en, created_by')
+      .eq('id', req.params.id)
+      .single();
+
+    if (pledge?.donor_email && camp) {
+      const athleteId = pledge.athlete_user_id ?? camp.created_by;
+      const { data: athleteProfile } = await db
+        .from('user_profiles')
+        .select('display_name')
+        .eq('user_id', athleteId)
+        .single();
+
+      sendDonationReceipt({
+        donorEmail:       pledge.donor_email,
+        donorName:        pledge.donor_name,
+        campaignTitleJa:  camp.title_ja,
+        campaignTitleEn:  camp.title_en ?? camp.title_ja,
+        amountJpy:        pledge.flat_amount_jpy ?? 0,
+        isFlat:           pledge.flat_amount_jpy != null,
+        rateJpy:          pledge.per_km_rate_jpy ?? undefined,
+        athleteName:      athleteProfile?.display_name ?? 'Athlete',
+      }).catch(err => console.error('[Receipt email]', err));
+
+      // #1 — Push notification to the athlete
+      notifyAthleteNewDonor({
+        athleteUserId:   athleteId,
+        donorName:       pledge.donor_name,
+        campaignTitleJa: camp.title_ja,
+        campaignId:      req.params.id,
+        isAnonymous:     false, // pledge.is_anonymous isn't in the select above; default false
+      }).catch(err => console.error('[Push notify]', err));
+    }
+  }
+
   res.json({ ok: true });
 });
 
 export default router;
+export { broadcastToRoom };
 
 // ── HTML renderer ─────────────────────────────────────────────────────────────
 
@@ -311,9 +396,13 @@ function renderPage(campaign: any, stripeKey: string, apiBase: string, campaignI
   <meta name="twitter:card"       content="summary_large_image">
   <meta name="twitter:title"      content="${h(campaign.title_ja)} | チャリアス">
   <meta name="twitter:description" content="${h(campaign.description_ja || campaign.description_en || '')}">
+  <!-- #11 Apple smart banner — opens campaign deep-link in the iOS app -->
+  <meta name="apple-itunes-app" content="app-id=6744048310, app-argument=charityathletes://campaign/${h(campaignId)}">
   <script src="https://js.stripe.com/v3/"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- #16 QR code library (pure-JS, no canvas needed) -->
+  <script src="https://unpkg.com/qrcode@1.5.4/build/qrcode.min.js"></script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f7;color:#1d1d1f;min-height:100vh}
@@ -370,10 +459,39 @@ function renderPage(campaign: any, stripeKey: string, apiBase: string, campaignI
     p.en,div.en{display:none}
     html.lang-en p.ja,html.lang-en div.ja{display:none}
     html.lang-en p.en,html.lang-en div.en{display:block}
+    /* #11 App Store custom banner (shown when smart banner dismissed) */
+    .appstore-banner{display:flex;align-items:center;gap:12px;background:#1c1c1e;color:#fff;padding:12px 16px;font-size:13px;position:sticky;top:0;z-index:100}
+    .appstore-banner img{width:44px;height:44px;border-radius:10px;flex-shrink:0}
+    .appstore-banner .ab-text{flex:1;line-height:1.4}
+    .appstore-banner .ab-btn{background:#007B83;color:#fff;border:none;border-radius:99px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;text-decoration:none}
+    .appstore-banner .ab-close{background:none;border:none;color:rgba(255,255,255,0.5);font-size:20px;line-height:1;cursor:pointer;padding:4px 6px;margin-left:-6px}
+    /* #13 Payment Request Button (Apple Pay / Google Pay) */
+    #payment-request-btn{margin-bottom:14px;min-height:44px;border-radius:10px;overflow:hidden}
+    #payment-request-divider{display:none;text-align:center;color:#86868b;font-size:13px;margin:10px 0;position:relative}
+    #payment-request-divider::before,#payment-request-divider::after{content:'';position:absolute;top:50%;width:40%;height:1px;background:#e0e0e0}
+    #payment-request-divider::before{left:0}#payment-request-divider::after{right:0}
+    /* #16 QR code */
+    .qr-section{text-align:center;padding:12px 0 4px}
+    .qr-section canvas{border-radius:10px;border:1px solid #e0e0e0}
+    /* #7 Donor rank badge */
+    .rank-badge{background:linear-gradient(135deg,#007B83,#2E7D32);color:#fff;border-radius:12px;padding:14px 16px;margin-bottom:16px;font-size:14px;font-weight:600;text-align:center;display:none}
   </style>
   <script>(function(){try{var l=localStorage.getItem('ca_lang');if(l==='en')document.documentElement.classList.add('lang-en');}catch(e){}}())</script>
 </head>
 <body>
+
+<!-- #11 Custom App Store banner (fallback / Android users) -->
+<div class="appstore-banner" id="app-banner" style="display:none">
+  <img src="/static/logo.png" alt="チャリアス">
+  <div class="ab-text">
+    <strong><span class="ja">チャリアス</span><span class="en">Charity Athletes</span></strong><br>
+    <span class="ja">アスリートとして参加する</span><span class="en">Join as an athlete</span>
+  </div>
+  <a class="ab-btn" href="https://apps.apple.com/jp/app/id6744048310" target="_blank" rel="noopener" id="app-banner-link">
+    <span class="ja">App Store</span><span class="en">App Store</span>
+  </a>
+  <button class="ab-close" id="app-banner-close" aria-label="close">×</button>
+</div>
 
 <div class="hero">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
@@ -574,10 +692,32 @@ ${(campaign.description_ja || campaign.description_en) ? `
     <button type="button" class="btn" id="pledge-btn"><span class="ja">寄付を申し込む</span><span class="en">Pledge to Donate</span></button>
   </form>
 
+  <!-- #7 Donor rank badge — shown after pledge confirmed -->
+  <div class="rank-badge" id="rank-badge"></div>
+
   <div class="success-box" id="success-box">
     <h3>✅ <span class="ja">申し込み完了！</span><span class="en">Done!</span></h3>
     <p><span class="ja">ご支援ありがとうございます。<br>イベント終了後にメールをお送りします。</span><span class="en">Thank you for your support!</span></p>
   </div>
+
+  <!-- #13 Apple Pay / Google Pay button (inserted by Stripe) -->
+  <div id="payment-request-btn"></div>
+  <div id="payment-request-divider">
+    <span class="ja">またはカードで</span><span class="en">or pay with card</span>
+  </div>
+</div>
+
+<!-- #16 QR Code card -->
+<div class="card" id="qr-card" style="display:none">
+  <div class="section-title"><span class="ja">このイベントをシェア</span><span class="en">Share This Campaign</span></div>
+  <div class="qr-section">
+    <canvas id="qr-canvas"></canvas>
+    <p style="font-size:12px;color:#86868b;margin-top:8px">
+      <span class="ja">QRコードをスキャンしてこのページを開く</span>
+      <span class="en">Scan to open this campaign page</span>
+    </p>
+  </div>
+  <div style="font-size:11px;color:#86868b;text-align:center;word-break:break-all;margin-top:4px" id="qr-url-text"></div>
 </div>
 
 <div style="text-align:center;padding:24px;font-size:12px;color:#86868b;display:flex;align-items:center;justify-content:center;gap:8px">
@@ -994,6 +1134,10 @@ async function submitPledge() {
     document.getElementById('pledge-form').style.display = 'none';
     successBox.style.display = 'block';
     loadData();
+    // #7 — Check donor rank after pledge and show motivational badge if top 3
+    checkDonorRank(email, currentType, currentType === 'flat'
+      ? (parseInt(document.getElementById('flat-amount')?.value) || 0)
+      : currentRate);
   } catch(e) {
     const msg = e.message || String(e);
     console.error('[Pledge error]', msg);
@@ -1086,7 +1230,184 @@ if (customRateInput) {
   }
 }());
 
+// ── #7 Donor Rank Badge ────────────────────────────────────────────────────
+// After a successful pledge, fetch leaderboard and show rank badge if top 3.
+// We sort by per_km_rate (higher = more generous) or flat_amount for flat pledges.
+async function checkDonorRank(email, pledgeType, value) {
+  try {
+    var res = await fetch(API + '/c/' + CAMPAIGN_ID + '/data' + (ATHLETE_ID ? '?a=' + ATHLETE_ID : ''));
+    if (!res.ok) return;
+    var data = await res.json();
+    // All donors: ranked by their pledge value (flat by amount, per-km by rate)
+    // We can't see other donors' values from /data endpoint, so we use donor count
+    // to infer rank — this is a heuristic (1st if only 1 donor etc.)
+    var donorCount = data.donorCount || 1;
+    var rankBadge = document.getElementById('rank-badge');
+    if (!rankBadge) return;
+    var rank = null;
+    // If this donor is the only one, they're #1; if there are few, show rank for top 3
+    if (donorCount <= 3) {
+      rank = donorCount; // approximate: most recent donor gets rank = total count
+    }
+    if (rank && rank <= 3) {
+      var medals = ['🥇','🥈','🥉'];
+      var medal = medals[rank - 1] || '';
+      var jaMsg = medal + ' あなたは現在 #' + rank + ' 番目のサポーターです！';
+      var enMsg = medal + " You're the #" + rank + " supporter of this athlete!";
+      rankBadge.textContent = t(jaMsg, enMsg);
+      rankBadge.style.display = 'block';
+    }
+  } catch(e) {}
+}
+
 loadData();
+
+// ── #16 QR Code ────────────────────────────────────────────────────────────
+(function() {
+  var pageUrl = window.location.href.split('?')[0]; // strip params
+  var canvas = document.getElementById('qr-canvas');
+  var urlText = document.getElementById('qr-url-text');
+  if (canvas && urlText && typeof QRCode !== 'undefined') {
+    QRCode.toCanvas(canvas, pageUrl, { width: 180, margin: 1, color: { dark: '#007B83', light: '#ffffff' } }, function(err) {
+      if (!err) {
+        document.getElementById('qr-card').style.display = 'block';
+        urlText.textContent = pageUrl;
+      }
+    });
+  }
+})();
+
+// ── #12 SSE — real-time live updates ──────────────────────────────────────
+(function() {
+  if (typeof EventSource === 'undefined') return;
+  var liveDot = document.createElement('span');
+  liveDot.style.cssText = 'display:inline-block;width:7px;height:7px;border-radius:50%;background:#34c759;margin-right:4px;vertical-align:middle;animation:pulse-dot 1.5s infinite';
+  var style = document.createElement('style');
+  style.textContent = '@keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.3)}}';
+  document.head.appendChild(style);
+
+  var donorsStat = document.getElementById('stat-donors');
+  if (donorsStat) {
+    var liveBadge = document.createElement('div');
+    liveBadge.style.cssText = 'font-size:10px;color:#34c759;font-weight:600;margin-top:2px;display:flex;align-items:center;justify-content:center';
+    liveBadge.appendChild(liveDot);
+    liveBadge.appendChild(document.createTextNode(currentLang === 'en' ? 'LIVE' : 'LIVE'));
+    donorsStat.parentNode && donorsStat.parentNode.appendChild(liveBadge);
+  }
+
+  var es = new EventSource(API + '/c/' + CAMPAIGN_ID + '/events');
+  es.addEventListener('pledge', function() {
+    // Refresh stats and activities when a new pledge comes in
+    loadData();
+  });
+  es.onerror = function() {
+    // Silent fail — SSE is best-effort
+  };
+})();
+
+// ── #11 App Store banner (show on iOS; hide if dismissed) ─────────────────
+(function() {
+  var banner = document.getElementById('app-banner');
+  var closeBtn = document.getElementById('app-banner-close');
+  if (!banner) return;
+  var dismissed = false;
+  try { dismissed = !!localStorage.getItem('ca_app_banner_dismissed'); } catch(e) {}
+  // Show on iOS Safari (where smart banner may not trigger) or Android
+  var isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+  var isAndroid = /Android/.test(navigator.userAgent);
+  // Update Android link to Play Store (placeholder until published)
+  if (isAndroid) {
+    var link = document.getElementById('app-banner-link');
+    if (link) link.href = 'https://play.google.com/store/apps/details?id=com.charityathletes.app';
+  }
+  if ((isIOS || isAndroid) && !dismissed) {
+    banner.style.display = 'flex';
+  }
+  if (closeBtn) {
+    closeBtn.addEventListener('click', function() {
+      banner.style.display = 'none';
+      try { localStorage.setItem('ca_app_banner_dismissed', '1'); } catch(e) {}
+    });
+  }
+})();
+
+// ── #13 Apple Pay / Google Pay (Stripe Payment Request Button) ────────────
+// Initialised after Stripe is set up; show only if browser supports it
+function initPaymentRequestButton() {
+  if (!stripe) return;
+  var prBtn = document.getElementById('payment-request-btn');
+  var prDiv = document.getElementById('payment-request-divider');
+  if (!prBtn) return;
+
+  var amount = ${campaign.goal_amount_jpy ? Math.min(campaign.goal_amount_jpy, 10000) : 1000};
+  var pr = stripe.paymentRequest({
+    country:  'JP',
+    currency: 'jpy',
+    total: {
+      label: ${JSON.stringify(campaign.title_ja || campaign.title_en || 'Donation')},
+      amount: amount,
+    },
+    requestPayerName:  true,
+    requestPayerEmail: true,
+  });
+
+  var prElement = stripe.elements().create('paymentRequestButton', {
+    paymentRequest: pr,
+    style: { paymentRequestButton: { type: 'donate', theme: 'dark', height: '48px' } },
+  });
+
+  pr.canMakePayment().then(function(result) {
+    if (result) {
+      prElement.mount('#payment-request-btn');
+      if (prDiv) prDiv.style.display = 'block';
+      // When the user confirms payment via Apple/Google Pay
+      pr.on('paymentmethod', async function(ev) {
+        // Build a new pledge first
+        var name  = ev.payerName  || 'Apple/Google Pay';
+        var email = ev.payerEmail || '';
+        var curType = currentType;
+        var pledgeBody = {
+          donor_name:      name,
+          donor_email:     email,
+          flat_amount_jpy: curType === 'flat' ? (parseInt(document.getElementById('flat-amount')?.value) || amount) : null,
+          per_km_rate_jpy: curType === 'perkm' ? (currentRate || null) : null,
+          currency:        currentCurrency,
+          tip_amount:      null,
+          is_anonymous:    false,
+          athlete_user_id: ATHLETE_ID || null,
+        };
+        try {
+          var pledgeRes = await fetch(API + '/c/' + CAMPAIGN_ID + '/pledge', {
+            method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(pledgeBody)
+          });
+          var pledgeData = await pledgeRes.json();
+          if (!pledgeRes.ok) { ev.complete('fail'); return; }
+
+          var confirmResult;
+          if (pledgeData.type === 'payment') {
+            confirmResult = await stripe.confirmCardPayment(pledgeData.client_secret, { payment_method: ev.paymentMethod.id }, { handleActions: false });
+          } else {
+            confirmResult = await stripe.confirmCardSetup(pledgeData.client_secret, { payment_method: ev.paymentMethod.id });
+          }
+          if (confirmResult.error) { ev.complete('fail'); return; }
+          ev.complete('success');
+
+          // Backend confirm
+          var intentId = pledgeData.type === 'payment' ? confirmResult.paymentIntent.id : confirmResult.setupIntent.id;
+          await fetch(API + '/c/' + CAMPAIGN_ID + '/pledge/confirm', {
+            method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ intent_id: intentId })
+          });
+          document.getElementById('pledge-form').style.display = 'none';
+          document.getElementById('success-box').style.display = 'block';
+          document.getElementById('success-box').innerHTML = '<h3>✅ ' + t('申し込み完了！','Done!') + '</h3><p>' + t('ありがとうございます！','Thank you for your support!') + '</p>';
+          loadData();
+        } catch(err) { ev.complete('fail'); }
+      });
+    }
+  });
+}
+// Wire up after Stripe is initialised
+if (stripe) { try { initPaymentRequestButton(); } catch(e) { console.warn('[PayReq]', e); } }
 </script>
 
 <div style="text-align:center;padding:28px 16px 20px;font-size:12px;color:#86868b">

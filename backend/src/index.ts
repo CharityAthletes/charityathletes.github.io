@@ -32,7 +32,7 @@ app.use(helmet({
       scriptSrc:      ["'self'", "'unsafe-inline'", 'https://js.stripe.com', 'https://unpkg.com'],
       scriptSrcAttr:  ["'unsafe-inline'"],   // allow onclick= handlers on donor page
       frameSrc:       ["'self'", 'https://js.stripe.com', 'https://*.stripe.com'],
-      connectSrc:     ["'self'", 'https://api.stripe.com'],
+      connectSrc:     ["'self'", 'https://api.stripe.com', 'https://api.resend.com'],
       imgSrc:         ["'self'", 'data:', 'https:'],
       styleSrc:       ["'self'", "'unsafe-inline'", 'https://unpkg.com'],
     },

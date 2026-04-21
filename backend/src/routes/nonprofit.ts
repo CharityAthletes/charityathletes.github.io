@@ -96,4 +96,59 @@ router.get('/campaigns', requireAuth, requireRole('nonprofit'), async (req: Requ
   res.json(data);
 });
 
+// GET /nonprofit/donations/export.csv — CSV export of all donations (#15)
+router.get('/donations/export.csv', requireAuth, requireRole('nonprofit'), async (req: Request, res: Response) => {
+  const nonprofitId = await getApprovedNonprofitId(req.userId!);
+  if (!nonprofitId) return res.status(403).json({ error: 'Nonprofit not approved yet' });
+
+  // Fetch all campaigns for this nonprofit
+  const { data: campaigns } = await db
+    .from('campaigns')
+    .select('id, title_ja, title_en')
+    .eq('nonprofit_id', nonprofitId);
+
+  const campaignIds = (campaigns ?? []).map((c: any) => c.id);
+  const campaignMap: Record<string, { ja: string; en: string }> = {};
+  for (const c of campaigns ?? []) campaignMap[c.id] = { ja: c.title_ja, en: c.title_en };
+
+  if (campaignIds.length === 0) {
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', 'attachment; filename="donations.csv"');
+    return res.send('\uFEFF' + 'Date,Campaign,Donor,Amount (JPY),Distance (km),Type\n');
+  }
+
+  // Fetch donor pledges
+  const { data: pledges, error } = await db
+    .from('donor_pledges')
+    .select('campaign_id, donor_name, is_anonymous, flat_amount_jpy, per_km_rate_jpy, charged_amount_jpy, status, created_at')
+    .in('campaign_id', campaignIds)
+    .neq('status', 'cancelled')
+    .order('created_at', { ascending: false });
+
+  if (error) return res.status(500).json({ error: error.message });
+
+  // Build CSV with BOM for Excel UTF-8 compatibility
+  const esc = (s: string | null | undefined) => `"${String(s ?? '').replace(/"/g, '""')}"`;
+  const header = 'Date,Campaign (JA),Campaign (EN),Donor,Amount (JPY),Rate (JPY/km),Charged (JPY),Status\n';
+  const rows = (pledges ?? []).map((p: any) => {
+    const date = new Date(p.created_at).toISOString().slice(0, 10);
+    const camp = campaignMap[p.campaign_id] ?? { ja: '', en: '' };
+    const donorName = p.is_anonymous ? '匿名 (Anonymous)' : (p.donor_name ?? '');
+    return [
+      esc(date),
+      esc(camp.ja),
+      esc(camp.en),
+      esc(donorName),
+      p.flat_amount_jpy ?? '',
+      p.per_km_rate_jpy ?? '',
+      p.charged_amount_jpy ?? '',
+      esc(p.status),
+    ].join(',');
+  }).join('\n');
+
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', `attachment; filename="donations-${new Date().toISOString().slice(0,10)}.csv"`);
+  res.send('\uFEFF' + header + rows);
+});
+
 export default router;

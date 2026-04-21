@@ -555,4 +555,100 @@ router.post('/:id/donate', requireAuth, async (req: Request, res: Response) => {
   res.json(session);
 });
 
+// POST /campaigns/:id/thankyou — athlete sends a thank-you note to their donors (#6)
+const thankYouSchema = z.object({
+  message: z.string().min(1).max(500),
+});
+
+router.post('/:id/thankyou', requireAuth, async (req: Request, res: Response) => {
+  const parsed = thankYouSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+
+  const { data: campaign } = await db
+    .from('campaigns')
+    .select('id, created_by, title_ja, title_en')
+    .eq('id', req.params.id)
+    .single();
+
+  if (!campaign) return res.status(404).json({ error: 'Campaign not found' });
+
+  // Only the creator OR a joined athlete can send thank-you to their own donors
+  const isCreator = campaign.created_by === req.userId;
+  if (!isCreator) {
+    const { count } = await db
+      .from('campaign_participations')
+      .select('*', { count: 'exact', head: true })
+      .eq('campaign_id', req.params.id)
+      .eq('user_id', req.userId!);
+    if ((count ?? 0) === 0) return res.status(403).json({ error: 'Not a participant' });
+  }
+
+  // Fetch donors for this athlete
+  let pledgeQuery = db
+    .from('donor_pledges')
+    .select('donor_email, donor_name, is_anonymous')
+    .eq('campaign_id', req.params.id)
+    .neq('status', 'cancelled')
+    .eq('is_anonymous', false); // skip anonymous donors
+
+  if (!isCreator) pledgeQuery = pledgeQuery.eq('athlete_user_id', req.userId!);
+
+  const { data: donors } = await pledgeQuery;
+
+  // Get sender's display name
+  const { data: senderProfile } = await db
+    .from('user_profiles')
+    .select('display_name')
+    .eq('user_id', req.userId!)
+    .single();
+  const senderName = senderProfile?.display_name ?? 'アスリート';
+
+  // Send emails via Resend (if configured) — fire-and-forget
+  const resendKey = process.env.RESEND_API_KEY;
+  if (resendKey && donors && donors.length > 0) {
+    const titleJa = campaign.title_ja ?? 'チャリティイベント';
+    const uniqueEmails = new Set<string>();
+    for (const donor of donors) {
+      if (!donor.donor_email || uniqueEmails.has(donor.donor_email)) continue;
+      uniqueEmails.add(donor.donor_email);
+      fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${resendKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: 'チャリアス <noreply@charityathletes.org>',
+          to: donor.donor_email,
+          subject: `🙏 ${senderName} から感謝のメッセージ | Thank you from ${senderName}`,
+          html: `
+<p>こんにちは、${donor.donor_name} さん</p>
+<p>「${titleJa}」へのご支援ありがとうございます。<br>アスリート <strong>${senderName}</strong> からメッセージが届きました：</p>
+<blockquote style="border-left:3px solid #007B83;padding-left:12px;color:#444">
+  ${parsed.data.message.replace(/\n/g, '<br>')}
+</blockquote>
+<p style="color:#86868b;font-size:12px">— チャリアス (Charity Athletes)</p>
+<hr>
+<p>Dear ${donor.donor_name},</p>
+<p>Thank you for supporting <strong>${campaign.title_en ?? titleJa}</strong>!<br>${senderName} has sent you a message:</p>
+<blockquote style="border-left:3px solid #007B83;padding-left:12px;color:#444">
+  ${parsed.data.message.replace(/\n/g, '<br>')}
+</blockquote>
+<p style="color:#86868b;font-size:12px">— Charity Athletes</p>
+          `,
+        }),
+      }).catch(err => console.error('[ThankYou email] error:', err));
+    }
+  }
+
+  // Store message in DB for display in app (donors can see it on their receipt page)
+  await db.from('campaign_thank_you_notes').insert({
+    campaign_id: req.params.id,
+    athlete_user_id: req.userId!,
+    message: parsed.data.message,
+  }).then(() => {}).catch(() => {}); // table may not exist yet — silently ignore
+
+  res.json({ ok: true, sentTo: (donors ?? []).filter(d => !d.is_anonymous).length });
+});
+
 export default router;

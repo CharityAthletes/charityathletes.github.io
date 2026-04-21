@@ -407,4 +407,29 @@ router.post('/strava/sync', requireAuth, async (req: Request, res: Response) => 
   }
 });
 
+// POST /auth/device-token — register iOS push notification token (#1)
+router.post('/device-token', requireAuth, async (req: Request, res: Response) => {
+  const { token, platform = 'ios' } = req.body ?? {};
+  if (!token || typeof token !== 'string') {
+    return res.status(400).json({ error: 'token required' });
+  }
+
+  // Upsert — one row per (user_id, token) pair
+  const { error } = await db.from('device_tokens').upsert(
+    { user_id: req.userId!, token, platform, updated_at: new Date().toISOString() },
+    { onConflict: 'token' }
+  );
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ ok: true });
+});
+
+// DELETE /auth/device-token — remove token on logout
+router.delete('/device-token', requireAuth, async (req: Request, res: Response) => {
+  const { token } = req.body ?? {};
+  if (!token) return res.status(400).json({ error: 'token required' });
+  await db.from('device_tokens').delete().eq('token', token).eq('user_id', req.userId!);
+  res.json({ ok: true });
+});
+
 export default router;
