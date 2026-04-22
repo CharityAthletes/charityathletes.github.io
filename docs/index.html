@@ -323,8 +323,8 @@
           <div class="how-step-body">
             <h3 data-lang="ja">アプリをダウンロードしてStravaと連携</h3>
             <h3 data-lang="en">Download the App &amp; Connect Strava</h3>
-            <p data-lang="ja">App Storeからチャリアスをダウンロードしてログイン。プロフィール画面からStravaと連携すると、ランニング・サイクリング・水泳などのアクティビティが自動で同期されます。</p>
-            <p data-lang="en">Download Charity Athletes from the App Store and sign in. Connect your Strava account from the Profile tab — runs, rides, and swims sync automatically from that point on.</p>
+            <p data-lang="ja">App Storeからチャリアスをダウンロードしてログイン。プロフィール画面からStravaと連携すると、ランニング・サイクリング・水泳などのアクティビティが自動で同期されます。アプリはStravaのデータを読み取るだけで、Stravaへの書き込みは行いません。</p>
+            <p data-lang="en">Download Charity Athletes from the App Store and sign in. Connect your Strava account from the Profile tab — runs, rides, and swims sync automatically from that point on. The app only reads from Strava; it never posts anything back to your Strava profile.</p>
           </div>
         </div>
 
@@ -349,8 +349,8 @@
           <div class="how-step-body">
             <h3 data-lang="ja">いつも通り活動するだけ</h3>
             <h3 data-lang="en">Train as Usual</h3>
-            <p data-lang="ja">Stravaに活動を記録するだけで、アプリが自動的に距離を取得して寄付を計算します。手動操作は一切不要です。</p>
-            <p data-lang="en">Just keep moving. Every Strava activity is automatically fetched and counted toward your campaign. Nothing extra to do.</p>
+            <p data-lang="ja">Stravaに活動を記録するだけで、アプリが自動的に距離を取得して寄付を計算します。手動操作は一切不要です。Stravaで公開設定にしているアクティビティはルートマップや写真も寄付ページに表示されます（非公開設定は表示されません）。</p>
+            <p data-lang="en">Just keep moving. Every Strava activity is automatically fetched and counted toward your campaign. If you've set an activity to public on Strava, its route map and photos will appear on your donor page too. Private activities count toward your distance but their details are never shown.</p>
           </div>
         </div>
 
@@ -373,6 +373,10 @@
         <strong>💡 <span data-lang="ja">ヒント</span><span data-lang="en">Tips</span></strong><br>
         <span data-lang="ja">複数のイベントに同時に参加・作成できます。同じイベントに複数のアスリートが参加でき、それぞれ個別のリンクと走行距離を持ちます。</span>
         <span data-lang="en">You can join or create multiple campaigns at once. Multiple athletes can join the same campaign — each gets their own personal link and tracks their own distance independently.</span>
+        <br><br>
+        <strong>🔒 <span data-lang="ja">プライバシーについて</span><span data-lang="en">Privacy</span></strong><br>
+        <span data-lang="ja">アプリはStravaからルートマップ・写真を取得しますが、これらはStravaで「公開」に設定されたアクティビティのみです。アプリからStravaへの書き込みは行わず、詳細なGPSログ（GPXデータ）・セグメント情報・コメントは取得・保存しません。詳細は<a href="privacy.html">プライバシーポリシー</a>をご参照ください。</span>
+        <span data-lang="en">Route maps and photos are only pulled for activities you've marked as public on Strava. The app never writes to your Strava account, and never stores raw GPS tracks, segment data, or comments. See our <a href="privacy.html">Privacy Policy</a> for full details.</span>
       </div>
     </div><!-- /how-athlete -->
 
@@ -473,10 +477,10 @@
     <div class="features-grid">
       <div class="feature-card">
         <div class="feature-icon">🔄</div>
-        <h3 data-lang="ja">Strava自動連携</h3>
-        <h3 data-lang="en">Automatic Strava Sync</h3>
-        <p data-lang="ja">Stravaに活動を記録するだけで、アプリが自動的に距離を取得し寄付を計算します。手動操作は不要です。</p>
-        <p data-lang="en">Activities recorded on Strava are automatically fetched. No manual uploads needed.</p>
+        <h3 data-lang="ja">Strava連携（プライバシー対応）</h3>
+        <h3 data-lang="en">Strava Sync — Privacy First</h3>
+        <p data-lang="ja">Stravaと連携すると、活動種別・距離・時間・標高などが自動で同期されます。ルートマップや写真はStravaで公開設定の場合のみ表示。詳細なGPSログや心拍数などの個人データはアプリ外に公開されません。</p>
+        <p data-lang="en">When you connect Strava, your activity type, distance, duration, and elevation sync automatically. Route maps and photos appear on your campaign page only if you've set them to public on Strava. Raw GPS tracks and personal metrics are never shared outside the app.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">📅</div>
