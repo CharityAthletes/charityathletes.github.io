@@ -335,7 +335,12 @@
       <details>
         <summary>寄付の仕組みを教えてください</summary>
         <div class="faq-body">
-          アスリートからシェアリンクを受け取り、イベントページで寄付レートを選びます（例：¥10/km）。アスリートが活動を記録するたびに、その距離に応じた金額がStripeを通じてクレジットカードに課金されます。
+          アスリートからシェアリンクを受け取り、ブラウザでイベントページを開いて寄付の種類を選びます。
+          <ul>
+            <li><strong>定額寄付</strong>：金額を選んでApple Pay・Google Pay・クレジットカードで即時決済されます。</li>
+            <li><strong>距離連動プレッジ</strong>：1kmあたりのレート（例：¥10/km）を選びます。イベント終了後に、<strong>そのアスリートの総走行距離</strong>に基づいて1回だけ請求されます。アクティビティのたびに課金されるわけではありません。</li>
+          </ul>
+          申し込み完了後、メールでレシートが届きます。
         </div>
       </details>
 
@@ -347,9 +352,16 @@
       </details>
 
       <details>
-        <summary>1回の請求上限はありますか？</summary>
+        <summary>請求額の上限はありますか？</summary>
         <div class="faq-body">
-          イベントには「最大距離」の設定がある場合があります。例えば最大100kmに設定されている場合、アスリートが150km走っても、課金対象は100kmまでになります。
+          距離連動プレッジのイベントには、必ず「最大距離（距離上限）」が設定されています。例えば上限が100kmの場合、アスリートが150km走っても課金対象は100kmまでです。イベントページでは「上限金額：¥X/km × Xkm = 最大¥Y」のように事前に最大請求額が表示されます。
+        </div>
+      </details>
+
+      <details>
+        <summary>Apple Pay・Google Payは使えますか？</summary>
+        <div class="faq-body">
+          はい。定額寄付の場合、対応デバイスではApple Pay（iPhoneなど）またはGoogle Pay（Androidなど）でワンタップで決済できます。距離連動プレッジはイベント終了後に請求されるため、カード情報の登録が必要です。
         </div>
       </details>
 
@@ -363,11 +375,23 @@
       <details>
         <summary>寄付金はどこに届きますか？</summary>
         <div class="faq-body">
-          寄付金はStripeを通じて、イベントが指定した非営利団体に直接届きます。現在対応している団体は以下の通りです：
+          寄付金はStripeを通じて、イベントが指定した非営利団体に直接届きます。現在対応している団体の例：
           <ul>
             <li>サイクリング・フォー・チャリティ</li>
             <li>みらいの森（Mirai no Mori）</li>
           </ul>
+          アプリ内のイベント作成画面で最新の対応団体一覧をご確認ください。
+        </div>
+      </details>
+    </div>
+
+    <div class="faq-group">
+      <div class="faq-group-title">🔔 アスリート向け通知</div>
+
+      <details>
+        <summary>寄付が入ったときに通知が届きますか？</summary>
+        <div class="faq-body">
+          はい。新しい寄付者がイベントに申し込むと、プッシュ通知でリアルタイムにお知らせします。通知を受け取るには、アプリ起動時に通知の許可をしてください。
         </div>
       </details>
     </div>
@@ -467,7 +491,12 @@
       <details>
         <summary>How does donating work?</summary>
         <div class="faq-body">
-          Receive a campaign link from an athlete, open it in your browser, and choose a pledge rate (e.g. ¥10/km) or a flat amount. Register your credit card once. Every time the athlete logs an activity, your pledge is calculated and charged automatically via Stripe.
+          Receive a campaign link from an athlete, open it in your browser, and choose your donation type:
+          <ul>
+            <li><strong>Flat donation</strong> — choose an amount and pay instantly with Apple Pay, Google Pay, or a credit card.</li>
+            <li><strong>Per-km pledge</strong> — choose a rate (e.g. ¥10/km). Your card is saved securely and charged <strong>once at campaign end</strong>, based on that athlete's total verified distance. You are not charged each time the athlete logs an activity.</li>
+          </ul>
+          You'll receive an email receipt after your donation is processed.
         </div>
       </details>
 
@@ -481,7 +510,14 @@
       <details>
         <summary>Is there a cap on how much I can be charged?</summary>
         <div class="faq-body">
-          Campaigns may have a maximum distance cap (e.g. 100 km). If the athlete runs 150 km, you'll only be charged for 100 km. The campaign page will show you the cap if one is set.
+          Yes — all per-km campaigns are required to set a distance cap. For example, with a 100 km cap, you'll only be charged for 100 km even if the athlete runs further. The campaign page shows your maximum possible charge upfront (e.g. "¥10/km × 100 km = max ¥1,000") so there are no surprises.
+        </div>
+      </details>
+
+      <details>
+        <summary>Can I pay with Apple Pay or Google Pay?</summary>
+        <div class="faq-body">
+          Yes. For flat donations, Apple Pay (iPhone/Mac) and Google Pay (Android/Chrome) are supported for one-tap checkout. Per-km pledges require a saved card since the charge happens at campaign end.
         </div>
       </details>
 
@@ -495,12 +531,23 @@
       <details>
         <summary>Where does my donation go?</summary>
         <div class="faq-body">
-          Donations are sent directly to the nonprofit specified in the campaign, via Donorbox. Current partner nonprofits:
+          Donations are sent directly to the nonprofit specified in the campaign, processed securely via Stripe. Examples of current partner nonprofits:
           <ul>
-            <li>Cycling for Charity</li>
-            <li>Ashinaga (あしなが育英会)</li>
-            <li>TELL Japan</li>
+            <li>Cycling for Charity Japan</li>
+            <li>Mirai no Mori (みらいの森)</li>
           </ul>
+          Check the campaign page or the app for the full up-to-date list of supported nonprofits.
+        </div>
+      </details>
+    </div>
+
+    <div class="faq-group">
+      <div class="faq-group-title">🔔 Notifications for Athletes</div>
+
+      <details>
+        <summary>Will I be notified when someone donates?</summary>
+        <div class="faq-body">
+          Yes. You'll receive a push notification in real time whenever a new donor pledges to your campaign. Make sure to allow notifications when prompted in the app.
         </div>
       </details>
     </div>
@@ -558,7 +605,7 @@
   <a href="privacy.html" data-lang="ja">プライバシーポリシー</a>
   <a href="privacy.html" data-lang="en">Privacy Policy</a>
   <br><br>
-  <span style="font-size:12px;">© 2025 Charity Athletes</span>
+  <span style="font-size:12px;">© 2026 Charity Athletes</span>
 </footer>
 
 <script>
