@@ -184,13 +184,15 @@ struct CampaignRow: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 3) {
-                    HStack(spacing: 6) {
+                    HStack(alignment: .top, spacing: 6) {
                         Text(i18n.pick(ja: campaign.titleJa, en: campaign.titleEn))
                             .font(.headline).lineLimit(2)
                         if showPrivateBadge || !campaign.isPublic {
                             Label(i18n.language == .ja ? "非公開" : "Private",
                                   systemImage: "lock.fill")
                                 .font(.caption2.bold())
+                                .lineLimit(1)
+                                .fixedSize()
                                 .padding(.horizontal, 6).padding(.vertical, 2)
                                 .background(Color.secondary.opacity(0.15))
                                 .foregroundStyle(.secondary)
