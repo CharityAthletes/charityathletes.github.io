@@ -50,7 +50,7 @@ struct HowItWorksView: View {
                         title: i18n.language == .ja ? "個人リンクをシェアする" : "Share Your Personal Link",
                         description: i18n.language == .ja
                             ? "イベント詳細画面からあなた専用のURLをコピーして友人・家族・SNSにシェアしましょう。そのリンクからの寄付はあなたの活動に紐づきます。"
-                            : "Copy your personal campaign link from the campaign detail screen. Donors who open your link will see your activities and pledge based on your distance."
+                            : "Copy your personal campaign link from the campaign detail screen. Donors who open your link can pledge based on your total verified distance — your individual activities stay private."
                     )
                     StepCard(
                         number: 4,
