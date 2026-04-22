@@ -542,8 +542,8 @@ ${(campaign.description_ja || campaign.description_en) ? `
         <div style="background:#007B83;color:#fff;font-weight:700;font-size:13px;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">1</div>
         <div>
           <div style="font-weight:600;font-size:14px"><span class="ja">🏃 このアスリートが走る・漕ぐ・泳ぐ</span><span class="en">🏃 The athlete runs, rides or swims</span></div>
-          <div class="ja" style="font-size:13px;color:#86868b;margin-top:2px">このページには<strong>このアスリート</strong>の活動と走行距離が表示されます。StravaがすべてのKmを自動追跡します。</div>
-          <div class="en" style="font-size:13px;color:#86868b;margin-top:2px">This page shows <strong>this athlete's</strong> activities and distance. Strava tracks every km automatically.</div>
+          <div class="ja" style="font-size:13px;color:#86868b;margin-top:2px">アスリートはStravaで活動を記録し、アプリが総走行距離を自動集計します。距離連動寄付はイベント終了後に確定した距離をもとに請求されます。</div>
+          <div class="en" style="font-size:13px;color:#86868b;margin-top:2px">The athlete logs activities on Strava, and the app automatically tallies their total distance. Per-km pledges are charged at campaign end based on the verified total.</div>
         </div>
       </div>
       <div style="display:flex;gap:12px;align-items:flex-start">
