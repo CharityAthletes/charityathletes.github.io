@@ -269,7 +269,14 @@ struct StravaConnectCard: View {
     @State private var isLoading = false
 
     var body: some View {
-        VStack {
+        VStack(spacing: 10) {
+            // Hint text above the official button
+            Text(i18n.t(.dashboardConnectHint))
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+
+            // Official "Connect with Strava" button (Strava Brand Guidelines)
             Button {
                 Task {
                     isLoading = true
@@ -281,27 +288,28 @@ struct StravaConnectCard: View {
                     isLoading = false
                 }
             } label: {
-                HStack(spacing: 14) {
-                    Image(systemName: "link.circle.fill")
-                        .font(.title)
-                        .foregroundStyle(Color("StravaOrange"))
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(i18n.t(.dashboardConnectStrava)).font(.headline)
-                        Text(i18n.t(.dashboardConnectHint)).font(.caption).foregroundStyle(.secondary)
-                    }
-                    Spacer()
-                    if isLoading { ProgressView() }
-                    else { Image(systemName: "chevron.right").foregroundStyle(.secondary) }
+                if isLoading {
+                    Image("StravaConnectButton")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 48)
+                        .opacity(0.6)
+                        .overlay(ProgressView().tint(.white))
+                } else {
+                    Image("StravaConnectButton")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 48)
                 }
-                .padding()
-                .background(Color(.secondarySystemBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 14))
             }
             .buttonStyle(.plain)
+            .disabled(isLoading)
+
             if let err = errorMsg {
-                Text(err).font(.caption).foregroundStyle(.red).padding(.horizontal)
+                Text(err).font(.caption).foregroundStyle(.red).multilineTextAlignment(.center)
             }
         }
+        .padding(.vertical, 8)
     }
 }
 
