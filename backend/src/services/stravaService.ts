@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { db } from '../config/supabase';
-import type { StravaDetailedActivity, StravaPhoto, StravaTokenResponse } from '../types';
+import type { StravaDetailedActivity, StravaTokenResponse } from '../types';
 
 const API = 'https://www.strava.com/api/v3';
 const TOKEN_URL = 'https://www.strava.com/oauth/token';
@@ -14,7 +14,7 @@ export const stravaService = {
       redirect_uri:  process.env.STRAVA_REDIRECT_URI!,
       response_type: 'code',
       approval_prompt: 'auto',
-      scope:         'read,activity:read_all',
+      scope:         'read,activity:read',
       state,
     });
     return `https://www.strava.com/oauth/authorize?${p}`;
@@ -93,40 +93,21 @@ export const stravaService = {
       { headers: { Authorization: `Bearer ${accessToken}` } }
     );
 
-    // Fetch photos — optional, don't fail the sync if this errors
-    let photoUrls: string[] = [];
-    try {
-      const { data: photos } = await axios.get<StravaPhoto[]>(
-        `${API}/activities/${stravaActivityId}/photos`,
-        { params: { photo_sources: true, size: 600 },
-          headers: { Authorization: `Bearer ${accessToken}` } }
-      );
-      photoUrls = photos
-        .filter(p => p.urls?.['600'])
-        .map(p => p.urls['600']);
-    } catch {
-      // Photos are optional; silently skip if unavailable
-    }
-
     const { data, error } = await db
       .from('activities')
       .upsert({
-        user_id:             userId,
-        strava_activity_id:  stravaActivityId.toString(),
-        name:                raw.name,
-        sport_type:          raw.sport_type,
-        distance_meters:     raw.distance,
-        moving_time_seconds: raw.moving_time,
+        user_id:              userId,
+        strava_activity_id:   stravaActivityId.toString(),
+        name:                 raw.name,
+        sport_type:           raw.sport_type,
+        distance_meters:      raw.distance,
+        moving_time_seconds:  raw.moving_time,
         elapsed_time_seconds: raw.elapsed_time,
         total_elevation_gain: raw.total_elevation_gain,
-        start_date:          raw.start_date,
-        start_date_local:    raw.start_date_local ?? raw.start_date,
-        map_polyline:        raw.map?.summary_polyline ?? null,
-        average_speed_mps:   raw.average_speed,
-        max_speed_mps:       raw.max_speed,
-        average_heartrate:   raw.average_heartrate ?? null,
-        photo_urls:          photoUrls,
-        is_processed:        false,
+        start_date:           raw.start_date,
+        average_speed_mps:    raw.average_speed,
+        average_heartrate:    raw.average_heartrate ?? null,
+        is_processed:         false,
       }, { onConflict: 'strava_activity_id' })
       .select('id')
       .single();
