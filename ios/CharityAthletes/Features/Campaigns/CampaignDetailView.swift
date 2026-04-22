@@ -109,12 +109,14 @@ struct CampaignDetailView: View {
     private static let dateFmtJa: DateFormatter = {
         let f = DateFormatter()
         f.locale = Locale(identifier: "ja_JP")
+        f.timeZone = TimeZone(identifier: "Asia/Tokyo")
         f.dateFormat = "yyyy年M月d日"
         return f
     }()
 
     private static let dateFmtEn: DateFormatter = {
         let f = DateFormatter()
+        f.timeZone = TimeZone(identifier: "Asia/Tokyo")
         f.dateFormat = "MMM d, yyyy"
         return f
     }()

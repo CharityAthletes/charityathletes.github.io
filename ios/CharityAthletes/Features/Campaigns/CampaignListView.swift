@@ -169,6 +169,7 @@ struct CampaignRow: View {
 
     private static let dateFmt: DateFormatter = {
         let f = DateFormatter()
+        f.timeZone = TimeZone(identifier: "Asia/Tokyo")
         f.dateFormat = "MMM d"
         return f
     }()

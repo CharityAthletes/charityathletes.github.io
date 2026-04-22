@@ -364,8 +364,8 @@ export { broadcastToRoom };
 function renderPage(campaign: any, stripeKey: string, apiBase: string, campaignId: string, athleteId: string = ''): string {
   const np   = campaign.nonprofits;
   const athlete = campaign.user_profiles;
-  const endDate   = new Date(campaign.end_date).toLocaleDateString('ja-JP', { year:'numeric', month:'long', day:'numeric' });
-  const endDateEn = new Date(campaign.end_date).toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' });
+  const endDate   = new Date(campaign.end_date).toLocaleDateString('ja-JP', { year:'numeric', month:'long', day:'numeric', timeZone: 'Asia/Tokyo' });
+  const endDateEn = new Date(campaign.end_date).toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric', timeZone: 'Asia/Tokyo' });
 
   // ── Server-side HTML escape helpers ───────────────────────────────────────
   // Must be applied to every user-controlled value inserted into the template.
