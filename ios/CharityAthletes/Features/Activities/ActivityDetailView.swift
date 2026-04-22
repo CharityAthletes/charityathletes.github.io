@@ -33,14 +33,19 @@ struct ActivityDetailView: View {
                     let webURL = URL(string: "https://www.strava.com/activities/\(sid)")!
                     let url = UIApplication.shared.canOpenURL(appURL) ? appURL : webURL
                     Link(destination: url) {
-                        Label(i18n.language == .ja ? "Stravaで見る" : "View on Strava",
-                              systemImage: "arrow.up.right.square")
-                            .font(.subheadline.bold())
-                            .foregroundStyle(Color("StravaOrange"))
-                            .padding(.vertical, 10)
-                            .frame(maxWidth: .infinity)
-                            .background(Color("StravaOrange").opacity(0.1))
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                        HStack(spacing: 8) {
+                            Image("StravaChevron")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(height: 16)
+                            Text(i18n.language == .ja ? "Stravaで見る" : "View on Strava")
+                                .font(.subheadline.bold())
+                        }
+                        .foregroundStyle(Color("StravaOrange"))
+                        .padding(.vertical, 10)
+                        .frame(maxWidth: .infinity)
+                        .background(Color("StravaOrange").opacity(0.1))
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
                     }
                 }
             }
