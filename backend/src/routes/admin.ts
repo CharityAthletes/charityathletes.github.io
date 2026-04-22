@@ -124,7 +124,7 @@ router.post('/nonprofits/:id/connect', ...guard, async (req: Request, res: Respo
 
   if (!nonprofit) return res.status(404).json({ error: 'Nonprofit not found' });
 
-  const appUrl = process.env.APP_URL ?? 'https://charityathletes-production.up.railway.app';
+  const appUrl = process.env.APP_URL ?? 'https://donate.charityathletes.org';
   const returnUrl  = `${appUrl}/admin/connect/complete?nonprofit_id=${nonprofit.id}`;
   const refreshUrl = `${appUrl}/admin/nonprofits/${nonprofit.id}/connect`;
 

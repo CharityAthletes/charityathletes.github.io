@@ -31,7 +31,7 @@ async function main() {
 
   const appUrl = process.env.APP_URL?.startsWith('http')
     ? process.env.APP_URL
-    : 'https://charityathletes-production.up.railway.app';
+    : 'https://donate.charityathletes.org';
 
   for (const campaign of campaigns) {
     const daysLeft = Math.ceil(

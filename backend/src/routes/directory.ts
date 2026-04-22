@@ -2,7 +2,7 @@
 
 export function renderDirectoryPage(charities: any[]): string {
   const orgsJson = JSON.stringify(charities);
-  const BASE = 'https://charityathletes-production.up.railway.app';
+  const BASE = 'https://donate.charityathletes.org';
 
   return `<!DOCTYPE html>
 <html lang="ja">

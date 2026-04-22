@@ -39,7 +39,7 @@ enum AppConfig {
     let raw = Bundle.main.object(forInfoDictionaryKey: "BACKEND_URL") as? String ?? ""
     // xcconfig strips "//" (treats it as a comment), so fall back if the value looks broken
     guard raw.hasPrefix("http://") || raw.hasPrefix("https://") else {
-      return "https://charityathletes-production.up.railway.app"
+      return "https://donate.charityathletes.org"
     }
     return raw
   }
