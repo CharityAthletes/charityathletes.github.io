@@ -88,8 +88,6 @@ struct Activity: Decodable, Identifiable, Hashable {
     let averageHeartrate: Double?
     let startDate: Date
     let stravaActivityId: String?
-    let mapPolyline: String?
-    let photoUrls: [String]?
 
     var distanceKm: Double { distanceMeters / 1000 }
 

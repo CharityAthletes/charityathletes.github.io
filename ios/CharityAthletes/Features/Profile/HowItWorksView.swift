@@ -49,8 +49,8 @@ struct HowItWorksView: View {
                         icon: "square.and.arrow.up",
                         title: i18n.language == .ja ? "個人リンクをシェアする" : "Share Your Personal Link",
                         description: i18n.language == .ja
-                            ? "イベント詳細画面からあなた専用のURLをコピーして友人・家族・SNSにシェアしましょう。そのリンクからの寄付はあなたの活動に紐づきます。"
-                            : "Copy your personal campaign link from the campaign detail screen. Donors who open your link can pledge based on your total verified distance — your individual activities stay private."
+                            ? "イベント詳細画面からあなた専用のURLをコピーして友人・家族・SNSにシェアしましょう。寄付者には総走行距離のみが表示され、個別のアクティビティ詳細はあなたにのみ表示されます。"
+                            : "Copy your personal campaign link from the campaign detail screen. Donors see only your total verified distance — individual activity details are visible only to you."
                     )
                     StepCard(
                         number: 4,
