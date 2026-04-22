@@ -517,7 +517,7 @@ function renderPage(campaign: any, stripeKey: string, apiBase: string, campaignI
 </div>
 
 <div class="stat-row">
-  <div class="stat"><div class="val" id="stat-km">…</div><div class="lbl"><span class="ja">走行距離</span><span class="en">My Distance</span></div></div>
+  <div class="stat"><div class="val" id="stat-km">…</div><div class="lbl"><span class="ja">走行距離</span><span class="en">Distance</span></div></div>
   <div class="stat"><div class="val" id="stat-donors">…</div><div class="lbl"><span class="ja">サポーター</span><span class="en">Donors</span></div></div>
   <div class="stat"><div class="val" id="stat-total">…</div><div class="lbl"><span class="ja">寄付見込額</span><span class="en">Est. Total</span></div></div>
 </div>
