@@ -163,7 +163,14 @@ router.get('/created', requireAuth, async (req: Request, res: Response) => {
     .order('created_at', { ascending: false });
 
   if (error) return res.status(500).json({ error: error.message });
-  res.json(data ?? []);
+
+  const enriched = await Promise.all(
+    (data ?? []).map(async (c: any) => {
+      try { c.raised_amount_jpy = await calcRaisedAmount(c); } catch (_) {}
+      return c;
+    })
+  );
+  res.json(enriched);
 });
 
 // GET /campaigns/:id
