@@ -61,9 +61,9 @@ struct ActivityListView: View {
                         } header: {
                             Label(
                                 i18n.language == .ja
-                                    ? "アクティビティをタップするとマップや写真が表示されます"
-                                    : "Tap an activity to see the map & photos",
-                                systemImage: "map"
+                                    ? "アクティビティをタップすると詳細が表示されます"
+                                    : "Tap an activity to see details",
+                                systemImage: "figure.mixed.cardio"
                             )
                             .font(.caption)
                             .foregroundStyle(.secondary)
