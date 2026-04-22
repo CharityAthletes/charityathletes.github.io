@@ -8,7 +8,7 @@ const router = Router();
 router.get('/', requireAuth, async (req: Request, res: Response) => {
   const { data, error } = await db
     .from('activities')
-    .select('id, name, sport_type, distance_meters, moving_time_seconds, total_elevation_gain, average_heartrate, start_date, strava_activity_id, map_polyline, photo_urls')
+    .select('id, name, sport_type, distance_meters, moving_time_seconds, total_elevation_gain, average_heartrate, start_date, strava_activity_id')
     .eq('user_id', req.userId!)
     .is('deleted_at', null)
     .order('start_date', { ascending: false })

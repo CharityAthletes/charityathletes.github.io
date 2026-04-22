@@ -75,18 +75,16 @@ router.get('/:id/data', async (req: Request, res: Response) => {
       (t: string) => sportTypeAliases[t] ?? [t]
     );
 
-    // ?a=userId — show a specific athlete's activities; defaults to creator
+    // ?a=userId — show a specific athlete's totals; defaults to creator
     const athleteId = (req.query.a as string) || campaign.created_by || null;
 
-    // Build activities query — only filter by sport_type when types are actually configured
+    // Aggregate distance only — individual activity details are not exposed publicly
     let activityQuery = db.from('activities')
-      .select('id, name, sport_type, distance_meters, start_date, moving_time_seconds, strava_activity_id, map_polyline, photo_urls')
+      .select('distance_meters')
       .is('deleted_at', null)
-      .gte('start_date_local', campaign.start_date ?? '')
-      .order('start_date_local', { ascending: false })
-      .limit(20);
+      .gte('start_date', campaign.start_date ?? '');
     if (athleteId) activityQuery = activityQuery.eq('user_id', athleteId);
-    if (campaign.end_date) activityQuery = activityQuery.lte('start_date_local', campaign.end_date);
+    if (campaign.end_date) activityQuery = activityQuery.lte('start_date', campaign.end_date);
     if (expandedTypes.length > 0) activityQuery = activityQuery.in('sport_type', expandedTypes);
 
     // Pledges: scope to this athlete when ?a= is present; otherwise all campaign pledges
@@ -101,13 +99,12 @@ router.get('/:id/data', async (req: Request, res: Response) => {
       pledgesQuery,
     ]);
 
-    const totalKm = (activities ?? []).reduce((s, a) => s + (a.distance_meters / 1000), 0);
+    const totalKm = (activities ?? []).reduce((s: number, a: any) => s + (a.distance_meters / 1000), 0);
     const totalPledgedFlat = (pledges ?? []).reduce((s, p) => s + (p.flat_amount_jpy ?? 0), 0);
     const totalPledgedPerKm = (pledges ?? []).reduce((s, p) => s + ((p.per_km_rate_jpy ?? 0) * totalKm), 0);
 
     return res.json({
       campaign,
-      activities: activities ?? [],
       totalKm: Math.round(totalKm * 10) / 10,
       donorCount: (pledges ?? []).length,
       estimatedTotal: Math.round(totalPledgedFlat + totalPledgedPerKm),
@@ -399,8 +396,6 @@ function renderPage(campaign: any, stripeKey: string, apiBase: string, campaignI
   <!-- #11 Apple smart banner — opens campaign deep-link in the iOS app -->
   <meta name="apple-itunes-app" content="app-id=6744048310, app-argument=charityathletes://campaign/${h(campaignId)}">
   <script src="https://js.stripe.com/v3/"></script>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <!-- #16 QR code library (pure-JS, no canvas needed) -->
   <script src="https://unpkg.com/qrcode@1.5.4/build/qrcode.min.js"></script>
   <style>
@@ -418,13 +413,6 @@ function renderPage(campaign: any, stripeKey: string, apiBase: string, campaignI
     .stat .lbl{font-size:11px;color:#86868b;margin-top:2px}
     .progress-bar{background:#f0f0f0;border-radius:99px;height:8px;margin:10px 0}
     .progress-fill{background:linear-gradient(90deg,#007B83,#2E7D32);border-radius:99px;height:8px;transition:width .5s}
-    .activity-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f0f0f0}
-    .activity-row:last-child{border-bottom:none}
-    .activity-icon{width:36px;height:36px;background:#E0F7FA;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
-    .activity-info{flex:1}
-    .activity-name{font-size:14px;font-weight:500}
-    .activity-meta{font-size:12px;color:#86868b}
-    .activity-dist{font-size:14px;font-weight:700;color:#007B83}
     input,select{width:100%;padding:12px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:15px;margin-top:6px;outline:none;transition:border .2s}
     input:focus,select:focus{border-color:#007B83}
     label{font-size:14px;font-weight:500;color:#444;display:block;margin-top:14px}
@@ -532,14 +520,6 @@ function renderPage(campaign: any, stripeKey: string, apiBase: string, campaignI
   <div class="stat"><div class="val" id="stat-km">…</div><div class="lbl"><span class="ja">走行距離</span><span class="en">My Distance</span></div></div>
   <div class="stat"><div class="val" id="stat-donors">…</div><div class="lbl"><span class="ja">サポーター</span><span class="en">Donors</span></div></div>
   <div class="stat"><div class="val" id="stat-total">…</div><div class="lbl"><span class="ja">寄付見込額</span><span class="en">Est. Total</span></div></div>
-</div>
-
-<div class="card" style="margin-top:28px">
-  <div class="section-title"><span class="ja">活動履歴</span><span class="en">Activities</span></div>
-  <div id="activities-hint" style="display:none;font-size:12px;color:#86868b;margin-bottom:10px;margin-top:-6px">
-    🗺️ <span class="ja">アクティビティをタップするとマップや写真が表示されます</span><span class="en">Tap an activity to see the map &amp; photos</span>
-  </div>
-  <div id="activities"><div id="loading"><span class="ja">読み込み中…</span><span class="en">Loading…</span></div></div>
 </div>
 
 ${(campaign.description_ja || campaign.description_en) ? `
@@ -892,62 +872,6 @@ function selectType(type, btn) {
   syncPaymentRequest();
 }
 
-// ── HTML escape ────────────────────────────────────────────────────────────
-function esc(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-// ── Polyline decoder (Google encoded polyline algorithm) ───────────────────
-function decodePolyline(str) {
-  var idx=0, lat=0, lng=0, coords=[];
-  while (idx < str.length) {
-    var b, shift=0, result=0;
-    do { b=str.charCodeAt(idx++)-63; result|=(b&0x1f)<<shift; shift+=5; } while(b>=0x20);
-    lat += (result&1) ? ~(result>>1) : (result>>1);
-    shift=0; result=0;
-    do { b=str.charCodeAt(idx++)-63; result|=(b&0x1f)<<shift; shift+=5; } while(b>=0x20);
-    lng += (result&1) ? ~(result>>1) : (result>>1);
-    coords.push([lat/1e5, lng/1e5]);
-  }
-  return coords;
-}
-
-// ── Route map renderer (Leaflet) ───────────────────────────────────────────
-var leafletMaps = {};
-function renderMap(id, polyline) {
-  if (leafletMaps[id] || !polyline) return;
-  var coords = decodePolyline(polyline);
-  if (coords.length < 2) return;
-  var map = L.map(id, { zoomControl:false, attributionControl:false, dragging:false,
-                         scrollWheelZoom:false, touchZoom:false, doubleClickZoom:false });
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-  var poly = L.polyline(coords, { color:'#007B83', weight:3, opacity:0.9 }).addTo(map);
-  L.circleMarker(coords[0],              { radius:5, fillColor:'#2E7D32', color:'#fff', weight:2, fillOpacity:1 }).addTo(map);
-  L.circleMarker(coords[coords.length-1],{ radius:5, fillColor:'#007B83', color:'#fff', weight:2, fillOpacity:1 }).addTo(map);
-  map.fitBounds(poly.getBounds().pad(0.15));
-  leafletMaps[id] = map;
-}
-
-// ── Activity expand / collapse ─────────────────────────────────────────────
-var activityData = {};
-function toggleActivity(id) {
-  var detail  = document.getElementById('detail-'+id);
-  var chevron = document.getElementById('chev-'+id);
-  if (!detail) return;
-  var isOpen = detail.style.display === 'block';
-  // close all others first
-  document.querySelectorAll('[id^="detail-"]').forEach(function(d) { d.style.display='none'; });
-  document.querySelectorAll('[id^="chev-"]').forEach(function(c) { c.style.transform=''; });
-  if (!isOpen) {
-    detail.style.display = 'block';
-    if (chevron) chevron.style.transform = 'rotate(180deg)';
-    var d = activityData[id];
-    if (d && d.polyline) {
-      setTimeout(function() { renderMap('map-'+id, d.polyline); }, 60);
-    }
-  }
-}
-
 // Load live data
 async function loadData() {
   try {
@@ -960,73 +884,9 @@ async function loadData() {
     document.getElementById('stat-donors').textContent = data.donorCount ?? 0;
     document.getElementById('stat-total').textContent  = '¥' + (data.estimatedTotal ?? 0).toLocaleString();
 
-    const actEl = document.getElementById('activities');
-    var hintEl = document.getElementById('activities-hint');
-    if (!data.activities.length) {
-      if (hintEl) hintEl.style.display = 'none';
-      actEl.innerHTML = '<p style="color:#86868b;font-size:14px;text-align:center;padding:16px">'
-        + '<span class="ja">まだ活動がありません</span><span class="en">No activities yet during this campaign</span></p>';
-    } else {
-      var hasAnyDetail = data.activities.some(function(a) {
-        return (a.map_polyline && a.map_polyline.length > 10) || (a.photo_urls && a.photo_urls.length > 0);
-      });
-      if (hintEl) hintEl.style.display = hasAnyDetail ? 'block' : 'none';
-      activityData = {};
-      actEl.innerHTML = data.activities.map(a => {
-        const km       = (a.distance_meters / 1000).toFixed(1);
-        const mins     = Math.floor(a.moving_time_seconds / 60);
-        const time     = mins >= 60 ? Math.floor(mins/60)+'h '+(mins%60)+'m' : mins+'m';
-        const dateJa   = new Date(a.start_date).toLocaleDateString('ja-JP', {month:'short', day:'numeric'});
-        const dateEn   = new Date(a.start_date).toLocaleDateString('en-US', {month:'short', day:'numeric'});
-        const datePart = '<span class="ja">'+dateJa+'</span><span class="en">'+dateEn+'</span>';
-        const icon     = a.sport_type.includes('Ride') ? '🚴' : a.sport_type.includes('Run') ? '🏃' : a.sport_type.includes('Swim') ? '🏊' : '🚶';
-        const hasMap    = !!(a.map_polyline && a.map_polyline.length > 10);
-        const hasPhotos = !!(a.photo_urls && a.photo_urls.length > 0);
-        const hasDetail = hasMap || hasPhotos;
-
-        activityData[a.id] = { polyline: a.map_polyline || '', photos: a.photo_urls || [] };
-
-        const safeName = esc(a.name);
-        const header = '<div class="activity-row"'
-          + (hasDetail ? ' data-act-id="'+a.id+'" style="cursor:pointer;border-bottom:none"' : '')
-          + '>'
-          + '<div class="activity-icon">'+icon+'</div>'
-          + '<div class="activity-info">'
-          + '<div class="activity-name">'+safeName+'</div>'
-          + '<div class="activity-meta">'+datePart+' · '+time+'</div>'
-          + '</div>'
-          + '<div style="display:flex;align-items:center;gap:6px">'
-          + '<div class="activity-dist">'+km+' km</div>'
-          + (hasDetail ? '<span id="chev-'+a.id+'" style="font-size:16px;color:#86868b;transition:transform .25s">▾</span>' : '')
-          + '</div>'
-          + '</div>';
-
-        const mapHtml = hasMap
-          ? '<div id="map-'+a.id+'" style="height:200px;background:#e8f5f9"></div>'
-          : '';
-        const photosHtml = hasPhotos
-          ? '<div style="display:flex;gap:8px;overflow-x:auto;padding:10px 12px;-webkit-overflow-scrolling:touch">'
-            + a.photo_urls.map(url =>
-                '<img src="'+url+'" style="width:160px;height:110px;object-fit:cover;border-radius:8px;flex-shrink:0" loading="lazy">'
-              ).join('')
-            + '</div>'
-          : '';
-        const detail = hasDetail
-          ? '<div id="detail-'+a.id+'" style="display:none;border-top:1px solid #f0f0f0">'
-            + mapHtml + photosHtml + '</div>'
-          : '';
-
-        return '<div style="border:1px solid #eee;border-radius:12px;margin-bottom:10px;overflow:hidden;background:#fff">'
-          + header + detail + '</div>';
-      }).join('');
-    }
     updateCalc();
   } catch(e) {
     console.error('[loadData]', e);
-    var loadEl = document.getElementById('loading');
-    if (loadEl) loadEl.innerHTML = '<span class="ja">読み込み失敗</span><span class="en">Failed to load</span>';
-    var actEl2 = document.getElementById('activities');
-    if (actEl2 && !loadEl) actEl2.innerHTML = '<p style="color:#ff3b30;font-size:14px;text-align:center;padding:16px"><span class="ja">読み込みに失敗しました</span><span class="en">Failed to load</span></p>';
   }
 }
 
