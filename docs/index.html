@@ -181,7 +181,7 @@
     .section-sub { display: block; }
 
     @media (max-width: 600px) {
-      .nav-links { display: none; }
+      .nav-links a.nav-hide-mobile { display: none; }
       .hero { padding: 60px 20px 80px; }
     }
   </style>
@@ -195,8 +195,9 @@
     <span>チャリアス</span>
   </a>
   <div class="nav-links">
-    <a href="#how"><span data-lang="ja">使い方</span><span data-lang="en">How It Works</span></a>
-    <a href="#nonprofits"><span data-lang="ja">支援先</span><span data-lang="en">Nonprofits</span></a>
+    <a href="#how" class="nav-hide-mobile"><span data-lang="ja">使い方</span><span data-lang="en">How It Works</span></a>
+    <a href="#features" class="nav-hide-mobile"><span data-lang="ja">機能</span><span data-lang="en">Features</span></a>
+    <a href="#nonprofits" class="nav-hide-mobile"><span data-lang="ja">支援先</span><span data-lang="en">Nonprofits</span></a>
     <a href="support.html"><span data-lang="ja">サポート</span><span data-lang="en">Support</span></a>
     <a href="privacy.html"><span data-lang="ja">プライバシー</span><span data-lang="en">Privacy</span></a>
   </div>
@@ -312,6 +313,13 @@
         <div class="sport-chip">🏊 <span data-lang="ja">スイミング</span><span data-lang="en">Swimming</span></div>
       </div>
     </div>
+
+    <div style="text-align:center; margin-top:40px; padding-bottom:8px;">
+      <a href="guide.html" style="display:inline-block; background:#F26419; color:#fff; padding:12px 28px; border-radius:24px; text-decoration:none; font-weight:700; font-size:15px;">
+        <span data-lang="ja">📱 アプリの詳しい使い方を見る</span>
+        <span data-lang="en">📱 View Detailed App Guide</span>
+      </a>
+    </div>
   </div>
 </section>
 
@@ -349,7 +357,7 @@
       <div class="feature-card">
         <div class="feature-icon">🌏</div>
         <h3 data-lang="ja">日本語・英語対応</h3>
-        <h3 data-lang="en">Japanese & English</h3>
+        <h3 data-lang="en">Japanese &amp; English</h3>
         <p data-lang="ja">アプリ内のすべての画面が日本語と英語の両方に対応しています。</p>
         <p data-lang="en">The full app experience is available in both Japanese and English.</p>
       </div>
