@@ -1,6 +1,4 @@
 'use client'
-// Handles the OAuth redirect back from Supabase (Google etc.)
-// Runs entirely in the browser so it can read the PKCE verifier and set the session.
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
@@ -12,25 +10,21 @@ export default function CallbackPage() {
   useEffect(() => {
     const supabase = createClient()
 
-    const code = new URLSearchParams(window.location.search).get('code')
-
-    if (!code) {
-      // No code — check if there's already a valid session (e.g. magic link clicked)
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session) router.replace('/dashboard')
-        else { setError('No auth code found.'); }
-      })
-      return
-    }
-
-    supabase.auth.exchangeCodeForSession(code).then(({ data, error }) => {
+    // With implicit flow, Supabase puts tokens in the URL hash.
+    // getSession() automatically parses them and establishes the session.
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (error) {
-        console.error('Auth exchange error:', error)
         setError(error.message)
-      } else if (data.session) {
+      } else if (session) {
         router.replace('/dashboard')
       } else {
-        setError('Session could not be established.')
+        // Short delay then retry once — hash may not be parsed yet
+        setTimeout(() => {
+          supabase.auth.getSession().then(({ data: { session } }) => {
+            if (session) router.replace('/dashboard')
+            else setError('セッションを確立できませんでした。もう一度お試しください。')
+          })
+        }, 500)
       }
     })
   }, [router])
@@ -41,7 +35,7 @@ export default function CallbackPage() {
         <div className="text-center">
           <div className="text-4xl mb-3">⚠️</div>
           <p className="font-semibold text-gray-800">サインインに失敗しました</p>
-          <p className="text-sm text-gray-500 mt-1">{error}</p>
+          <p className="text-sm text-gray-500 mt-2 max-w-xs mx-auto">{error}</p>
           <button
             onClick={() => router.push('/login')}
             className="mt-4 px-4 py-2 rounded-lg text-sm font-semibold text-white"
