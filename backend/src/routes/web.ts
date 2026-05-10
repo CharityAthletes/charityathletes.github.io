@@ -48,12 +48,23 @@ router.get('/:id', async (req: Request, res: Response) => {
     : `${proto}://${req.headers.host}`;
 
   // Fetch campaign updates (newest first, max 20 for the page)
-  const { data: updates } = await db
+  const { data: rawUpdates } = await db
     .from('campaign_updates')
-    .select('id, message, created_at, user_profiles(display_name)')
+    .select('id, user_id, message, photo_url, created_at')
     .eq('campaign_id', req.params.id)
     .order('created_at', { ascending: false })
     .limit(20);
+
+  // Enrich with user profiles (no direct FK to user_profiles in schema cache)
+  let updates: any[] = [];
+  if (rawUpdates && rawUpdates.length > 0) {
+    const userIds = [...new Set(rawUpdates.map((u: any) => u.user_id))];
+    const { data: profiles } = await db
+      .from('user_profiles').select('user_id, display_name').in('user_id', userIds);
+    const profileMap: Record<string, any> = {};
+    for (const p of profiles ?? []) profileMap[p.user_id] = p;
+    updates = rawUpdates.map((u: any) => ({ ...u, user_profiles: profileMap[u.user_id] ?? null }));
+  }
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.setHeader('Cache-Control', 'no-store');

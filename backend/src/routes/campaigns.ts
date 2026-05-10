@@ -736,17 +736,30 @@ router.post('/:id/thankyou', requireAuth, async (req: Request, res: Response) =>
 
 // ── Campaign Updates ──────────────────────────────────────────────────────────
 
+// Helper: enrich updates with user_profiles (avoids PostgREST FK join issue)
+async function enrichUpdatesWithProfiles(updates: any[]) {
+  if (updates.length === 0) return updates;
+  const userIds = [...new Set(updates.map((u: any) => u.user_id))];
+  const { data: profiles } = await db
+    .from('user_profiles')
+    .select('user_id, display_name, avatar_url')
+    .in('user_id', userIds);
+  const map: Record<string, any> = {};
+  for (const p of profiles ?? []) map[p.user_id] = p;
+  return updates.map((u: any) => ({ ...u, user_profiles: map[u.user_id] ?? null }));
+}
+
 // GET /campaigns/:id/updates — public; newest first
 router.get('/:id/updates', async (req: Request, res: Response) => {
   const { data, error } = await db
     .from('campaign_updates')
-    .select('id, message, photo_url, created_at, user_profiles(display_name, avatar_url)')
+    .select('id, user_id, message, photo_url, created_at')
     .eq('campaign_id', req.params.id)
     .order('created_at', { ascending: false })
     .limit(50);
 
   if (error) return res.status(500).json({ error: error.message });
-  res.json(data ?? []);
+  res.json(await enrichUpdatesWithProfiles(data ?? []));
 });
 
 // POST /campaigns/:id/updates/photo — upload a photo, returns { url }
@@ -819,11 +832,12 @@ router.post('/:id/updates', requireAuth, async (req: Request, res: Response) => 
       message:     parsed.data.message,
       photo_url:   parsed.data.photo_url ?? null,
     })
-    .select('id, message, photo_url, created_at, user_profiles(display_name, avatar_url)')
+    .select('id, user_id, message, photo_url, created_at')
     .single();
 
   if (error) return res.status(500).json({ error: error.message });
-  res.status(201).json(data);
+  const [enriched] = await enrichUpdatesWithProfiles([data]);
+  res.status(201).json(enriched);
 });
 
 // DELETE /campaigns/:id/updates/:updateId — own update only
