@@ -99,13 +99,35 @@ function PostUpdateModal({ campaignId, token, onClose, onPosted }: {
 }) {
   const { t } = useLang()
   const [message, setMessage] = useState('')
+  const [photo, setPhoto] = useState<File | null>(null)
+  const [preview, setPreview] = useState<string | null>(null)
   const [posting, setPosting] = useState(false)
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  const pickPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setPhoto(file)
+    setPreview(URL.createObjectURL(file))
+  }
 
   const submit = async () => {
-    if (!message.trim()) return
+    if (!message.trim() && !photo) return
     setPosting(true)
     try {
-      await postCampaignUpdate(campaignId, message.trim(), null, token)
+      let photoUrl: string | null = null
+      if (photo) {
+        const form = new FormData()
+        form.append('photo', photo)
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/campaigns/${campaignId}/updates/photo`,
+          { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: form }
+        )
+        if (!res.ok) throw new Error(t('写真のアップロードに失敗しました', 'Photo upload failed'))
+        const data = await res.json()
+        photoUrl = data.url
+      }
+      await postCampaignUpdate(campaignId, message.trim(), photoUrl, token)
       onPosted()
       onClose()
     } catch (e: any) { alert(e.message) }
@@ -116,9 +138,10 @@ function PostUpdateModal({ campaignId, token, onClose, onPosted }: {
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 px-4 pb-4 sm:pb-0">
       <div className="bg-white rounded-2xl w-full max-w-lg p-5 space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="font-bold text-gray-900">{t('投稿する', 'Post Update')}</h3>
+          <h3 className="font-bold text-gray-900">{t('報告する', 'Post Update')}</h3>
           <button onClick={onClose} className="text-gray-400 text-xl leading-none">×</button>
         </div>
+
         <textarea
           value={message}
           onChange={e => setMessage(e.target.value)}
@@ -126,13 +149,37 @@ function PostUpdateModal({ campaignId, token, onClose, onPosted }: {
           rows={4}
           className="w-full border border-gray-200 rounded-xl p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-green-200"
         />
+
+        {/* Photo picker */}
+        <input ref={fileRef} type="file" accept="image/*" onChange={pickPhoto} className="hidden" />
+        {preview ? (
+          <div className="relative">
+            <img src={preview} alt="" className="w-full rounded-xl object-cover max-h-48" />
+            <button
+              onClick={() => { setPhoto(null); setPreview(null) }}
+              className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 flex items-center justify-center text-white text-sm leading-none"
+            >×</button>
+          </div>
+        ) : (
+          <button
+            onClick={() => fileRef.current?.click()}
+            className="w-full py-2.5 rounded-xl text-sm font-semibold border border-gray-200 text-gray-500 flex items-center justify-center gap-2 hover:bg-gray-50 transition"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+              <polyline points="21 15 16 10 5 21"/>
+            </svg>
+            {t('写真を追加', 'Add Photo')}
+          </button>
+        )}
+
         <button
           onClick={submit}
-          disabled={posting || !message.trim()}
+          disabled={posting || (!message.trim() && !photo)}
           className="w-full py-3 rounded-xl text-sm font-bold text-white disabled:opacity-50 transition"
           style={{ background: 'linear-gradient(135deg, #054738, #1A9966)' }}
         >
-          {posting ? t('投稿中...', 'Posting...') : t('投稿する', 'Post')}
+          {posting ? t('投稿中...', 'Posting...') : t('報告する', 'Post')}
         </button>
       </div>
     </div>
@@ -223,7 +270,11 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
     return <div className="text-center py-20 text-gray-400">{t('イベントが見つかりません', 'Campaign not found')}</div>
   }
 
-  const progress    = campaign.goalKm ? Math.min(100, ((campaign.totalKm ?? 0) / campaign.goalKm) * 100) : 0
+  // Progress bar: based on ¥ raised vs goal amount (like iOS), capped at 100% for display
+  const raisedJpy   = campaign.totalRaisedJpy ?? 0
+  const goalJpy     = campaign.goalAmountJpy ?? 0
+  const progress    = goalJpy > 0 ? Math.min(100, (raisedJpy / goalJpy) * 100) : 0
+  const isGold      = goalJpy > 0 && raisedJpy >= goalJpy
   const isCreator   = me?.id === campaign.createdBy
   const description = t(campaign.descriptionJa, campaign.descriptionEn)
 
@@ -262,10 +313,15 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
             {fmtDate(campaign.startDate, lang)} – {fmtDate(campaign.endDate, lang)}
           </div>
 
-          {/* Progress bar */}
+          {/* Progress bar — gold, based on ¥ raised / ¥ goal */}
           <div className="relative h-3 bg-gray-100 rounded-full overflow-hidden mt-2">
             <div className="h-full rounded-full transition-all"
-              style={{ width: `${progress}%`, background: 'linear-gradient(90deg, #e6a817, #f5c842)' }} />
+              style={{
+                width: `${progress}%`,
+                background: isGold
+                  ? 'linear-gradient(90deg, #f5c842, #f5c842)'
+                  : 'linear-gradient(90deg, #e6a817, #f5c842)',
+              }} />
           </div>
 
           {/* Raised / Goal */}
@@ -274,11 +330,11 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
               <span className="text-2xl font-bold" style={{ color: '#1A9966' }}>
                 ¥{(campaign.totalRaisedJpy ?? 0).toLocaleString()}
               </span>
-              <span className="text-sm text-gray-400 ml-1">{t('集まっています', 'Raised')}</span>
+              <span className="text-sm text-gray-400 ml-1">{t('集まった金額', 'Raised')}</span>
             </div>
             {campaign.goalAmountJpy && (
               <span className="text-sm text-gray-400">
-                ¥{campaign.goalAmountJpy.toLocaleString()} {t('目標', 'Goal')}
+                ¥{campaign.goalAmountJpy.toLocaleString()} {t('目標金額', 'Goal')}
               </span>
             )}
           </div>
@@ -294,32 +350,30 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
         {(campaign.hasFlatDonation || campaign.hasPerKmDonation) && (
           <div className="rounded-2xl border border-gray-100 bg-white p-4 space-y-3">
             {campaign.hasFlatDonation && (
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ background: '#f0fdf4' }}>
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ background: '#f0fdf4' }}>
                     <span className="text-sm">⚡</span>
                   </div>
-                  <div>
-                    <p className="text-xs font-semibold text-gray-700">{t('活動ごとの寄付', 'Flat donation per activity')}</p>
-                  </div>
+                  <p className="text-xs font-semibold text-gray-700">{t('活動ごとの寄付', 'Flat per activity')}</p>
                 </div>
-                <span className="text-sm font-bold text-gray-700">
-                  {campaign.suggestedPerKmJpy ? `¥${campaign.suggestedPerKmJpy}` : t('金額は寄付者が決定', "Donor's choice")}
-                </span>
+                <span className="text-sm font-bold text-gray-700 shrink-0">{t('金額を選択', 'Choose amount')}</span>
               </div>
             )}
             {campaign.hasPerKmDonation && (
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-full flex items-center justify-center bg-blue-50">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center bg-blue-50 shrink-0">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                   </div>
-                  <p className="text-xs font-semibold text-gray-700">{t('距離ごとの寄付', 'Per-km donation rate')}</p>
+                  <p className="text-xs font-semibold text-gray-700">
+                    {t('距離に応じた寄付 (1kmあたり)', 'Per-km donation rate')}
+                  </p>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm font-bold text-gray-700">{t('金額は寄付者が決定', "Donor's choice")}</p>
+                <div className="text-right shrink-0">
+                  <p className="text-sm font-bold text-gray-700">{t('レートを選択', 'Choose rate')}</p>
                   {campaign.maxDistanceKm && (
-                    <p className="text-xs text-gray-400">max {campaign.maxDistanceKm} km</p>
+                    <p className="text-xs text-gray-400">{t('最大', 'max ')}{campaign.maxDistanceKm} km</p>
                   )}
                 </div>
               </div>
