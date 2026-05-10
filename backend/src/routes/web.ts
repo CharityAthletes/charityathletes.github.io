@@ -923,6 +923,13 @@ function selectType(type, btn) {
     const firstRateBtn = document.querySelector('#panel-perkm .rate-btn:not(#btn-other)');
     if (firstRateBtn) firstRateBtn.click();
   }
+  // Hide Apple/Google Pay button for per-km pledges — the payment sheet shows
+  // an upfront amount but per-km is charged AFTER the campaign ends, which is
+  // misleading. Per-km donors must use the card form so they see the correct messaging.
+  var prBtnWrap = document.getElementById('payment-request-btn');
+  var prDivider = document.getElementById('payment-request-divider');
+  if (prBtnWrap) prBtnWrap.style.display = (type === 'perkm') ? 'none' : '';
+  if (prDivider) prDivider.style.display = (type === 'perkm') ? 'none' : '';
   syncPaymentRequest();
 }
 
