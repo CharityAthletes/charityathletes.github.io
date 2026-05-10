@@ -1128,7 +1128,7 @@ private struct CampaignUpdatesSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Label(i18n.language == .ja ? "キャンペーン更新" : "Campaign Updates",
+                Label(i18n.language == .ja ? "寄付者向け投稿" : "Updates for Donors",
                       systemImage: "megaphone.fill")
                     .font(.headline)
                 Spacer()
@@ -1136,7 +1136,7 @@ private struct CampaignUpdatesSection: View {
                     Button {
                         onPost()
                     } label: {
-                        Label(i18n.language == .ja ? "投稿" : "Post",
+                        Label(i18n.language == .ja ? "報告する" : "Post",
                               systemImage: "plus.circle.fill")
                             .font(.subheadline.bold())
                             .foregroundStyle(Color("BrandOrange"))
@@ -1146,8 +1146,8 @@ private struct CampaignUpdatesSection: View {
 
             if updates.isEmpty {
                 Text(i18n.language == .ja
-                     ? "まだ更新はありません。レースや練習の近況を投稿しましょう！"
-                     : "No updates yet. Share how your training is going!")
+                     ? "まだ投稿がありません。寄付者の方向けのページに状況を投稿・報告しましょう！"
+                     : "No updates yet. Share your progress with your donors!")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .center)
@@ -1345,7 +1345,7 @@ struct PostUpdateSheet: View {
                 }
                 .padding()
             }
-            .navigationTitle(i18n.language == .ja ? "更新を投稿" : "Post Update")
+            .navigationTitle(i18n.language == .ja ? "寄付者向けに投稿" : "Post to Donors")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
