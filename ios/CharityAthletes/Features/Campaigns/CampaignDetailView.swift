@@ -1532,3 +1532,30 @@ private struct ResultRow: View {
         .font(.subheadline)
     }
 }
+
+// MARK: - UIImage compression helper
+
+private extension UIImage {
+    /// Returns JPEG data compressed to fit within `maxBytes`.
+    /// Resizes to 2048px max dimension first, then steps quality down from 0.85.
+    func jpegCompressed(maxBytes: Int) -> Data {
+        let resized = resizedIfNeeded(maxDimension: 2048)
+        var quality: CGFloat = 0.85
+        while quality >= 0.2 {
+            if let data = resized.jpegData(compressionQuality: quality), data.count <= maxBytes {
+                return data
+            }
+            quality -= 0.15
+        }
+        return resized.jpegData(compressionQuality: 0.2) ?? Data()
+    }
+
+    private func resizedIfNeeded(maxDimension: CGFloat) -> UIImage {
+        let longest = max(size.width, size.height)
+        guard longest > maxDimension else { return self }
+        let scale   = maxDimension / longest
+        let newSize = CGSize(width: size.width * scale, height: size.height * scale)
+        let renderer = UIGraphicsImageRenderer(size: newSize)
+        return renderer.image { _ in draw(in: CGRect(origin: .zero, size: newSize)) }
+    }
+}
