@@ -202,14 +202,45 @@ final class APIClient {
         try await request(.campaignUpdates(campaignId))
     }
 
-    func postCampaignUpdate(campaignId: String, message: String) async throws -> CampaignUpdate {
-        struct B: Encodable { let message: String }
-        return try await request(.postCampaignUpdate(campaignId), body: B(message: message))
+    func postCampaignUpdate(campaignId: String, message: String, photoUrl: String? = nil) async throws -> CampaignUpdate {
+        struct B: Encodable { let message: String; let photoUrl: String? }
+        return try await request(.postCampaignUpdate(campaignId), body: B(message: message, photoUrl: photoUrl))
     }
 
     func deleteCampaignUpdate(campaignId: String, updateId: String) async throws {
         struct R: Decodable { let ok: Bool }
         let _: R = try await request(.deleteCampaignUpdate(campaignId, updateId))
+    }
+
+    /// Upload a photo for a campaign update. Returns the public URL.
+    func uploadUpdatePhoto(campaignId: String, imageData: Data, mimeType: String = "image/jpeg") async throws -> String {
+        struct R: Decodable { let url: String }
+        guard let url = URL(string: Endpoint.uploadUpdatePhoto(campaignId).path, relativeTo: base) else {
+            throw APIError.badURL
+        }
+        let boundary = UUID().uuidString
+        var req = URLRequest(url: url)
+        req.httpMethod = "POST"
+        req.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        if let token { req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization") }
+
+        var body = Data()
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"photo\"; filename=\"update.jpg\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: \(mimeType)\r\n\r\n".data(using: .utf8)!)
+        body.append(imageData)
+        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+        req.httpBody = body
+
+        let (data, resp) = try await session.data(for: req)
+        guard let http = resp as? HTTPURLResponse else { throw APIError.httpError(0, "No response") }
+        if http.statusCode == 401 { throw APIError.unauthorized }
+        guard (200..<300).contains(http.statusCode) else {
+            let msg = (try? decoder.decode(ErrorEnvelope.self, from: data))?.error ?? "Upload failed \(http.statusCode)"
+            throw APIError.httpError(http.statusCode, msg)
+        }
+        let r = try decoder.decode(R.self, from: data)
+        return r.url
     }
 
     func getDonations() async throws -> [Donation]           { try await request(.donations) }

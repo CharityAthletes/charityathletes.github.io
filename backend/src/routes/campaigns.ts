@@ -6,6 +6,18 @@ import { recalcDonatedStats } from '../services/statsService';
 import { requireAuth } from '../middleware/auth';
 import { z } from 'zod';
 import type Stripe from 'stripe';
+import multer from 'multer';
+import path from 'path';
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
+  fileFilter: (_req, file, cb) => {
+    const allowed = ['.jpg', '.jpeg', '.png', '.webp', '.heic'];
+    const ext = path.extname(file.originalname).toLowerCase();
+    cb(null, allowed.includes(ext) || file.mimetype.startsWith('image/'));
+  },
+});
 
 const router = Router();
 
@@ -737,9 +749,47 @@ router.get('/:id/updates', async (req: Request, res: Response) => {
   res.json(data ?? []);
 });
 
+// POST /campaigns/:id/updates/photo — upload a photo, returns { url }
+router.post('/:id/updates/photo', requireAuth, upload.single('photo'), async (req: Request, res: Response) => {
+  if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+
+  // Verify poster is creator or participant
+  const { data: campaign } = await db
+    .from('campaigns').select('created_by').eq('id', req.params.id).single();
+  if (!campaign) return res.status(404).json({ error: 'Campaign not found' });
+
+  if (campaign.created_by !== req.userId) {
+    const { count } = await db
+      .from('campaign_participations')
+      .select('*', { count: 'exact', head: true })
+      .eq('campaign_id', req.params.id)
+      .eq('user_id', req.userId!);
+    if ((count ?? 0) === 0) return res.status(403).json({ error: 'Not a participant' });
+  }
+
+  const ext      = path.extname(req.file.originalname).toLowerCase() || '.jpg';
+  const filename = `${req.params.id}/${req.userId}-${Date.now()}${ext}`;
+
+  const { error } = await db.storage
+    .from('campaign-update-photos')
+    .upload(filename, req.file.buffer, {
+      contentType: req.file.mimetype,
+      upsert: false,
+    });
+
+  if (error) return res.status(500).json({ error: error.message });
+
+  const { data: urlData } = db.storage
+    .from('campaign-update-photos')
+    .getPublicUrl(filename);
+
+  res.json({ url: urlData.publicUrl });
+});
+
 // POST /campaigns/:id/updates — athlete must be a participant or creator
 const updatePostSchema = z.object({
-  message: z.string().min(1).max(500),
+  message:   z.string().min(1).max(500),
+  photo_url: z.string().url().optional(),
 });
 
 router.post('/:id/updates', requireAuth, async (req: Request, res: Response) => {
@@ -767,6 +817,7 @@ router.post('/:id/updates', requireAuth, async (req: Request, res: Response) => 
       campaign_id: req.params.id,
       user_id:     req.userId!,
       message:     parsed.data.message,
+      photo_url:   parsed.data.photo_url ?? null,
     })
     .select('id, message, photo_url, created_at, user_profiles(display_name, avatar_url)')
     .single();

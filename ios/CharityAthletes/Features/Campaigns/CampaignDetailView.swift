@@ -1,4 +1,5 @@
 import SwiftUI
+import PhotosUI
 
 @MainActor
 final class CampaignDetailVM: ObservableObject {
@@ -1189,6 +1190,27 @@ private struct CampaignUpdatesSection: View {
                         Text(update.message)
                             .font(.subheadline)
                             .fixedSize(horizontal: false, vertical: true)
+
+                        if let photoUrl = update.photoUrl, let url = URL(string: photoUrl) {
+                            AsyncImage(url: url) { phase in
+                                switch phase {
+                                case .success(let img):
+                                    img.resizable()
+                                        .scaledToFill()
+                                        .frame(maxWidth: .infinity)
+                                        .frame(height: 200)
+                                        .clipped()
+                                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                                case .failure:
+                                    EmptyView()
+                                default:
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .fill(Color(.systemGray5))
+                                        .frame(height: 200)
+                                        .overlay(ProgressView())
+                                }
+                            }
+                        }
                     }
                     .padding(12)
                     .background(Color(.tertiarySystemBackground))
@@ -1210,87 +1232,195 @@ struct PostUpdateSheet: View {
     @EnvironmentObject var i18n: I18n
     @Environment(\.dismiss) private var dismiss
     @State private var message = ""
+    @State private var selectedImage: UIImage? = nil
+    @State private var showPhotoPicker = false
     @State private var isLoading = false
+    @State private var uploadProgress: String? = nil
     @State private var errorMsg: String?
 
     private var remaining: Int { 500 - message.count }
+    private var canPost: Bool {
+        !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && remaining >= 0 && !isLoading
+    }
 
     var body: some View {
         NavigationStack {
-            VStack(alignment: .leading, spacing: 16) {
-                Text(i18n.language == .ja
-                     ? "レース・練習の近況や意気込みをサポーターに届けましょう。"
-                     : "Share a training update, race recap, or words of motivation with your supporters.")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    Text(i18n.language == .ja
+                         ? "レース・練習の近況や意気込みをサポーターに届けましょう。"
+                         : "Share a training update, race recap, or words of motivation with your supporters.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
 
-                ZStack(alignment: .bottomTrailing) {
-                    TextEditor(text: $message)
-                        .frame(minHeight: 160)
-                        .padding(8)
-                        .background(Color(.secondarySystemBackground))
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color.secondary.opacity(0.25), lineWidth: 1)
-                        )
-
-                    Text("\(remaining)")
-                        .font(.caption2)
-                        .foregroundStyle(remaining < 50 ? .red : .secondary)
-                        .padding(10)
-                }
-
-                if let err = errorMsg {
-                    Text(err).font(.caption).foregroundStyle(.red)
-                }
-
-                Button {
-                    Task { await submit() }
-                } label: {
-                    HStack {
-                        Spacer()
-                        if isLoading { ProgressView().tint(.white) }
-                        else {
-                            Label(i18n.language == .ja ? "投稿する" : "Post Update",
-                                  systemImage: "megaphone.fill")
-                                .font(.headline)
-                        }
-                        Spacer()
+                    // Text input
+                    ZStack(alignment: .bottomTrailing) {
+                        TextEditor(text: $message)
+                            .frame(minHeight: 140)
+                            .padding(8)
+                            .background(Color(.secondarySystemBackground))
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color.secondary.opacity(0.25), lineWidth: 1)
+                            )
+                        Text("\(remaining)")
+                            .font(.caption2)
+                            .foregroundStyle(remaining < 50 ? .red : .secondary)
+                            .padding(10)
                     }
-                    .padding()
-                    .background(message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || remaining < 0
-                                ? Color.gray : Color("BrandOrange"))
-                    .foregroundStyle(.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 14))
-                }
-                .disabled(message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || remaining < 0 || isLoading)
 
-                Spacer()
+                    // Photo picker / preview
+                    if let img = selectedImage {
+                        ZStack(alignment: .topTrailing) {
+                            Image(uiImage: img)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 200)
+                                .clipped()
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+
+                            Button {
+                                selectedImage = nil
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .font(.title3)
+                                    .symbolRenderingMode(.palette)
+                                    .foregroundStyle(.white, Color.black.opacity(0.6))
+                            }
+                            .padding(8)
+                        }
+                    } else {
+                        Button {
+                            showPhotoPicker = true
+                        } label: {
+                            HStack {
+                                Image(systemName: "photo.badge.plus")
+                                Text(i18n.language == .ja ? "写真を追加" : "Add Photo")
+                                    .font(.subheadline.bold())
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(12)
+                            .background(Color(.secondarySystemBackground))
+                            .foregroundStyle(Color("BrandOrange"))
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color("BrandOrange").opacity(0.4), lineWidth: 1.5)
+                            )
+                        }
+                    }
+
+                    if let progress = uploadProgress {
+                        HStack(spacing: 6) {
+                            ProgressView().scaleEffect(0.8)
+                            Text(progress).font(.caption).foregroundStyle(.secondary)
+                        }
+                    }
+
+                    if let err = errorMsg {
+                        Text(err).font(.caption).foregroundStyle(.red)
+                    }
+
+                    Button {
+                        Task { await submit() }
+                    } label: {
+                        HStack {
+                            Spacer()
+                            if isLoading { ProgressView().tint(.white) }
+                            else {
+                                Label(i18n.language == .ja ? "投稿する" : "Post Update",
+                                      systemImage: "megaphone.fill")
+                                    .font(.headline)
+                            }
+                            Spacer()
+                        }
+                        .padding()
+                        .background(canPost ? Color("BrandOrange") : Color.gray)
+                        .foregroundStyle(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                    }
+                    .disabled(!canPost)
+                }
+                .padding()
             }
-            .padding()
             .navigationTitle(i18n.language == .ja ? "更新を投稿" : "Post Update")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(i18n.language == .ja ? "閉じる" : "Cancel") { dismiss() }
+                        .disabled(isLoading)
                 }
+            }
+            .sheet(isPresented: $showPhotoPicker) {
+                ImagePicker(image: $selectedImage)
             }
         }
     }
 
     private func submit() async {
-        isLoading = true; errorMsg = nil
-        defer { isLoading = false }
+        isLoading = true; errorMsg = nil; uploadProgress = nil
+        defer { isLoading = false; uploadProgress = nil }
         do {
+            var photoUrl: String? = nil
+
+            // Upload photo first if one was selected
+            if let img = selectedImage {
+                uploadProgress = i18n.language == .ja ? "写真をアップロード中…" : "Uploading photo…"
+                let jpeg = img.jpegCompressed(maxBytes: 1_500_000) // ~1.5 MB max
+                photoUrl = try await APIClient.shared.uploadUpdatePhoto(
+                    campaignId: campaignId,
+                    imageData: jpeg
+                )
+                uploadProgress = nil
+            }
+
             let update = try await APIClient.shared.postCampaignUpdate(
                 campaignId: campaignId,
-                message: message.trimmingCharacters(in: .whitespacesAndNewlines)
+                message: message.trimmingCharacters(in: .whitespacesAndNewlines),
+                photoUrl: photoUrl
             )
             onPosted(update)
             dismiss()
         } catch {
             errorMsg = error.localizedDescription
+        }
+    }
+}
+
+// MARK: - Image Picker (PHPickerViewController wrapper)
+
+struct ImagePicker: UIViewControllerRepresentable {
+    @Binding var image: UIImage?
+    @Environment(\.dismiss) private var dismiss
+
+    func makeUIViewController(context: Context) -> PHPickerViewController {
+        var config = PHPickerConfiguration()
+        config.filter = .images
+        config.selectionLimit = 1
+        let picker = PHPickerViewController(configuration: config)
+        picker.delegate = context.coordinator
+        return picker
+    }
+
+    func updateUIViewController(_ uiViewController: PHPickerViewController, context: Context) {}
+
+    func makeCoordinator() -> Coordinator { Coordinator(self) }
+
+    class Coordinator: NSObject, PHPickerViewControllerDelegate {
+        let parent: ImagePicker
+        init(_ parent: ImagePicker) { self.parent = parent }
+
+        func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+            parent.dismiss()
+            guard let provider = results.first?.itemProvider,
+                  provider.canLoadObject(ofClass: UIImage.self) else { return }
+            provider.loadObject(ofClass: UIImage.self) { [weak self] object, _ in
+                DispatchQueue.main.async {
+                    self?.parent.image = object as? UIImage
+                }
+            }
         }
     }
 }

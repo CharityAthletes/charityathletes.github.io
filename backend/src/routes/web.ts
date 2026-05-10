@@ -548,10 +548,14 @@ ${updates.length > 0 ? `
   ${updates.map((u: any) => {
     const name = h(u.user_profiles?.display_name ?? 'Athlete');
     const msg  = h(u.message ?? '');
-    const date = new Date(u.created_at).toLocaleDateString('ja-JP', { month:'short', day:'numeric', timeZone:'Asia/Tokyo' });
+    const date     = new Date(u.created_at).toLocaleDateString('ja-JP', { month:'short', day:'numeric', timeZone:'Asia/Tokyo' });
+    const photoHtml = u.photo_url
+      ? `<img src="${safeUrl(u.photo_url)}" alt="" style="width:100%;border-radius:10px;margin-top:10px;display:block;object-fit:cover;max-height:300px">`
+      : '';
     return `<div class="update-item">
       <div class="update-author">${name} <span class="update-date">${date}</span></div>
       <div class="update-msg">${msg}</div>
+      ${photoHtml}
     </div>`;
   }).join('')}
 </div>` : ''}

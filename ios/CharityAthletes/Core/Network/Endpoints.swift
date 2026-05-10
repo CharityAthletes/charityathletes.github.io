@@ -8,6 +8,7 @@ enum Endpoint {
     case campaigns, myCampaigns, createdCampaigns, createCampaign, campaign(String), leaderboard(String)
     case joinCampaign(String), unjoinCampaign(String), deleteCampaign(String), archiveCampaign(String), updateCampaign(String), donateCampaign(String), finalizeCampaign(String), pledgeCampaign(String), campaignPledges(String), campaignParticipants(String), campaignThankYou(String)
     case campaignUpdates(String), postCampaignUpdate(String), deleteCampaignUpdate(String, String)
+    case uploadUpdatePhoto(String)
     case registerDeviceToken, unregisterDeviceToken
     case donations, donationSummary, setupPayment, confirmSetup, paymentMethod
     case activities
@@ -62,6 +63,7 @@ enum Endpoint {
         case .campaignUpdates(let id):       return "/campaigns/\(id)/updates"
         case .postCampaignUpdate(let id):    return "/campaigns/\(id)/updates"
         case .deleteCampaignUpdate(let id, let uid): return "/campaigns/\(id)/updates/\(uid)"
+        case .uploadUpdatePhoto(let id):             return "/campaigns/\(id)/updates/photo"
         case .donations:                     return "/donations"
         case .donationSummary:               return "/donations/summary"
         case .setupPayment:                  return "/donations/setup-payment"
@@ -103,7 +105,7 @@ enum Endpoint {
              .registerDeviceToken,
              .createCampaign,
              .joinCampaign, .donateCampaign, .setupPayment, .confirmSetup,
-             .finalizeCampaign, .pledgeCampaign, .campaignThankYou, .postCampaignUpdate,
+             .finalizeCampaign, .pledgeCampaign, .campaignThankYou, .postCampaignUpdate, .uploadUpdatePhoto,
              .adminApproveNonprofit, .adminRejectNonprofit,
              .charityRequest, .stravaSync:
             return "POST"
