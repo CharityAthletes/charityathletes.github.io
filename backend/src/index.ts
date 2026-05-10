@@ -43,6 +43,7 @@ app.use(cors({
     process.env.WEB_URL ?? 'https://charityathletes.com',
     'https://charityathletes.org',
     'https://www.charityathletes.org',
+    'https://app.charityathletes.org',
     /^charityathletes:\/\//
   ],
   credentials: true,
