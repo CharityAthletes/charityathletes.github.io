@@ -5,37 +5,40 @@ import { createClient } from '@/lib/supabase'
 
 export default function CallbackPage() {
   const router = useRouter()
-  const [error, setError] = useState('')
+  const [status, setStatus] = useState<'loading' | 'error'>('loading')
 
   useEffect(() => {
     const supabase = createClient()
 
-    // With implicit flow, Supabase puts tokens in the URL hash.
-    // getSession() automatically parses them and establishes the session.
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      if (error) {
-        setError(error.message)
-      } else if (session) {
+    // onAuthStateChange fires as soon as the implicit-flow hash is parsed.
+    // This is more reliable than getSession() which may run before parsing.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session) {
         router.replace('/dashboard')
-      } else {
-        // Short delay then retry once — hash may not be parsed yet
-        setTimeout(() => {
-          supabase.auth.getSession().then(({ data: { session } }) => {
-            if (session) router.replace('/dashboard')
-            else setError('セッションを確立できませんでした。もう一度お試しください。')
-          })
-        }, 500)
       }
     })
+
+    // Also check immediately — handles the case where session already exists
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) router.replace('/dashboard')
+    })
+
+    // Timeout fallback — if nothing happens in 5s, show error
+    const timeout = setTimeout(() => setStatus('error'), 5000)
+
+    return () => {
+      subscription.unsubscribe()
+      clearTimeout(timeout)
+    }
   }, [router])
 
-  if (error) {
+  if (status === 'error') {
     return (
       <div className="min-h-[80vh] flex items-center justify-center px-4">
         <div className="text-center">
           <div className="text-4xl mb-3">⚠️</div>
           <p className="font-semibold text-gray-800">サインインに失敗しました</p>
-          <p className="text-sm text-gray-500 mt-2 max-w-xs mx-auto">{error}</p>
+          <p className="text-sm text-gray-500 mt-2">もう一度お試しください。</p>
           <button
             onClick={() => router.push('/login')}
             className="mt-4 px-4 py-2 rounded-lg text-sm font-semibold text-white"
