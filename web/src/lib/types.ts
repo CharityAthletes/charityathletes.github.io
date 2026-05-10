@@ -98,10 +98,13 @@ export interface Charity {
 
 export interface Donation {
   id: string
-  campaignId: string
   campaignTitleJa: string
   campaignTitleEn: string
   amountJpy: number
+  flatAmountJpy?: number | null
+  perKmAmountJpy?: number | null
+  distanceKm?: number | null
+  triggerType?: string | null
   status: string
   createdAt: string
 }

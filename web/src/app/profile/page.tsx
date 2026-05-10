@@ -167,7 +167,7 @@ export default function ProfilePage() {
           <span className="text-sm font-semibold text-gray-800 flex-1">{t('寄付履歴', 'Donation History')}</span>
           <Chevron />
         </Link>
-        <div className="flex items-center gap-3 px-4 py-4">
+        <Link href="/how-it-works" className="flex items-center gap-3 px-4 py-4">
           <div className="w-8 h-8 rounded-full flex items-center justify-center bg-blue-50">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round">
               <circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>
@@ -175,7 +175,7 @@ export default function ProfilePage() {
           </div>
           <span className="text-sm font-semibold text-gray-800 flex-1">{t('使い方', 'How It Works')}</span>
           <Chevron />
-        </div>
+        </Link>
         <a href="https://charityathletes.org" target="_blank" rel="noopener noreferrer"
           className="flex items-center gap-3 px-4 py-4">
           <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: '#f0fdfa' }}>

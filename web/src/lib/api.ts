@@ -170,7 +170,20 @@ export const getNonprofits = (token?: string) =>
 // ── Donations ─────────────────────────────────────────────────────────────────
 
 export const getDonations = (token: string) =>
-  request<Donation[]>('/donations', {}, token)
+  request<any[]>('/donations', {}, token).then(list =>
+    list.map(d => ({
+      id:              d.id,
+      campaignTitleJa: d.campaigns?.titleJa ?? d.campaignTitleJa ?? '',
+      campaignTitleEn: d.campaigns?.titleEn ?? d.campaignTitleEn ?? '',
+      amountJpy:       d.totalAmountJpy ?? d.flatAmountJpy ?? d.amountJpy ?? 0,
+      flatAmountJpy:   d.flatAmountJpy ?? null,
+      perKmAmountJpy:  d.perKmAmountJpy ?? null,
+      distanceKm:      d.distanceKm ?? null,
+      triggerType:     d.triggerType ?? null,
+      status:          d.status,
+      createdAt:       d.createdAt,
+    } as Donation))
+  )
 
 export const getDonationSummary = (token: string) =>
   request<any>('/donations/summary', {}, token).then(r => ({
