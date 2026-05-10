@@ -694,7 +694,7 @@ private struct SocialShareSection: View {
             }
             .buttonStyle(.plain)
             .sheet(isPresented: $showShareSheet) {
-                let items: [Any] = shareImage.map { [$0, shareMessage] } ?? [shareMessage]
+                let items: [Any] = shareImage.map { [$0, donorURL] } ?? [donorURL]
                 ShareSheet(items: items)
             }
 
@@ -1127,21 +1127,29 @@ private struct CampaignUpdatesSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Label(i18n.language == .ja ? "寄付者向け投稿" : "Updates for Donors",
-                      systemImage: "megaphone.fill")
-                    .font(.headline)
-                Spacer()
-                if canPost {
-                    Button {
-                        onPost()
-                    } label: {
-                        Label(i18n.language == .ja ? "報告する" : "Post",
-                              systemImage: "plus.circle.fill")
+            Label(i18n.language == .ja ? "寄付者向け投稿" : "Updates for Donors",
+                  systemImage: "megaphone.fill")
+                .font(.headline)
+
+            if canPost {
+                Button {
+                    onPost()
+                } label: {
+                    HStack {
+                        Image(systemName: "plus.circle.fill")
+                        Text(i18n.language == .ja ? "報告する" : "Post Update")
                             .font(.subheadline.bold())
-                            .foregroundStyle(Color("BrandOrange"))
                     }
+                    .frame(maxWidth: .infinity)
+                    .padding(10)
+                    .background(
+                        LinearGradient(colors: [Color("BrandOrange"), Color("BrandRed")],
+                                       startPoint: .leading, endPoint: .trailing)
+                    )
+                    .foregroundStyle(.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
                 }
+                .buttonStyle(.plain)
             }
 
             if updates.isEmpty {
