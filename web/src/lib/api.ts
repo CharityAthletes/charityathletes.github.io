@@ -14,6 +14,20 @@ export class APIError extends Error {
   }
 }
 
+// Convert snake_case keys to camelCase — mirrors Swift's convertFromSnakeCase
+function toCamel(s: string): string {
+  return s.replace(/_([a-z])/g, (_, c) => c.toUpperCase())
+}
+function camelizeKeys(obj: unknown): unknown {
+  if (Array.isArray(obj)) return obj.map(camelizeKeys)
+  if (obj !== null && typeof obj === 'object') {
+    return Object.fromEntries(
+      Object.entries(obj as Record<string, unknown>).map(([k, v]) => [toCamel(k), camelizeKeys(v)])
+    )
+  }
+  return obj
+}
+
 async function request<T>(
   path: string,
   options: RequestInit = {},
@@ -35,7 +49,25 @@ async function request<T>(
     throw new APIError(res.status, msg)
   }
 
-  return res.json()
+  const json = await res.json()
+  return camelizeKeys(json) as T
+}
+
+// Normalize a campaign from the backend shape to the frontend Campaign type.
+// The backend returns snake_case (now camelized) with a nested `nonprofits`
+// object instead of flat `nonprofitName`/`nonprofitLogoUrl` fields.
+function normalizeCampaign(c: any): Campaign {
+  const np = c.nonprofits ?? c.nonprofit ?? {}
+  return {
+    ...c,
+    // Raised amount field rename
+    totalRaisedJpy: c.totalRaisedJpy ?? c.raisedAmountJpy ?? 0,
+    // Total km: could come from different field names
+    totalKm: c.totalKm ?? c.totalDistanceKm ?? c.myDistanceKm ?? 0,
+    // Flatten nonprofit fields
+    nonprofitName:    c.nonprofitName ?? np.nameJa ?? np.nameEn ?? undefined,
+    nonprofitLogoUrl: c.nonprofitLogoUrl ?? np.logoUrl ?? undefined,
+  }
 }
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
@@ -49,16 +81,16 @@ export const stravaLoginURL = (token: string) =>
 // ── Campaigns ─────────────────────────────────────────────────────────────────
 
 export const getCampaigns = (token?: string) =>
-  request<Campaign[]>('/campaigns', {}, token)
+  request<Campaign[]>('/campaigns', {}, token).then(cs => cs.map(normalizeCampaign))
 
 export const getCampaign = (id: string, token?: string) =>
-  request<Campaign>(`/campaigns/${id}`, {}, token)
+  request<Campaign>(`/campaigns/${id}`, {}, token).then(normalizeCampaign)
 
 export const getMyCampaigns = (token: string) =>
-  request<Campaign[]>('/campaigns/mine', {}, token)
+  request<Campaign[]>('/campaigns/mine', {}, token).then(cs => cs.map(normalizeCampaign))
 
 export const getCreatedCampaigns = (token: string) =>
-  request<Campaign[]>('/campaigns/created', {}, token)
+  request<Campaign[]>('/campaigns/created', {}, token).then(cs => cs.map(normalizeCampaign))
 
 export const createCampaign = (body: unknown, token: string) =>
   request<Campaign>('/campaigns', { method: 'POST', body: JSON.stringify(body) }, token)
