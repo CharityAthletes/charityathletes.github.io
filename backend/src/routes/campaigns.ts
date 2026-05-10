@@ -840,6 +840,34 @@ router.post('/:id/updates', requireAuth, async (req: Request, res: Response) => 
   res.status(201).json(enriched);
 });
 
+// PATCH /campaigns/:id/updates/:updateId — edit own update
+router.patch('/:id/updates/:updateId', requireAuth, async (req: Request, res: Response) => {
+  const { message, photo_url } = req.body;
+  if (typeof message !== 'string' || !message.trim()) {
+    return res.status(400).json({ error: 'message required' });
+  }
+
+  const { data: update } = await db
+    .from('campaign_updates')
+    .select('user_id')
+    .eq('id', req.params.updateId)
+    .eq('campaign_id', req.params.id)
+    .single();
+
+  if (!update) return res.status(404).json({ error: 'Update not found' });
+  if (update.user_id !== req.userId) return res.status(403).json({ error: 'Not your update' });
+
+  const { data, error } = await db
+    .from('campaign_updates')
+    .update({ message: message.trim(), photo_url: photo_url ?? null })
+    .eq('id', req.params.updateId)
+    .select()
+    .single();
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
+});
+
 // DELETE /campaigns/:id/updates/:updateId — own update only
 router.delete('/:id/updates/:updateId', requireAuth, async (req: Request, res: Response) => {
   const { data: update } = await db

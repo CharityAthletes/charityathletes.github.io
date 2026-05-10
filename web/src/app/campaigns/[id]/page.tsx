@@ -3,6 +3,7 @@ import { use, useEffect, useState, useRef } from 'react'
 import {
   getCampaign, getCampaignUpdates, getCampaignParticipants,
   getCampaignPledges, joinCampaign, unjoinCampaign, postCampaignUpdate, sendThankYou,
+  deleteCampaignUpdate, editCampaignUpdate,
 } from '@/lib/api'
 import type { Campaign, CampaignUpdate, CampaignParticipant, DonorPledge, MeResponse } from '@/lib/types'
 import { useAuth } from '@/lib/auth-context'
@@ -10,6 +11,22 @@ import { useLang } from '@/lib/lang-context'
 import { useRouter } from 'next/navigation'
 
 declare global { interface Window { Stripe: any } }
+
+// Tracks the visual viewport height so modals stay above the software keyboard on iOS/Android.
+function useVisualViewportHeight() {
+  const [height, setHeight] = useState<number>(() =>
+    typeof window !== 'undefined' ? (window.visualViewport?.height ?? window.innerHeight) : 700
+  )
+  useEffect(() => {
+    const vv = window.visualViewport
+    if (!vv) return
+    const handler = () => setHeight(vv.height)
+    vv.addEventListener('resize', handler)
+    vv.addEventListener('scroll', handler)
+    return () => { vv.removeEventListener('resize', handler); vv.removeEventListener('scroll', handler) }
+  }, [])
+  return height
+}
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -37,6 +54,7 @@ function ThankDonorsModal({ campaignId, token, onClose }: {
   const [message, setMessage] = useState('')
   const [sending, setSending] = useState(false)
   const [result, setResult] = useState<{ sentTo: number } | null>(null)
+  const vpHeight = useVisualViewportHeight()
 
   const submit = async () => {
     if (!message.trim()) return
@@ -44,51 +62,61 @@ function ThankDonorsModal({ campaignId, token, onClose }: {
     try {
       const r = await sendThankYou(campaignId, message.trim(), token)
       setResult(r)
-    } catch (e: any) { alert(e.message) }
+    } catch (e: any) {
+      const msg = typeof e.message === 'string' ? e.message : t('送信に失敗しました', 'Failed to send')
+      alert(msg)
+    }
     setSending(false)
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 px-4 pb-4 sm:pb-0">
-      <div className="bg-white rounded-2xl w-full max-w-lg p-5 space-y-4">
-        {result ? (
-          <div className="text-center py-4">
-            <div className="text-4xl mb-3">💌</div>
-            <p className="font-bold text-gray-900">{t('お礼を送りました', 'Thank you sent!')}</p>
-            <p className="text-sm text-gray-400 mt-1">
-              {result.sentTo}{t('人の寄付者にメッセージを送りました', ' donor(s) notified')}
-            </p>
-            <button onClick={onClose} className="mt-4 px-6 py-2 rounded-xl text-sm font-bold text-white"
-              style={{ background: 'linear-gradient(135deg, #054738, #1A9966)' }}>
-              {t('閉じる', 'Close')}
-            </button>
-          </div>
-        ) : (
-          <>
-            <div className="flex items-center justify-between">
-              <h3 className="font-bold text-gray-900">{t('寄付者にお礼を送る', 'Thank Your Donors')}</h3>
-              <button onClick={onClose} className="text-gray-400 text-xl leading-none">×</button>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 px-4 pb-2">
+      <div
+        className="bg-white rounded-2xl w-full max-w-lg overflow-y-auto"
+        style={{ maxHeight: `${vpHeight * 0.94}px` }}
+      >
+        <div className="p-5 space-y-4">
+          {result ? (
+            <div className="text-center py-4">
+              <div className="text-4xl mb-3">💌</div>
+              <p className="font-bold text-gray-900">{t('お礼を送りました', 'Thank you sent!')}</p>
+              <p className="text-sm text-gray-400 mt-1">
+                {result.sentTo}{t('人の寄付者にメッセージを送りました', ' donor(s) notified')}
+              </p>
+              <button onClick={onClose} className="mt-4 px-6 py-2 rounded-xl text-sm font-bold text-white"
+                style={{ background: 'linear-gradient(135deg, #054738, #1A9966)' }}>
+                {t('閉じる', 'Close')}
+              </button>
             </div>
-            <p className="text-xs text-gray-400">
-              {t('寄付してくださった方々に感謝のメッセージを送りましょう', 'Send a message of gratitude to everyone who donated')}
-            </p>
-            <textarea
-              value={message}
-              onChange={e => setMessage(e.target.value)}
-              placeholder={t('お礼のメッセージを入力...', 'Write your thank-you message...')}
-              rows={4}
-              className="w-full border border-gray-200 rounded-xl p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-green-200"
-            />
-            <button
-              onClick={submit}
-              disabled={sending || !message.trim()}
-              className="w-full py-3 rounded-xl text-sm font-bold text-white disabled:opacity-50"
-              style={{ background: 'linear-gradient(135deg, #054738, #1A9966)' }}
-            >
-              {sending ? t('送信中...', 'Sending...') : t('お礼を送る', 'Send Thank You')}
-            </button>
-          </>
-        )}
+          ) : (
+            <>
+              <div className="flex items-center justify-between">
+                <h3 className="font-bold text-gray-900">{t('寄付者にお礼を送る', 'Thank Your Donors')}</h3>
+                <button onClick={onClose} className="text-gray-400 text-xl leading-none">×</button>
+              </div>
+              <p className="text-xs text-gray-400">
+                {t('寄付してくださった方々に感謝のメッセージを送りましょう', 'Send a message of gratitude to everyone who donated')}
+              </p>
+              <textarea
+                value={message}
+                onChange={e => setMessage(e.target.value)}
+                placeholder={t('お礼のメッセージを入力...', 'Write your thank-you message...')}
+                rows={4}
+                className="w-full border border-gray-200 rounded-xl p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-green-200"
+              />
+              <button
+                onClick={submit}
+                disabled={sending || !message.trim()}
+                className="w-full py-3 rounded-xl text-sm font-bold text-white disabled:opacity-50"
+                style={{ background: 'linear-gradient(135deg, #054738, #1A9966)' }}
+              >
+                {sending ? t('送信中...', 'Sending...') : t('お礼を送る', 'Send Thank You')}
+              </button>
+              {/* Safe-area spacer so button isn't flush against home indicator */}
+              <div style={{ height: 'env(safe-area-inset-bottom, 8px)' }} />
+            </>
+          )}
+        </div>
       </div>
     </div>
   )
@@ -104,7 +132,9 @@ function PostUpdateModal({ campaignId, token, onClose, onPosted }: {
   const [photo, setPhoto] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [posting, setPosting] = useState(false)
+  const [posted, setPosted] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
+  const vpHeight = useVisualViewportHeight()
 
   const pickPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -113,8 +143,11 @@ function PostUpdateModal({ campaignId, token, onClose, onPosted }: {
     setPreview(URL.createObjectURL(file))
   }
 
+  // Backend requires message (min 1 char) — disable submit if message is empty
+  const canSubmit = message.trim().length > 0
+
   const submit = async () => {
-    if (!message.trim() && !photo) return
+    if (!canSubmit) return
     setPosting(true)
     try {
       let photoUrl: string | null = null
@@ -125,64 +158,186 @@ function PostUpdateModal({ campaignId, token, onClose, onPosted }: {
           `${process.env.NEXT_PUBLIC_BACKEND_URL}/campaigns/${campaignId}/updates/photo`,
           { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: form }
         )
-        if (!res.ok) throw new Error(t('写真のアップロードに失敗しました', 'Photo upload failed'))
+        if (!res.ok) {
+          let errMsg = t('写真のアップロードに失敗しました', 'Photo upload failed')
+          try { errMsg = (await res.json()).error ?? errMsg } catch {}
+          throw new Error(errMsg)
+        }
         const data = await res.json()
         photoUrl = data.url
       }
       await postCampaignUpdate(campaignId, message.trim(), photoUrl, token)
+      setPosted(true)
       onPosted()
-      onClose()
-    } catch (e: any) { alert(e.message) }
+      setTimeout(onClose, 1200)
+    } catch (e: any) {
+      const msg = typeof e.message === 'string' ? e.message : t('投稿に失敗しました', 'Failed to post')
+      alert(msg)
+    }
     setPosting(false)
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 px-4 pb-4 sm:pb-0">
-      <div className="bg-white rounded-2xl w-full max-w-lg p-5 space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="font-bold text-gray-900">{t('報告する', 'Post Update')}</h3>
-          <button onClick={onClose} className="text-gray-400 text-xl leading-none">×</button>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 px-4 pb-2">
+      <div
+        className="bg-white rounded-2xl w-full max-w-lg overflow-y-auto"
+        style={{ maxHeight: `${vpHeight * 0.94}px` }}
+      >
+        <div className="p-5 space-y-4">
+          {posted ? (
+            <div className="text-center py-6">
+              <div className="text-4xl mb-3">✅</div>
+              <p className="font-bold text-gray-900">{t('投稿しました', 'Posted!')}</p>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center justify-between">
+                <h3 className="font-bold text-gray-900">{t('報告する', 'Post Update')}</h3>
+                <button onClick={onClose} className="text-gray-400 text-xl leading-none">×</button>
+              </div>
+
+              <textarea
+                value={message}
+                onChange={e => setMessage(e.target.value)}
+                placeholder={t('寄付者へのメッセージを入力...', 'Write a message to your donors...')}
+                rows={4}
+                className="w-full border border-gray-200 rounded-xl p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-green-200"
+              />
+
+              {/* Photo picker */}
+              <input ref={fileRef} type="file" accept="image/*" onChange={pickPhoto} className="hidden" />
+              {preview ? (
+                <div className="relative">
+                  <img src={preview} alt="" className="w-full rounded-xl object-cover max-h-48" />
+                  <button
+                    onClick={() => { setPhoto(null); setPreview(null) }}
+                    className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 flex items-center justify-center text-white text-sm leading-none"
+                  >×</button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => fileRef.current?.click()}
+                  className="w-full py-2.5 rounded-xl text-sm font-semibold border border-gray-200 text-gray-500 flex items-center justify-center gap-2 hover:bg-gray-50 transition"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+                    <polyline points="21 15 16 10 5 21"/>
+                  </svg>
+                  {t('写真を追加', 'Add Photo')}
+                </button>
+              )}
+
+              <button
+                onClick={submit}
+                disabled={posting || !canSubmit}
+                className="w-full py-3 rounded-xl text-sm font-bold text-white disabled:opacity-50 transition"
+                style={{ background: 'linear-gradient(135deg, #054738, #1A9966)' }}
+              >
+                {posting ? t('投稿中...', 'Posting...') : t('報告する', 'Post')}
+              </button>
+              {/* Safe-area spacer */}
+              <div style={{ height: 'env(safe-area-inset-bottom, 8px)' }} />
+            </>
+          )}
         </div>
+      </div>
+    </div>
+  )
+}
 
-        <textarea
-          value={message}
-          onChange={e => setMessage(e.target.value)}
-          placeholder={t('寄付者へのメッセージを入力...', 'Write a message to your donors...')}
-          rows={4}
-          className="w-full border border-gray-200 rounded-xl p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-green-200"
-        />
+// ── Edit Update modal ─────────────────────────────────────────────────────────
 
-        {/* Photo picker */}
-        <input ref={fileRef} type="file" accept="image/*" onChange={pickPhoto} className="hidden" />
-        {preview ? (
-          <div className="relative">
-            <img src={preview} alt="" className="w-full rounded-xl object-cover max-h-48" />
-            <button
-              onClick={() => { setPhoto(null); setPreview(null) }}
-              className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 flex items-center justify-center text-white text-sm leading-none"
-            >×</button>
+function EditUpdateModal({ campaignId, update, token, onClose, onSaved }: {
+  campaignId: string; update: CampaignUpdate; token: string
+  onClose: () => void; onSaved: (updated: CampaignUpdate) => void
+}) {
+  const { t } = useLang()
+  const [message, setMessage] = useState(update.message)
+  const [photo, setPhoto] = useState<File | null>(null)
+  const [preview, setPreview] = useState<string | null>(update.photoUrl ?? null)
+  const [saving, setSaving] = useState(false)
+  const fileRef = useRef<HTMLInputElement>(null)
+  const vpHeight = useVisualViewportHeight()
+
+  const canSave = message.trim().length > 0
+
+  const save = async () => {
+    if (!canSave) return
+    setSaving(true)
+    try {
+      let photoUrl: string | null = update.photoUrl ?? null
+      if (photo) {
+        const form = new FormData()
+        form.append('photo', photo)
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/campaigns/${campaignId}/updates/photo`,
+          { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: form }
+        )
+        if (!res.ok) {
+          let errMsg = t('写真のアップロードに失敗しました', 'Photo upload failed')
+          try { errMsg = (await res.json()).error ?? errMsg } catch {}
+          throw new Error(errMsg)
+        }
+        photoUrl = (await res.json()).url
+      } else if (preview === null) {
+        // Photo was removed
+        photoUrl = null
+      }
+      const saved = await editCampaignUpdate(campaignId, update.id, message.trim(), photoUrl, token)
+      onSaved(saved)
+      onClose()
+    } catch (e: any) {
+      alert(typeof e.message === 'string' ? e.message : t('保存に失敗しました', 'Failed to save'))
+    }
+    setSaving(false)
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 px-4 pb-2">
+      <div className="bg-white rounded-2xl w-full max-w-lg overflow-y-auto"
+        style={{ maxHeight: `${vpHeight * 0.94}px` }}>
+        <div className="p-5 space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="font-bold text-gray-900">{t('投稿を編集', 'Edit Post')}</h3>
+            <button onClick={onClose} className="text-gray-400 text-xl leading-none">×</button>
           </div>
-        ) : (
-          <button
-            onClick={() => fileRef.current?.click()}
-            className="w-full py-2.5 rounded-xl text-sm font-semibold border border-gray-200 text-gray-500 flex items-center justify-center gap-2 hover:bg-gray-50 transition"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
-              <polyline points="21 15 16 10 5 21"/>
-            </svg>
-            {t('写真を追加', 'Add Photo')}
-          </button>
-        )}
 
-        <button
-          onClick={submit}
-          disabled={posting || (!message.trim() && !photo)}
-          className="w-full py-3 rounded-xl text-sm font-bold text-white disabled:opacity-50 transition"
-          style={{ background: 'linear-gradient(135deg, #054738, #1A9966)' }}
-        >
-          {posting ? t('投稿中...', 'Posting...') : t('報告する', 'Post')}
-        </button>
+          <textarea
+            value={message}
+            onChange={e => setMessage(e.target.value)}
+            rows={4}
+            className="w-full border border-gray-200 rounded-xl p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-green-200"
+          />
+
+          <input ref={fileRef} type="file" accept="image/*"
+            onChange={e => { const f = e.target.files?.[0]; if (f) { setPhoto(f); setPreview(URL.createObjectURL(f)) } }}
+            className="hidden" />
+          {preview ? (
+            <div className="relative">
+              <img src={preview} alt="" className="w-full rounded-xl object-cover max-h-48" />
+              <button
+                onClick={() => { setPhoto(null); setPreview(null) }}
+                className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 flex items-center justify-center text-white text-sm leading-none"
+              >×</button>
+            </div>
+          ) : (
+            <button onClick={() => fileRef.current?.click()}
+              className="w-full py-2.5 rounded-xl text-sm font-semibold border border-gray-200 text-gray-500 flex items-center justify-center gap-2 hover:bg-gray-50 transition">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+                <polyline points="21 15 16 10 5 21"/>
+              </svg>
+              {t('写真を追加', 'Add Photo')}
+            </button>
+          )}
+
+          <button onClick={save} disabled={saving || !canSave}
+            className="w-full py-3 rounded-xl text-sm font-bold text-white disabled:opacity-50 transition"
+            style={{ background: 'linear-gradient(135deg, #054738, #1A9966)' }}>
+            {saving ? t('保存中...', 'Saving...') : t('保存する', 'Save')}
+          </button>
+          <div style={{ height: 'env(safe-area-inset-bottom, 8px)' }} />
+        </div>
       </div>
     </div>
   )
@@ -190,8 +345,24 @@ function PostUpdateModal({ campaignId, token, onClose, onPosted }: {
 
 // ── Donate modal ──────────────────────────────────────────────────────────────
 
-function DonateModal({ campaign, campaignId, me, onClose, onSuccess }: {
-  campaign: Campaign; campaignId: string; me: MeResponse
+type SavedCard = { brand: string; last4: string; expMonth: number; expYear: number; pmId: string; customerId: string }
+
+function cardBrandIcon(brand: string) {
+  const b = brand.toLowerCase()
+  if (b === 'visa') return (
+    <span className="text-[10px] font-black tracking-tight px-1 py-0.5 rounded" style={{ background: '#1a1f71', color: 'white' }}>VISA</span>
+  )
+  if (b === 'mastercard') return (
+    <span className="text-[9px] font-black tracking-tight px-1 py-0.5 rounded" style={{ background: '#eb001b', color: 'white' }}>MC</span>
+  )
+  if (b === 'amex') return (
+    <span className="text-[9px] font-black tracking-tight px-1 py-0.5 rounded" style={{ background: '#2e77bc', color: 'white' }}>AMEX</span>
+  )
+  return <span className="text-[10px] font-bold text-gray-600">{brand.toUpperCase()}</span>
+}
+
+function DonateModal({ campaign, campaignId, me, token, onClose, onSuccess }: {
+  campaign: Campaign; campaignId: string; me: MeResponse; token: string
   onClose: () => void; onSuccess: () => void
 }) {
   const { t } = useLang()
@@ -207,17 +378,26 @@ function DonateModal({ campaign, campaignId, me, onClose, onSuccess }: {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError]           = useState('')
   const [success, setSuccess]       = useState(false)
-  const [stripeReady, setStripeReady] = useState(false)
+  const [stripeReady, setStripeReady]   = useState(false)
+  const [cardLoading, setCardLoading]   = useState(true)   // while fetching saved card
+  const [savedCard, setSavedCard]       = useState<SavedCard | null>(null)
+  const [useNewCard, setUseNewCard]     = useState(false)  // user chose to enter a different card
+  const [saveCard, setSaveCard]         = useState(false)  // "save card for future donations" toggle
 
   const stripeRef   = useRef<any>(null)
   const elementsRef = useRef<any>(null)
   const cardRef     = useRef<HTMLDivElement>(null)
+  const vpHeight    = useVisualViewportHeight()
 
   const FLAT_PRESETS = [500, 1000, 3000, 5000]
   const KM_RATES     = [10, 20, 50]
 
+  // Determine whether we need to show the card Element
+  const needsCardElement = savedCard === null || useNewCard
+
   useEffect(() => {
-    const init = async () => {
+    // Load Stripe.js and saved payment method in parallel
+    const loadStripe = async () => {
       if (!window.Stripe) {
         await new Promise<void>((res, rej) => {
           const s = document.createElement('script')
@@ -226,63 +406,157 @@ function DonateModal({ campaign, campaignId, me, onClose, onSuccess }: {
           document.head.appendChild(s)
         })
       }
-      const stripe   = window.Stripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
-      stripeRef.current   = stripe
+      const stripe = window.Stripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
+      stripeRef.current = stripe
       const elements = stripe.elements()
       elementsRef.current = elements
-      const card = elements.create('card', {
-        style: { base: { fontSize: '16px', color: '#111827', fontFamily: '-apple-system,sans-serif', '::placeholder': { color: '#9ca3af' } }, invalid: { color: '#dc2626' } },
-      })
-      card.mount(cardRef.current!)
-      setStripeReady(true)
+      return stripe
     }
-    init().catch(e => setError(e.message))
-  }, [])
+
+    const loadSavedCard = async () => {
+      try {
+        const { getPaymentMethod } = await import('@/lib/api')
+        const data = await getPaymentMethod(token)
+        setSavedCard(data.card ?? null)
+        return data.card ?? null
+      } catch {
+        setSavedCard(null)
+        return null
+      } finally {
+        setCardLoading(false)
+      }
+    }
+
+    Promise.all([loadStripe(), loadSavedCard()])
+      .then(([, card]) => {
+        // Only mount the card Element if no saved card exists
+        if (!card && cardRef.current && elementsRef.current) {
+          const el = elementsRef.current.create('card', {
+            style: {
+              base: { fontSize: '16px', color: '#111827', fontFamily: '-apple-system,sans-serif', '::placeholder': { color: '#9ca3af' } },
+              invalid: { color: '#dc2626' },
+            },
+          })
+          el.mount(cardRef.current)
+        }
+        setStripeReady(true)
+      })
+      .catch(e => setError(e.message))
+  }, [token])
+
+  // When user switches to "enter a new card", mount the card Element
+  useEffect(() => {
+    if (!useNewCard || !stripeReady || !elementsRef.current || !cardRef.current) return
+    // Unmount any existing element first
+    const existing = elementsRef.current.getElement('card')
+    if (existing) { try { existing.unmount() } catch {} }
+    const el = elementsRef.current.create('card', {
+      style: {
+        base: { fontSize: '16px', color: '#111827', fontFamily: '-apple-system,sans-serif', '::placeholder': { color: '#9ca3af' } },
+        invalid: { color: '#dc2626' },
+      },
+    })
+    el.mount(cardRef.current)
+  }, [useNewCard, stripeReady])
 
   const handleSubmit = async () => {
-    const finalAmt  = amount  ?? (customAmt  ? parseInt(customAmt)  : null)
-    const finalRate = rate    ?? (customRate ? parseInt(customRate) : null)
+    const finalAmt  = amount ?? (customAmt  ? parseInt(customAmt)  : null)
+    const finalRate = rate   ?? (customRate ? parseInt(customRate) : null)
     if (tab === 'flat'  && !finalAmt)  return setError(t('金額を選択してください', 'Please select an amount'))
     if (tab === 'perkm' && !finalRate) return setError(t('レートを選択してください', 'Please select a rate'))
     if (!stripeRef.current || !elementsRef.current) return
 
     setSubmitting(true); setError('')
+
     try {
-      const res = await fetch(
+      const donorName  = (me as any).displayName || me.email
+      const donorEmail = me.email
+
+      // ── Determine which payment method to use ──────────────────────────────
+      // A) Saved card: use pmId directly, reuse the saved Stripe customer
+      // B) New card + save: setup → save card first, then use for this pledge
+      // C) New card, no save: normal one-off flow
+
+      let usedPmId:       string | null = null
+      let usedCustomerId: string | null = null
+
+      const activeSaved = (savedCard !== null && !useNewCard) ? savedCard : null
+
+      if (activeSaved) {
+        // ── Path A: use saved card ─────────────────────────────────────────
+        usedPmId       = activeSaved.pmId
+        usedCustomerId = activeSaved.customerId
+
+      } else if (saveCard && !activeSaved) {
+        // ── Path B: save new card first, then pledge ───────────────────────
+        const setupRes = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/donations/setup-payment`,
+          { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` } }
+        )
+        const setupData = await setupRes.json()
+        if (!setupRes.ok) throw new Error(setupData.error ?? 'Setup failed')
+
+        const cardEl = elementsRef.current.getElement('card')
+        const { setupIntent: si, error: siErr } = await stripeRef.current.confirmCardSetup(
+          setupData.client_secret, { payment_method: { card: cardEl, billing_details: { name: donorName, email: donorEmail } } }
+        )
+        if (siErr) throw new Error(siErr.message)
+
+        // Persist as default payment method on the user's profile
+        await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/donations/confirm-setup`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ payment_method_id: si.payment_method }),
+          }
+        )
+
+        usedPmId       = si.payment_method as string
+        usedCustomerId = setupData.customer_id as string
+      }
+      // Path C: no saved card, no save → usedPmId/customerId stay null → normal flow
+
+      // ── Create the pledge ──────────────────────────────────────────────────
+      const pledgeRes = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/c/${campaignId}/pledge`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            donor_name:       (me as any).displayName || me.email,
-            donor_email:      me.email,
-            flat_amount_jpy:  tab === 'flat'  ? finalAmt  : null,
-            per_km_rate_jpy:  tab === 'perkm' ? finalRate : null,
-            is_anonymous:     anonymous,
-            athlete_user_id:  campaign.createdBy ?? null,
-            currency:         'jpy',
+            donor_name:         donorName,
+            donor_email:        donorEmail,
+            flat_amount_jpy:    tab === 'flat'  ? finalAmt  : null,
+            per_km_rate_jpy:    tab === 'perkm' ? finalRate : null,
+            is_anonymous:       anonymous,
+            athlete_user_id:    campaign.createdBy ?? null,
+            currency:           'jpy',
+            ...(usedCustomerId ? { saved_customer_id: usedCustomerId } : {}),
           }),
         }
       )
-      const pledge = await res.json()
-      if (!res.ok) throw new Error(pledge.error ?? 'Pledge failed')
+      const pledge = await pledgeRes.json()
+      if (!pledgeRes.ok) throw new Error(typeof pledge.error === 'string' ? pledge.error : 'Pledge failed')
 
-      const card = elementsRef.current.getElement('card')
+      // ── Confirm with Stripe ────────────────────────────────────────────────
       let intentId: string
       if (pledge.type === 'payment') {
-        const { paymentIntent, error: e } = await stripeRef.current.confirmCardPayment(
-          pledge.client_secret, { payment_method: { card } }
-        )
+        const confirmArgs = usedPmId
+          ? { payment_method: usedPmId }
+          : { payment_method: { card: elementsRef.current.getElement('card'), billing_details: { name: donorName, email: donorEmail } } }
+        const { paymentIntent, error: e } = await stripeRef.current.confirmCardPayment(pledge.client_secret, confirmArgs)
         if (e) throw new Error(e.message)
         intentId = paymentIntent.id
       } else {
-        const { setupIntent, error: e } = await stripeRef.current.confirmCardSetup(
-          pledge.client_secret, { payment_method: { card } }
-        )
+        const confirmArgs = usedPmId
+          ? { payment_method: usedPmId }
+          : { payment_method: { card: elementsRef.current.getElement('card'), billing_details: { name: donorName, email: donorEmail } } }
+        const { setupIntent, error: e } = await stripeRef.current.confirmCardSetup(pledge.client_secret, confirmArgs)
         if (e) throw new Error(e.message)
         intentId = setupIntent.id
       }
 
+      // ── Confirm with our backend ───────────────────────────────────────────
       await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/c/${campaignId}/pledge/confirm`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -295,13 +569,16 @@ function DonateModal({ campaign, campaignId, me, onClose, onSuccess }: {
     setSubmitting(false)
   }
 
-  const maxKm  = campaign.maxDistanceKm
-  const effRate = rate ?? (customRate ? parseInt(customRate) : 0)
+  const maxKm     = campaign.maxDistanceKm
+  const effRate   = rate ?? (customRate ? parseInt(customRate) : 0)
   const maxCharge = maxKm && effRate ? `¥${(maxKm * effRate).toLocaleString()}` : null
+
+  const showingCard = !cardLoading && savedCard !== null && !useNewCard
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50">
-      <div className="bg-white rounded-t-3xl w-full max-w-lg max-h-[92vh] overflow-y-auto">
+      <div className="bg-white rounded-t-3xl w-full max-w-lg overflow-y-auto"
+        style={{ maxHeight: `${vpHeight * 0.94}px` }}>
         {/* Header */}
         <div className="flex items-center justify-between px-5 pt-5 pb-3">
           <button onClick={onClose} className="text-sm font-semibold" style={{ color: '#1A9966' }}>
@@ -351,15 +628,13 @@ function DonateModal({ campaign, campaignId, me, onClose, onSuccess }: {
               <div className="space-y-4">
                 <div>
                   <p className="font-bold text-gray-900">{t('金額を選択', 'Choose your amount')}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">{t('活動1回ごとに寄付されます', 'Charged once per activity')}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{t('即時決済されます', 'Charged immediately')}</p>
                 </div>
                 <div className="flex gap-2 flex-wrap">
                   {FLAT_PRESETS.map(v => (
                     <button key={v} onClick={() => { setAmount(v); setCustomAmt('') }}
                       className="px-4 py-2 rounded-2xl text-sm font-bold transition"
-                      style={amount === v && !customAmt
-                        ? { background: '#1A9966', color: 'white' }
-                        : { background: '#f3f4f6', color: '#374151' }}>
+                      style={amount === v && !customAmt ? { background: '#1A9966', color: 'white' } : { background: '#f3f4f6', color: '#374151' }}>
                       ¥{v.toLocaleString()}
                     </button>
                   ))}
@@ -370,8 +645,7 @@ function DonateModal({ campaign, campaignId, me, onClose, onSuccess }: {
                     <span className="text-gray-400 mr-2">¥</span>
                     <input type="number" min="100" value={customAmt}
                       onChange={e => { setCustomAmt(e.target.value); setAmount(null) }}
-                      placeholder="0"
-                      className="flex-1 outline-none text-sm text-gray-900" />
+                      placeholder="0" className="flex-1 outline-none text-sm text-gray-900" />
                   </div>
                 </div>
               </div>
@@ -390,9 +664,7 @@ function DonateModal({ campaign, campaignId, me, onClose, onSuccess }: {
                   {KM_RATES.map(v => (
                     <button key={v} onClick={() => { setRate(v); setCustomRate('') }}
                       className="px-4 py-2 rounded-2xl text-sm font-bold transition"
-                      style={rate === v && !customRate
-                        ? { background: '#1A9966', color: 'white' }
-                        : { background: '#f3f4f6', color: '#374151' }}>
+                      style={rate === v && !customRate ? { background: '#1A9966', color: 'white' } : { background: '#f3f4f6', color: '#374151' }}>
                       ¥{v}/km
                     </button>
                   ))}
@@ -403,12 +675,10 @@ function DonateModal({ campaign, campaignId, me, onClose, onSuccess }: {
                     <span className="text-gray-400 mr-2">¥</span>
                     <input type="number" min="1" value={customRate}
                       onChange={e => { setCustomRate(e.target.value); setRate(null) }}
-                      placeholder="0"
-                      className="flex-1 outline-none text-sm text-gray-900" />
+                      placeholder="0" className="flex-1 outline-none text-sm text-gray-900" />
                     <span className="text-gray-400 ml-2">/km</span>
                   </div>
                 </div>
-                {/* Distance cap + max charge */}
                 {maxKm && (
                   <div className="flex items-start gap-2 bg-blue-50 rounded-xl px-3 py-2.5">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" className="mt-0.5 shrink-0">
@@ -431,11 +701,76 @@ function DonateModal({ campaign, campaignId, me, onClose, onSuccess }: {
               </div>
             )}
 
-            {/* Card input */}
-            <div className="space-y-1.5">
-              <p className="text-xs font-semibold text-gray-500">{t('カード情報', 'Card Details')}</p>
-              <div ref={cardRef} className="border border-gray-200 rounded-xl px-4 py-3.5 bg-white" style={{ minHeight: '44px' }} />
-              {!stripeReady && <div className="h-11 rounded-xl bg-gray-100 animate-pulse" />}
+            {/* ── Payment section ── */}
+            <div className="space-y-3">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('お支払い', 'Payment')}</p>
+
+              {/* Loading state */}
+              {cardLoading && (
+                <div className="h-12 rounded-xl bg-gray-100 animate-pulse" />
+              )}
+
+              {/* Saved card display */}
+              {showingCard && savedCard && (
+                <div className="flex items-center justify-between border border-gray-200 rounded-xl px-4 py-3 bg-white">
+                  <div className="flex items-center gap-3">
+                    {cardBrandIcon(savedCard.brand)}
+                    <div>
+                      <p className="text-sm font-semibold text-gray-800">•••• {savedCard.last4}</p>
+                      <p className="text-xs text-gray-400">{t('有効期限', 'Exp')} {savedCard.expMonth}/{String(savedCard.expYear).slice(-2)}</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setUseNewCard(true)}
+                    className="text-xs font-semibold"
+                    style={{ color: '#1A9966' }}
+                  >
+                    {t('変更', 'Change')}
+                  </button>
+                </div>
+              )}
+
+              {/* Card Element (shown when no saved card, or user chose to enter a new card) */}
+              {needsCardElement && (
+                <div className="space-y-2">
+                  <div ref={cardRef} className="border border-gray-200 rounded-xl px-4 py-3.5 bg-white" style={{ minHeight: '44px' }} />
+                  {!stripeReady && <div className="h-11 rounded-xl bg-gray-100 animate-pulse" />}
+
+                  {/* Save card toggle — only shown when no pre-existing saved card */}
+                  {!cardLoading && savedCard === null && (
+                    <button
+                      onClick={() => setSaveCard(v => !v)}
+                      className="w-full flex items-center justify-between py-3 px-4 rounded-xl border border-gray-200 bg-white"
+                    >
+                      <div className="flex items-center gap-2.5 text-left">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2" strokeLinecap="round">
+                          <rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/>
+                        </svg>
+                        <div>
+                          <p className="text-sm font-semibold text-gray-800">{t('カード情報を保存する', 'Save card for future donations')}</p>
+                          <p className="text-xs text-gray-400">{t('次回の寄付時に入力不要になります', 'Skip card entry on your next donation')}</p>
+                        </div>
+                      </div>
+                      <div className="shrink-0 w-11 h-6 rounded-full transition-all relative ml-3"
+                        style={{ background: saveCard ? '#1A9966' : '#d1d5db' }}>
+                        <span className="absolute top-0.5 transition-all rounded-full w-5 h-5 bg-white shadow"
+                          style={{ left: saveCard ? '22px' : '2px' }} />
+                      </div>
+                    </button>
+                  )}
+
+                  {/* "Back to saved card" link */}
+                  {useNewCard && (
+                    <button
+                      onClick={() => setUseNewCard(false)}
+                      className="text-xs font-semibold"
+                      style={{ color: '#1A9966' }}
+                    >
+                      ← {t('保存済みカードを使う', 'Use saved card')}
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Anonymous toggle */}
@@ -461,7 +796,8 @@ function DonateModal({ campaign, campaignId, me, onClose, onSuccess }: {
               </p>
             )}
 
-            <button onClick={handleSubmit} disabled={submitting || !stripeReady}
+            <button onClick={handleSubmit}
+              disabled={submitting || cardLoading || (!showingCard && !stripeReady)}
               className="w-full py-4 rounded-2xl text-base font-bold text-white disabled:opacity-50 transition"
               style={{ background: 'linear-gradient(135deg, #054738, #1A9966)' }}>
               {submitting ? t('処理中...', 'Processing...') : tab === 'flat' ? t('寄付する', 'Donate') : t('誓約する', 'Pledge')}
@@ -491,6 +827,7 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
   const [showPostModal, setShowPostModal]   = useState(false)
   const [showThankModal, setShowThankModal] = useState(false)
   const [showDonateModal, setShowDonateModal] = useState(false)
+  const [editingUpdate, setEditingUpdate]   = useState<CampaignUpdate | null>(null)
 
   const load = async () => {
     const [c, u, p, pl] = await Promise.all([
@@ -574,9 +911,9 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
           onClose={() => setShowThankModal(false)}
         />
       )}
-      {showDonateModal && me && (
+      {showDonateModal && me && token && (
         <DonateModal
-          campaign={campaign} campaignId={id} me={me as any}
+          campaign={campaign} campaignId={id} me={me as any} token={token}
           onClose={() => setShowDonateModal(false)}
           onSuccess={() => load()}
         />
@@ -586,6 +923,16 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
           campaignId={id} token={token}
           onClose={() => setShowPostModal(false)}
           onPosted={() => getCampaignUpdates(id, token ?? undefined).then(setUpdates)}
+        />
+      )}
+      {editingUpdate && token && (
+        <EditUpdateModal
+          campaignId={id} update={editingUpdate} token={token}
+          onClose={() => setEditingUpdate(null)}
+          onSaved={saved => {
+            setUpdates(prev => prev.map(u => u.id === saved.id ? { ...u, message: saved.message, photoUrl: (saved as any).photoUrl ?? (saved as any).photo_url ?? u.photoUrl } : u))
+            setEditingUpdate(null)
+          }}
         />
       )}
 
@@ -773,24 +1120,57 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
             <p className="text-sm text-gray-400">{t('まだ投稿がありません', 'No updates yet')}</p>
           ) : (
             <div className="space-y-4">
-              {updates.map(u => (
-                <div key={u.id} className="border border-gray-100 rounded-xl p-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white"
-                      style={{ background: 'linear-gradient(135deg, #0D2659, #054738)' }}>
-                      {u.userProfiles?.displayName?.[0]?.toUpperCase() ?? '?'}
+              {updates.map(u => {
+                const isOwner = token && me && u.userId === (me as any).id
+                return (
+                  <div key={u.id} className="border border-gray-100 rounded-xl p-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white"
+                        style={{ background: 'linear-gradient(135deg, #0D2659, #054738)' }}>
+                        {u.userProfiles?.displayName?.[0]?.toUpperCase() ?? '?'}
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-xs font-semibold text-gray-800">{u.userProfiles?.displayName ?? t('アスリート', 'Athlete')}</p>
+                        <p className="text-[10px] text-gray-400">{relativeTime(u.createdAt, lang)}</p>
+                      </div>
+                      {isOwner && (
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => setEditingUpdate(u)}
+                            className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition"
+                            title={t('編集', 'Edit')}
+                          >
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                            </svg>
+                          </button>
+                          <button
+                            onClick={async () => {
+                              if (!confirm(t('この投稿を削除しますか？', 'Delete this post?'))) return
+                              try {
+                                await deleteCampaignUpdate(id, u.id, token!)
+                                setUpdates(prev => prev.filter(x => x.id !== u.id))
+                              } catch { alert(t('削除に失敗しました', 'Failed to delete')) }
+                            }}
+                            className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition"
+                            title={t('削除', 'Delete')}
+                          >
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
+                              <path d="M10 11v6M14 11v6M9 6V4h6v2"/>
+                            </svg>
+                          </button>
+                        </div>
+                      )}
                     </div>
-                    <div className="flex-1">
-                      <p className="text-xs font-semibold text-gray-800">{u.userProfiles?.displayName ?? t('アスリート', 'Athlete')}</p>
-                      <p className="text-[10px] text-gray-400">{relativeTime(u.createdAt, lang)}</p>
-                    </div>
+                    <p className="text-sm text-gray-700 leading-relaxed">{u.message}</p>
+                    {u.photoUrl && (
+                      <img src={u.photoUrl} alt="" className="mt-2 w-full rounded-xl object-cover max-h-64" />
+                    )}
                   </div>
-                  <p className="text-sm text-gray-700 leading-relaxed">{u.message}</p>
-                  {u.photoUrl && (
-                    <img src={u.photoUrl} alt="" className="mt-2 w-full rounded-xl object-cover max-h-64" />
-                  )}
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>

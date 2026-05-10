@@ -155,6 +155,9 @@ export const postCampaignUpdate = (
 export const deleteCampaignUpdate = (id: string, updateId: string, token: string) =>
   request<{ ok: boolean }>(`/campaigns/${id}/updates/${updateId}`, { method: 'DELETE' }, token)
 
+export const editCampaignUpdate = (id: string, updateId: string, message: string, photoUrl: string | null, token: string) =>
+  request<CampaignUpdate>(`/campaigns/${id}/updates/${updateId}`, { method: 'PATCH', body: JSON.stringify({ message, photo_url: photoUrl }) }, token)
+
 export const sendThankYou = (campaignId: string, message: string, token: string) =>
   request<{ ok: boolean; sentTo: number }>(
     `/campaigns/${campaignId}/thankyou`,
@@ -202,7 +205,7 @@ export const getActivity = (id: string, token: string) =>
   request<Activity>(`/activities/${id}`, {}, token)
 
 export const getPaymentMethod = (token: string) =>
-  request<{ card: { brand: string; last4: string; expMonth: number; expYear: number } | null }>(
+  request<{ card: { brand: string; last4: string; expMonth: number; expYear: number; pmId: string; customerId: string } | null }>(
     '/donations/payment-method', {}, token
   )
 
