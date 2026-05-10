@@ -185,6 +185,14 @@ export const getDonationSummary = (token: string) =>
 export const getActivities = (token: string) =>
   request<Activity[]>('/activities', {}, token)
 
+export const getActivity = (id: string, token: string) =>
+  request<Activity>(`/activities/${id}`, {}, token)
+
+export const getPaymentMethod = (token: string) =>
+  request<{ card: { brand: string; last4: string; expMonth: number; expYear: number } | null }>(
+    '/donations/payment-method', {}, token
+  )
+
 // ── Charities ─────────────────────────────────────────────────────────────────
 
 export const getCharities = (params?: { q?: string; category?: string }) => {

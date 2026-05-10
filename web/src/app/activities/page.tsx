@@ -5,6 +5,7 @@ import type { Activity } from '@/lib/types'
 import { useAuth } from '@/lib/auth-context'
 import { useLang } from '@/lib/lang-context'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 // Teal sport icon SVGs inside a circle — mirrors iOS activity icons
 function SportIcon({ type }: { type: string }) {
@@ -137,7 +138,7 @@ export default function ActivitiesPage() {
       ) : (
         <div className="divide-y divide-gray-100">
           {activities.map(a => (
-            <div key={a.id} className="flex items-center gap-4 py-4">
+            <Link key={a.id} href={`/activities/${a.id}`} className="flex items-center gap-4 py-4 hover:bg-gray-50 -mx-4 px-4 transition">
               <SportIcon type={a.sportType} />
               <div className="flex-1 min-w-0">
                 <p className="font-bold text-gray-900 truncate">{a.name}</p>
@@ -156,7 +157,7 @@ export default function ActivitiesPage() {
               <svg width="8" height="14" viewBox="0 0 8 14" fill="none" stroke="#d1d5db" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M1 1l6 6-6 6"/>
               </svg>
-            </div>
+            </Link>
           ))}
         </div>
       )}

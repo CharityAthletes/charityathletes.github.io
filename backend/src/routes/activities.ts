@@ -18,4 +18,18 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
   res.json(data ?? []);
 });
 
+// GET /activities/:id — single activity
+router.get('/:id', requireAuth, async (req: Request, res: Response) => {
+  const { data, error } = await db
+    .from('activities')
+    .select('id, name, sport_type, distance_meters, moving_time_seconds, total_elevation_gain, average_heartrate, start_date, strava_activity_id')
+    .eq('id', req.params.id)
+    .eq('user_id', req.userId!)
+    .is('deleted_at', null)
+    .single();
+
+  if (error || !data) return res.status(404).json({ error: 'Not found' });
+  res.json(data);
+});
+
 export default router;
