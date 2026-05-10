@@ -12,3 +12,8 @@ Pods/
 # xcconfig files contain real API keys — never commit
 ios/Config/Debug.xcconfig
 ios/Config/Release.xcconfig
+
+# Web
+web/.next/
+web/node_modules/
+web/.env.local
