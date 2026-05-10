@@ -113,18 +113,22 @@ router.get('/strava', requireAuth, async (req: Request, res: Response) => {
 });
 
 // Sign in / sign up via Strava (no auth required)
+// Optional query param: ?web_redirect=<encoded URL>  — when set, the callback
+// will redirect to that URL (web app) instead of the iOS deep link.
 router.get('/strava/login', async (req: Request, res: Response) => {
   const state = crypto.randomBytes(16).toString('hex');
+  const webRedirect = req.query.web_redirect as string | undefined;
   const { error: stateError } = await db.from('oauth_states').insert({
     state,
-    user_id:    null,    // null = login mode (not a connect)
-    expires_at: new Date(Date.now() + 10 * 60_000).toISOString(),
+    user_id:      null,    // null = login mode (not a connect)
+    expires_at:   new Date(Date.now() + 10 * 60_000).toISOString(),
+    web_redirect: webRedirect ?? null,
   });
   if (stateError) {
     console.error('[Strava Login] failed to save state:', stateError);
     return res.status(500).json({ error: 'Failed to initiate Strava login' });
   }
-  console.log('[Strava Login] state saved:', state);
+  console.log('[Strava Login] state saved:', state, 'web_redirect:', webRedirect);
   res.json({ url: stravaService.authorizationUrl(state) });
 });
 
@@ -133,11 +137,17 @@ router.get('/strava/callback', async (req: Request, res: Response) => {
   const { code, state, error } = req.query as Record<string, string>;
   const appUrl = process.env.APP_URL ?? 'charityathletes://';
 
-  if (error) return res.redirect(`${appUrl}auth/error?reason=${error}`);
+  if (error) {
+    // Try to read web_redirect from state for better error UX on web
+    const { data: errState } = await db.from('oauth_states').select('web_redirect').eq('state', state ?? '').single();
+    const webRedirect = errState?.web_redirect as string | null;
+    if (webRedirect) return res.redirect(`${webRedirect}?error=${error}`);
+    return res.redirect(`${appUrl}auth/error?reason=${error}`);
+  }
 
   const { data: stateRow } = await db
     .from('oauth_states')
-    .select('user_id')
+    .select('user_id, web_redirect')
     .eq('state', state)
     .gt('expires_at', new Date().toISOString())
     .single();
@@ -293,8 +303,13 @@ router.get('/strava/callback', async (req: Request, res: Response) => {
       }
 
       const { access_token, refresh_token } = sessionData.session;
-      console.log('[Strava Login] session created, redirecting to app');
+      console.log('[Strava Login] session created, redirecting');
       const params = new URLSearchParams({ access_token, refresh_token, token_type: 'bearer' });
+      // If login was initiated from the web app, redirect there; otherwise use iOS deep link
+      const webRedirect = (stateRow as any).web_redirect as string | null;
+      if (webRedirect) {
+        return res.redirect(`${webRedirect}?${params}`);
+      }
       return res.redirect(`${appUrl}auth/strava-login?${params}`);
     }
   } catch (err) {
