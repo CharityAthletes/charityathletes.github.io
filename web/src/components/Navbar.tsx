@@ -1,65 +1,31 @@
 'use client'
-import Link from 'next/link'
 import { useAuth } from '@/lib/auth-context'
-import { useRouter } from 'next/navigation'
+import { useLang } from '@/lib/lang-context'
+import Link from 'next/link'
 
 export default function Navbar() {
-  const { me, loading, signOut } = useAuth()
-  const router = useRouter()
-
-  const handleSignOut = async () => {
-    await signOut()
-    router.push('/')
-  }
+  const { me, loading } = useAuth()
+  const { lang, toggle, t } = useLang()
 
   return (
     <nav className="sticky top-0 z-50 text-white" style={{ background: 'linear-gradient(135deg, #0D2659, #054738)' }}>
-      <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2">
-          <span className="text-xl font-bold text-white tracking-tight">
-            Charity Athletes
-          </span>
+      <div className="max-w-lg mx-auto px-4 h-12 flex items-center justify-between">
+        <Link href="/" className="text-base font-bold text-white tracking-tight">
+          Charity Athletes
         </Link>
 
-        <div className="flex items-center gap-4">
-          {!loading && (
-            <>
-              {me ? (
-                <>
-                  {me.role === 'admin' && (
-                    <Link href="/admin" className="text-sm text-white/80 hover:text-white">
-                      Admin
-                    </Link>
-                  )}
-                  {me.role === 'nonprofit' && (
-                    <Link href="/nonprofit" className="text-sm text-white/80 hover:text-white">
-                      Dashboard
-                    </Link>
-                  )}
-                  {me.role === 'athlete' && (
-                    <Link href="/dashboard" className="text-sm text-white/80 hover:text-white">
-                      Dashboard
-                    </Link>
-                  )}
-                  <button
-                    onClick={handleSignOut}
-                    className="text-sm text-white/60 hover:text-white"
-                  >
-                    Sign out
-                  </button>
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white" style={{ background: '#1A9966' }}>
-                    {(me.displayName ?? me.email)[0].toUpperCase()}
-                  </div>
-                </>
-              ) : (
-                <Link
-                  href="/login"
-                  className="px-4 py-1.5 rounded-full text-sm font-semibold text-white border border-white/40 hover:bg-white/10 transition"
-                >
-                  Sign in
-                </Link>
-              )}
-            </>
+        <div className="flex items-center gap-3">
+          {/* Language toggle */}
+          <button
+            onClick={toggle}
+            className="px-3 py-1 rounded-full text-xs font-semibold border border-white/30 text-white bg-white/10 hover:bg-white/20 transition"
+          >
+            {lang === 'ja' ? 'English' : '日本語'}
+          </button>
+
+          {/* Admin badge */}
+          {!loading && me?.role === 'admin' && (
+            <Link href="/admin" className="text-xs text-white/70 hover:text-white">Admin</Link>
           )}
         </div>
       </div>

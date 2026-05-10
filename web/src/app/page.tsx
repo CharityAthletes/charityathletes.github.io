@@ -1,72 +1,118 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { getCampaigns } from '@/lib/api'
-import type { Campaign } from '@/lib/types'
-import CampaignCard from '@/components/CampaignCard'
-import Link from 'next/link'
+import { getMyCampaigns, getCampaigns, getDonationSummary } from '@/lib/api'
+import type { Campaign, DonationSummary } from '@/lib/types'
 import { useAuth } from '@/lib/auth-context'
+import { useLang } from '@/lib/lang-context'
+import HomeCampaignCard from '@/components/HomeCampaignCard'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 export default function HomePage() {
-  const { me } = useAuth()
-  const [campaigns, setCampaigns] = useState<Campaign[]>([])
+  const { me, token, loading: authLoading } = useAuth()
+  const { t } = useLang()
+  const router = useRouter()
+
+  const [mine, setMine]       = useState<Campaign[]>([])
+  const [all, setAll]         = useState<Campaign[]>([])
+  const [summary, setSummary] = useState<DonationSummary | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    getCampaigns().then(setCampaigns).catch(console.error).finally(() => setLoading(false))
-  }, [])
+    if (authLoading) return
+    if (!token) { router.replace('/login'); return }
 
-  const active = campaigns.filter(c => c.status === 'active')
-  const past   = campaigns.filter(c => c.status !== 'active')
+    Promise.all([
+      getMyCampaigns(token),
+      getCampaigns(token),
+      getDonationSummary(token),
+    ]).then(([m, a, s]) => {
+      setMine(m)
+      // "Join" tab = public campaigns not already in mine
+      const myIds = new Set(m.map(c => c.id))
+      setAll(a.filter(c => !myIds.has(c.id)))
+      setSummary(s)
+    }).catch(console.error).finally(() => setLoading(false))
+  }, [token, authLoading, router])
+
+  const totalKm = mine.reduce((s, c) => s + (c.totalKm ?? 0), 0)
+
+  if (authLoading || loading) {
+    return (
+      <div className="px-4 pt-4 space-y-3 max-w-lg mx-auto">
+        <div className="h-24 rounded-2xl bg-gray-100 animate-pulse" />
+        <div className="h-40 rounded-2xl bg-gray-100 animate-pulse" />
+        <div className="grid grid-cols-2 gap-3">
+          {[...Array(4)].map((_, i) => <div key={i} className="h-44 rounded-2xl bg-gray-100 animate-pulse" />)}
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      {/* Hero */}
-      <div className="text-center mb-10 py-8 px-4 rounded-2xl" style={{ background: 'linear-gradient(135deg, #0D2659, #054738)' }}>
-        <h1 className="text-3xl font-bold text-white mb-2">
-          走ることで、世界を変えよう 🏃
-        </h1>
-        <p className="text-white/70 max-w-xl mx-auto">
-          Charity Athletes は、アスリートの活動を寄付につなげるプラットフォームです。
-        </p>
-        {me?.role === 'athlete' && (
-          <Link
-            href="/campaigns/create"
-            className="inline-block mt-4 px-6 py-2.5 rounded-full font-semibold text-white transition hover:opacity-90"
-            style={{ background: '#1A9966' }}
-          >
-            キャンペーンを作成
-          </Link>
+    <div className="max-w-lg mx-auto px-4 pt-4 space-y-5">
+      {/* Greeting */}
+      <div className="flex items-center gap-3">
+        {me?.avatarUrl ? (
+          <img src={me.avatarUrl} alt="" className="w-14 h-14 rounded-full object-cover ring-2 ring-white shadow" />
+        ) : (
+          <div className="w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold text-white shadow"
+            style={{ background: 'linear-gradient(135deg, #0D2659, #054738)' }}>
+            {(me?.displayName ?? 'A')[0].toUpperCase()}
+          </div>
         )}
+        <div>
+          <p className="text-sm text-gray-400">{t('おかえりなさい', 'Welcome back')}</p>
+          <p className="text-2xl font-bold text-gray-900">{me?.displayName ?? t('アスリート', 'Athlete')}</p>
+        </div>
       </div>
 
-      {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="bg-white rounded-2xl h-64 animate-pulse border border-gray-100" />
-          ))}
+      {/* Stats banner */}
+      <div className="rounded-2xl p-5 flex"
+        style={{ background: 'linear-gradient(135deg, #054738, #1A9966)' }}>
+        <div className="flex-1 text-center">
+          <p className="text-3xl font-bold text-white">¥{(summary?.totalJpy ?? 0).toLocaleString()}</p>
+          <p className="text-white/70 text-xs mt-0.5">{t('合計寄付額', 'Total Donated')}</p>
         </div>
-      ) : (
-        <>
-          <section>
-            <h2 className="text-lg font-bold text-gray-800 mb-4">開催中のキャンペーン</h2>
-            {active.length === 0 ? (
-              <p className="text-gray-400 text-sm">現在開催中のキャンペーンはありません。</p>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {active.map(c => <CampaignCard key={c.id} campaign={c} />)}
-              </div>
-            )}
-          </section>
+        <div className="w-px bg-white/20 mx-2" />
+        <div className="flex-1 text-center">
+          <p className="text-3xl font-bold text-white">{totalKm.toFixed(1)} <span className="text-lg font-semibold">km</span></p>
+          <p className="text-white/70 text-xs mt-0.5">{t('合計距離', 'Total Distance')}</p>
+        </div>
+      </div>
 
-          {past.length > 0 && (
-            <section className="mt-12">
-              <h2 className="text-lg font-bold text-gray-800 mb-4">過去のキャンペーン</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {past.map(c => <CampaignCard key={c.id} campaign={c} />)}
-              </div>
-            </section>
-          )}
-        </>
+      {/* My Campaigns */}
+      <section>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-lg font-bold text-gray-900">{t('マイキャンペーン', 'My Campaigns')}</h2>
+          <Link href="/dashboard" className="text-xs font-semibold" style={{ color: '#1A9966' }}>
+            {t('すべて見る', 'See all')} →
+          </Link>
+        </div>
+        {mine.length === 0 ? (
+          <div className="bg-white rounded-2xl p-5 text-center border border-gray-100">
+            <p className="text-gray-400 text-sm">{t('参加中のキャンペーンはありません', 'No campaigns yet')}</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-3">
+            {mine.map(c => <HomeCampaignCard key={c.id} campaign={c} />)}
+          </div>
+        )}
+      </section>
+
+      {/* Join a Campaign */}
+      {all.length > 0 && (
+        <section>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-bold text-gray-900">{t('キャンペーンに参加', 'Join a Campaign')}</h2>
+            <Link href="/campaigns" className="text-xs font-semibold" style={{ color: '#1A9966' }}>
+              {t('すべて見る', 'See all')} →
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {all.slice(0, 4).map(c => <HomeCampaignCard key={c.id} campaign={c} showDaysLeft />)}
+          </div>
+        </section>
       )}
     </div>
   )
