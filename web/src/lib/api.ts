@@ -3,7 +3,7 @@ import type {
   Campaign, CampaignParticipation, CampaignUpdate, DonorPledge,
   CampaignParticipant, Nonprofit, Donation, DonationSummary,
   MeResponse, LeaderboardEntry, NonprofitProfile, NonprofitDashboard,
-  FinalizeResult, AdminNonprofitRow, PlatformStats,
+  FinalizeResult, AdminNonprofitRow, PlatformStats, Activity,
 } from './types'
 
 const BASE = process.env.NEXT_PUBLIC_BACKEND_URL!
@@ -168,6 +168,16 @@ export const getDonations = (token: string) =>
 
 export const getDonationSummary = (token: string) =>
   request<DonationSummary>('/donations/summary', {}, token)
+
+// ── Activities ────────────────────────────────────────────────────────────────
+
+export const getActivities = (token: string) =>
+  request<Activity[]>('/activities', {}, token)
+
+// ── Charities ─────────────────────────────────────────────────────────────────
+
+export const getCharities = () =>
+  request<Nonprofit[]>('/nonprofits')
 
 // ── Nonprofit ─────────────────────────────────────────────────────────────────
 

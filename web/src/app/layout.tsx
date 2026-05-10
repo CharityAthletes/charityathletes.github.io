@@ -2,7 +2,9 @@ import type { Metadata } from 'next'
 import { Geist } from 'next/font/google'
 import './globals.css'
 import { AuthProvider } from '@/lib/auth-context'
+import { LangProvider } from '@/lib/lang-context'
 import Navbar from '@/components/Navbar'
+import TabBar from '@/components/TabBar'
 
 const geist = Geist({ subsets: ['latin'] })
 
@@ -26,8 +28,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="ja" style={{ colorScheme: 'light' }}>
       <body className={`${geist.className} bg-gray-50 min-h-screen`}>
         <AuthProvider>
-          <Navbar />
-          <main>{children}</main>
+          <LangProvider>
+            <Navbar />
+            {/* pb-20 keeps content above the fixed tab bar */}
+            <main className="pb-20">{children}</main>
+            <TabBar />
+          </LangProvider>
         </AuthProvider>
       </body>
     </html>

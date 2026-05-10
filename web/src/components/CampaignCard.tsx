@@ -1,15 +1,17 @@
 import Link from 'next/link'
 import type { Campaign } from '@/lib/types'
+import { useLang } from '@/lib/lang-context'
 
 function fmt(n: number) { return n.toLocaleString('ja-JP') }
 
 export default function CampaignCard({ campaign }: { campaign: Campaign }) {
+  const { t, lang } = useLang()
   const progress = campaign.goalKm
     ? Math.min(100, ((campaign.totalKm ?? 0) / campaign.goalKm) * 100)
     : 0
 
-  const title = campaign.titleJa
-  const end = new Date(campaign.endDate).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' })
+  const title = t(campaign.titleJa, campaign.titleEn)
+  const end = new Date(campaign.endDate).toLocaleDateString(lang === 'ja' ? 'ja-JP' : 'en-US', { month: 'short', day: 'numeric' })
 
   return (
     <Link href={`/campaigns/${campaign.id}`} className="block group">
@@ -25,7 +27,7 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
 
         <div className="p-4">
           {campaign.nonprofitLogoUrl && (
-            <img src={campaign.nonprofitLogoUrl} alt={campaign.nonprofitName ?? ''} className="h-6 mb-2 object-contain" />
+            <img src={campaign.nonprofitLogoUrl} alt={campaign.nonprofitName ?? ''} className="h-5 mb-2 object-contain" />
           )}
 
           <h3 className="font-bold text-gray-900 leading-tight line-clamp-2 group-hover:text-[#1A9966] transition-colors">

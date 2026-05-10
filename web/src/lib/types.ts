@@ -133,6 +133,18 @@ export interface AdminNonprofitRow {
   createdAt: string
 }
 
+export interface Activity {
+  id: string
+  name: string
+  sportType: string
+  distanceMeters: number
+  movingTimeSeconds: number
+  totalElevationGain?: number
+  averageHeartrate?: number
+  startDate: string
+  stravaActivityId?: number
+}
+
 export interface PlatformStats {
   totalUsers: number
   totalCampaigns: number
