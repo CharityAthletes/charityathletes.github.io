@@ -7,6 +7,8 @@ export interface Campaign {
   descriptionJa: string
   descriptionEn: string
   goalKm: number
+  goalAmountJpy?: number
+  maxDistanceKm?: number
   startDate: string
   endDate: string
   status: 'active' | 'archived' | 'completed'
@@ -19,7 +21,11 @@ export interface Campaign {
   nonprofitLogoUrl?: string
   coverImageUrl?: string
   pledgeFlatEnabled?: boolean
+  hasFlatDonation?: boolean
+  hasPerKmDonation?: boolean
   pledgePerKmJpy?: number
+  suggestedPerKmJpy?: number
+  isPublic?: boolean
 }
 
 export interface CampaignParticipation {
@@ -74,6 +80,20 @@ export interface Nonprofit {
   descriptionEn?: string
   logoUrl?: string
   websiteUrl?: string
+}
+
+export interface Charity {
+  id: string
+  nameJa: string
+  nameEn: string
+  descriptionJa?: string
+  descriptionEn?: string
+  logoUrl?: string
+  websiteUrl?: string
+  category?: string
+  isFeatured?: boolean
+  donorboxCampaignId?: string
+  isActive?: boolean
 }
 
 export interface Donation {

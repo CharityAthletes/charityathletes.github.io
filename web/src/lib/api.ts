@@ -1,7 +1,7 @@
 // API client — mirrors APIClient.swift, calls the same Railway backend
 import type {
   Campaign, CampaignParticipation, CampaignUpdate, DonorPledge,
-  CampaignParticipant, Nonprofit, Donation, DonationSummary,
+  CampaignParticipant, Nonprofit, Charity, Donation, DonationSummary,
   MeResponse, LeaderboardEntry, NonprofitProfile, NonprofitDashboard,
   FinalizeResult, AdminNonprofitRow, PlatformStats, Activity,
 } from './types'
@@ -176,8 +176,10 @@ export const getActivities = (token: string) =>
 
 // ── Charities ─────────────────────────────────────────────────────────────────
 
-export const getCharities = () =>
-  request<Nonprofit[]>('/nonprofits')
+export const getCharities = (params?: { q?: string; category?: string }) => {
+  const qs = params ? '?' + new URLSearchParams(Object.fromEntries(Object.entries(params).filter(([,v]) => v))).toString() : ''
+  return request<Charity[]>(`/charities${qs}`)
+}
 
 // ── Nonprofit ─────────────────────────────────────────────────────────────────
 
