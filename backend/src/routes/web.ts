@@ -784,7 +784,7 @@ function toggleHowItWorks() {
 // ── Constants ──────────────────────────────────────────────────────────────
 const CAMPAIGN_ID = '${campaignId}';
 const ATHLETE_ID  = '${athleteId}';
-const API = '${apiBase}';
+const API = '';
 
 // ── Currency config ────────────────────────────────────────────────────────
 var CURRENCY = {
