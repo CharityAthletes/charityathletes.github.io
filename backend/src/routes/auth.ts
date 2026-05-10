@@ -154,8 +154,15 @@ router.get('/strava/callback', async (req: Request, res: Response) => {
 
   if (!stateRow) {
     console.log('[Strava Callback] state not found:', state);
+    // Try to look up web_redirect from the (possibly expired) state row
+    const { data: expiredRow } = await db.from('oauth_states').select('web_redirect').eq('state', state ?? '').single();
+    const webRedirectFallback = expiredRow?.web_redirect as string | null;
+    if (webRedirectFallback) return res.redirect(`${webRedirectFallback}?error=invalid_state`);
     return res.redirect(`${appUrl}auth/error?reason=invalid_state`);
   }
+
+  // Extract web_redirect now so it's available in the catch block
+  const webRedirect = (stateRow as any).web_redirect as string | null;
 
   try {
     const tokens = await stravaService.exchangeCode(code);
@@ -306,7 +313,6 @@ router.get('/strava/callback', async (req: Request, res: Response) => {
       console.log('[Strava Login] session created, redirecting');
       const params = new URLSearchParams({ access_token, refresh_token, token_type: 'bearer' });
       // If login was initiated from the web app, redirect there; otherwise use iOS deep link
-      const webRedirect = (stateRow as any).web_redirect as string | null;
       if (webRedirect) {
         return res.redirect(`${webRedirect}?${params}`);
       }
@@ -314,6 +320,8 @@ router.get('/strava/callback', async (req: Request, res: Response) => {
     }
   } catch (err) {
     console.error('[Auth] Strava callback error', err);
+    // Redirect to web app error page if available, otherwise iOS deep link
+    if (webRedirect) return res.redirect(`${webRedirect}?error=server_error`);
     return res.redirect(`${appUrl}auth/error?reason=server_error`);
   }
 });
