@@ -5,6 +5,7 @@ import { z } from 'zod';
 import rateLimit from 'express-rate-limit';
 import { sendDonationReceipt } from '../services/emailService';
 import { notifyAthleteNewDonor } from '../services/pushService';
+import QRCode from 'qrcode';
 
 // Tight limiter for pledge submissions: 5 per IP per hour.
 // Legitimate donors rarely need more than one; this prevents Stripe customer spam.
@@ -66,9 +67,18 @@ router.get('/:id', async (req: Request, res: Response) => {
     updates = rawUpdates.map((u: any) => ({ ...u, user_profiles: profileMap[u.user_id] ?? null }));
   }
 
+  // Generate QR code server-side so it works without any CDN dependency
+  const pageUrl = `https://donate.charityathletes.org/c/${req.params.id}${athleteId && athleteId !== campaign.created_by ? '?a=' + athleteId : ''}`;
+  let qrDataUrl = '';
+  try {
+    qrDataUrl = await QRCode.toDataURL(pageUrl, { width: 180, margin: 1, color: { dark: '#007B83', light: '#ffffff' } });
+  } catch (e) {
+    console.error('[Web] QR generation failed:', e);
+  }
+
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.setHeader('Cache-Control', 'no-store');
-  res.send(renderPage(campaign, stripeKey, apiBase, req.params.id, athleteId, updates ?? []));
+  res.send(renderPage(campaign, stripeKey, apiBase, req.params.id, athleteId, updates ?? [], qrDataUrl, pageUrl));
 });
 
 // ── GET /c/:id/data — JSON for the page ──────────────────────────────────────
@@ -384,7 +394,7 @@ export { broadcastToRoom };
 
 // ── HTML renderer ─────────────────────────────────────────────────────────────
 
-function renderPage(campaign: any, stripeKey: string, apiBase: string, campaignId: string, athleteId: string = '', updates: any[] = []): string {
+function renderPage(campaign: any, stripeKey: string, apiBase: string, campaignId: string, athleteId: string = '', updates: any[] = [], qrDataUrl: string = '', qrPageUrl: string = ''): string {
   const np   = campaign.nonprofits;
   const athlete = campaign.user_profiles;
   const endDate   = new Date(campaign.end_date).toLocaleDateString('ja-JP', { year:'numeric', month:'long', day:'numeric', timeZone: 'Asia/Tokyo' });
@@ -419,8 +429,6 @@ function renderPage(campaign: any, stripeKey: string, apiBase: string, campaignI
   <!-- #11 Apple smart banner — opens campaign deep-link in the iOS app -->
   <meta name="apple-itunes-app" content="app-id=6744048310, app-argument=charityathletes://campaign/${h(campaignId)}">
   <script src="https://js.stripe.com/v3/"></script>
-  <!-- #16 QR code library (pure-JS, no canvas needed) -->
-  <script src="https://unpkg.com/qrcode@1.5.4/build/qrcode.min.js"></script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f7;color:#1d1d1f;min-height:100vh}
@@ -733,18 +741,18 @@ ${updates.length > 0 ? `
   </div>
 </div>
 
-<!-- #16 QR Code card -->
-<div class="card" id="qr-card" style="display:none">
+<!-- #16 QR Code card (server-rendered) -->
+${qrDataUrl ? `<div class="card" id="qr-card">
   <div class="section-title"><span class="ja">このイベントをシェア</span><span class="en">Share This Campaign</span></div>
   <div class="qr-section">
-    <canvas id="qr-canvas"></canvas>
+    <img src="${qrDataUrl}" alt="QR code" style="border-radius:10px;border:1px solid #e0e0e0;width:180px;height:180px">
     <p style="font-size:12px;color:#86868b;margin-top:8px">
       <span class="ja">QRコードをスキャンしてこのページを開く</span>
       <span class="en">Scan to open this campaign page</span>
     </p>
   </div>
-  <div style="font-size:11px;color:#86868b;text-align:center;word-break:break-all;margin-top:4px" id="qr-url-text"></div>
-</div>
+  <div style="font-size:11px;color:#86868b;text-align:center;word-break:break-all;margin-top:4px">${h(qrPageUrl)}</div>
+</div>` : ''}
 
 <div style="text-align:center;padding:24px;font-size:12px;color:#86868b;display:flex;align-items:center;justify-content:center;gap:8px">
   <img src="/static/logo.png" alt="" style="width:20px;height:20px;border-radius:5px;opacity:.6">
@@ -1065,7 +1073,7 @@ if (typeof Stripe === 'undefined') {
 } else {
   try {
     stripe = Stripe('${stripeKey}');
-    const elements = stripe.elements();
+    const elements = stripe.elements({ disableLink: true });
     cardEl = elements.create('card', {
       style: {
         base: {
@@ -1171,20 +1179,7 @@ async function checkDonorRank(email, pledgeType, value) {
 
 loadData();
 
-// ── #16 QR Code ────────────────────────────────────────────────────────────
-(function() {
-  var pageUrl = window.location.href.split('?')[0]; // strip params
-  var canvas = document.getElementById('qr-canvas');
-  var urlText = document.getElementById('qr-url-text');
-  if (canvas && urlText && typeof QRCode !== 'undefined') {
-    QRCode.toCanvas(canvas, pageUrl, { width: 180, margin: 1, color: { dark: '#007B83', light: '#ffffff' } }, function(err) {
-      if (!err) {
-        document.getElementById('qr-card').style.display = 'block';
-        urlText.textContent = pageUrl;
-      }
-    });
-  }
-})();
+// #16 QR Code is now rendered server-side — no client-side generation needed.
 
 // ── #12 SSE — real-time live updates ──────────────────────────────────────
 (function() {
