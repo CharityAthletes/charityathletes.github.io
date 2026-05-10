@@ -37,10 +37,10 @@ const steps = [
         <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
       </svg>
     ),
-    titleJa: '個人リンクをシェアする',
-    titleEn: 'Share Your Personal Link',
-    bodyJa: 'イベント詳細画面からあなた専用のURLをコピーして友人・家族・SNSにシェアしましょう。寄付者には総走行距離のみが表示され、個別のアクティビティ詳細はあなたにのみ表示されます。',
-    bodyEn: 'Copy your personal URL from the campaign page and share it with friends, family, and social media. Donors see only your total distance — activity details stay private.',
+    titleJa: '個人リンクを寄付者にシェアする',
+    titleEn: 'Share Your Personal Link with Donors',
+    bodyJa: 'イベント詳細画面から専用URLをコピーして、SNS・LINE・メールでシェアしましょう。寄付者はブラウザから寄付できます — インストール不要。寄付者には総走行距離のみが表示され、個別のアクティビティ詳細はあなたにのみ表示されます。',
+    bodyEn: 'Copy your personal URL from the campaign page and share it via SNS, LINE, or email. Donors can pledge directly in their browser — no installation needed. They see only your total distance; individual activity details stay private to you.',
   },
   {
     num: 4,
@@ -65,10 +65,10 @@ const steps = [
         <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
       </svg>
     ),
-    titleJa: '寄付者を確認する',
-    titleEn: 'See Your Donors',
-    bodyJa: 'イベント詳細画面の「あなたの寄付者」で、あなたのリンクから応援してくれた人を確認できます。匿名希望の寄付者は非表示になります。',
-    bodyEn: 'Check the "Your Donors" section in the campaign detail to see everyone who supported you. Anonymous donors are hidden.',
+    titleJa: '報告投稿 & 寄付者を確認する',
+    titleEn: 'Post Updates & See Your Donors',
+    bodyJa: '「投稿する」ボタンから写真やメッセージを投稿しましょう。投稿は寄付者ページにリアルタイムで表示されます。「あなたの寄付者」セクションでは、あなたのリンクから応援してくれた人を確認できます。匿名希望の寄付者は非表示になります。',
+    bodyEn: 'Use the "Post Update" button to share photos and messages — they appear on your donor page in real time, keeping supporters engaged. In the "Your Donors" section you can see everyone who pledged via your link. Anonymous donors are hidden.',
   },
   {
     num: 6,
@@ -83,6 +83,19 @@ const steps = [
     titleEn: 'Donations Come In',
     bodyJa: '定額寄付はすぐに処理されます。距離連動の寄付はイベント終了後に、あなた個人の総走行距離をもとに請求されます。',
     bodyEn: 'Flat donations are processed immediately. Per-km pledges are charged after the campaign ends, based on your total distance.',
+  },
+  {
+    num: 7,
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+        <polyline points="22,6 12,13 2,6"/>
+      </svg>
+    ),
+    titleJa: '寄付者にお礼を送る',
+    titleEn: 'Thank Your Donors',
+    bodyJa: 'イベント詳細画面の「寄付者にお礼メッセージを送る」ボタンからお礼のメッセージを送りましょう。寄付してくれた全員にメールで届きます。匿名の寄付者には送られません。',
+    bodyEn: 'Use the "Send Thank-You to Donors" button on the campaign page to send a personal message of gratitude. It\'s emailed to all your donors — anonymous donors are excluded.',
   },
 ]
 
@@ -104,8 +117,8 @@ const hints = [
     en: 'Donor pages open in any browser — donors don\'t need the app to contribute.',
   },
   {
-    ja: 'アプリからも「応援する」ボタンでイベントに寄付できます。',
-    en: 'Donors can also contribute via the "Support" button directly in the app.',
+    ja: 'アプリ内の「応援する」ボタンから、他のアスリートのイベントに直接寄付することもできます。',
+    en: 'You can also support other athletes\' campaigns directly within the app using the "Support" button.',
   },
 ]
 
