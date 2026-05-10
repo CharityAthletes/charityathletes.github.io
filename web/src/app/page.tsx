@@ -76,7 +76,7 @@ export default function HomePage() {
         </div>
         <div className="w-px bg-white/20 mx-2" />
         <div className="flex-1 text-center">
-          <p className="text-3xl font-bold text-white">{totalKm.toFixed(1)} <span className="text-lg font-semibold">km</span></p>
+          <p className="text-3xl font-bold text-white">{(totalKm ?? 0).toFixed(1)} <span className="text-lg font-semibold">km</span></p>
           <p className="text-white/70 text-xs mt-0.5">{t('合計距離', 'Total Distance')}</p>
         </div>
       </div>

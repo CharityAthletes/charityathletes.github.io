@@ -52,7 +52,7 @@ export default function DonationsPage() {
       {summary && (
         <div className="rounded-2xl p-4 text-center"
           style={{ background: 'linear-gradient(135deg, #054738, #1A9966)' }}>
-          <p className="text-3xl font-bold text-white">¥{summary.totalJpy.toLocaleString()}</p>
+          <p className="text-3xl font-bold text-white">¥{(summary.totalJpy ?? 0).toLocaleString()}</p>
           <p className="text-white/70 text-xs mt-1">
             {summary.donationCount}{t('件の寄付', ' donations total')}
           </p>
@@ -81,7 +81,7 @@ export default function DonationsPage() {
                     <p className="text-xs text-gray-400 mt-0.5">{fmtDate(d.createdAt, lang)}</p>
                   </div>
                   <div className="text-right shrink-0">
-                    <p className="font-bold text-sm" style={{ color: '#1A9966' }}>¥{d.amountJpy.toLocaleString()}</p>
+                    <p className="font-bold text-sm" style={{ color: '#1A9966' }}>¥{(d.amountJpy ?? 0).toLocaleString()}</p>
                     <span className="text-[10px] font-semibold" style={{ color: st.color }}>{st.label}</span>
                   </div>
                 </div>

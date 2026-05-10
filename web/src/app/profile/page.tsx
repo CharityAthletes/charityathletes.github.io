@@ -56,7 +56,7 @@ export default function ProfilePage() {
         <div>
           <p className="text-lg font-bold text-gray-900">{me.displayName ?? t('アスリート', 'Athlete')}</p>
           <p className="text-sm text-gray-400">
-            ¥{totalJpy.toLocaleString()} · {totalKm.toFixed(0)} km
+            ¥{(totalJpy ?? 0).toLocaleString()} · {(totalKm ?? 0).toFixed(0)} km
           </p>
         </div>
       </div>
