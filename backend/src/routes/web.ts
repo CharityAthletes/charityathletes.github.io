@@ -174,14 +174,16 @@ router.get('/:id/events', (req: Request, res: Response) => {
 // Per-km pledge  → SetupIntent    → card saved, charged after campaign ends
 
 const pledgeSchema = z.object({
-  donor_name:       z.string().min(1),
-  donor_email:      z.string().email(),
-  flat_amount_jpy:  z.number().int().min(1).nullable().default(null),
-  per_km_rate_jpy:  z.number().int().min(1).nullable().default(null),
-  currency:         z.enum(['jpy', 'usd', 'aud']).default('jpy'),
-  tip_amount:       z.number().int().min(1).nullable().default(null),
-  is_anonymous:     z.boolean().default(false),
-  athlete_user_id:  z.string().uuid().nullable().default(null),
+  donor_name:         z.string().min(1),
+  donor_email:        z.string().email(),
+  flat_amount_jpy:    z.number().int().min(1).nullable().default(null),
+  per_km_rate_jpy:    z.number().int().min(1).nullable().default(null),
+  currency:           z.enum(['jpy', 'usd', 'aud']).default('jpy'),
+  tip_amount:         z.number().int().min(1).nullable().default(null),
+  is_anonymous:       z.boolean().default(false),
+  athlete_user_id:    z.string().uuid().nullable().default(null),
+  // Optional: if the donor (athlete) already has a saved Stripe customer, skip creating a new one
+  saved_customer_id:  z.string().optional(),
 }).refine(d => d.flat_amount_jpy != null || d.per_km_rate_jpy != null, {
   message: 'At least one pledge type required',
 }).refine(d => !(d.flat_amount_jpy != null && d.per_km_rate_jpy != null), {
@@ -192,7 +194,7 @@ router.post('/:id/pledge', pledgeRateLimit, async (req: Request, res: Response) 
   const parsed = pledgeSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
-  const { donor_name, donor_email, flat_amount_jpy, per_km_rate_jpy, currency, tip_amount, is_anonymous, athlete_user_id } = parsed.data;
+  const { donor_name, donor_email, flat_amount_jpy, per_km_rate_jpy, currency, tip_amount, is_anonymous, athlete_user_id, saved_customer_id } = parsed.data;
   const isFlat = flat_amount_jpy != null;
 
   // Look up nonprofit stripe_account_id for this campaign
@@ -207,12 +209,14 @@ router.post('/:id/pledge', pledgeRateLimit, async (req: Request, res: Response) 
   // JPY is zero-decimal (no conversion); USD/AUD use cents (multiply by 100).
   const toStripeUnits = (v: number) => currency === 'jpy' ? v : v * 100;
 
-  // Create Stripe customer
-  const customer = await stripe.customers.create({
-    name:  donor_name,
-    email: donor_email,
-    metadata: { campaign_id: req.params.id },
-  });
+  // Reuse the donor's saved Stripe customer if provided; otherwise create a new one
+  const customer = saved_customer_id
+    ? { id: saved_customer_id }
+    : await stripe.customers.create({
+        name:  donor_name,
+        email: donor_email,
+        metadata: { campaign_id: req.params.id },
+      });
 
   if (isFlat) {
     // ── Flat: charge immediately via PaymentIntent ───────────────────────────

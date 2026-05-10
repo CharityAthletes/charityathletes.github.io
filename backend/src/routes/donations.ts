@@ -53,7 +53,16 @@ router.get('/payment-method', requireAuth, async (req: Request, res: Response) =
     });
     const pm = pms.data[0];
     if (!pm?.card) return res.json({ card: null });
-    res.json({ card: { brand: pm.card.brand, last4: pm.card.last4, expMonth: pm.card.exp_month, expYear: pm.card.exp_year } });
+    res.json({
+      card: {
+        brand:      pm.card.brand,
+        last4:      pm.card.last4,
+        expMonth:   pm.card.exp_month,
+        expYear:    pm.card.exp_year,
+        pmId:       pm.id,
+        customerId: profile.stripe_customer_id,
+      },
+    });
   } catch (e: any) {
     res.status(500).json({ error: e.message });
   }
