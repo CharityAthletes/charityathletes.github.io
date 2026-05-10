@@ -18,7 +18,7 @@ const tabs = [
   },
   {
     href: '/campaigns',
-    ja: 'キャンペーン', en: 'Campaigns',
+    ja: 'イベント', en: 'Campaigns',
     match: (p: string) => p.startsWith('/campaigns'),
     icon: (active: boolean) => (
       <svg width="22" height="22" viewBox="0 0 24 24" fill={active ? 'currentColor' : 'none'}

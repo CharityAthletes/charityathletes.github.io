@@ -164,8 +164,29 @@ export default function ProfilePage() {
         onClick={handleSignOut}
         className="w-full py-3.5 rounded-2xl text-sm font-semibold text-red-500 bg-white border border-gray-100 hover:bg-red-50 transition"
       >
-        {t('サインアウト', 'Sign Out')}
+        {t('ログアウト', 'Sign Out')}
       </button>
+
+      {/* Delete account */}
+      <div>
+        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 px-1">{t('危険な操作', 'Danger Zone')}</p>
+        <button
+          onClick={async () => {
+            if (!confirm(t('本当によろしいですか？アカウントとすべてのデータが完全に削除されます。', 'Are you sure? Your account and all data will be permanently deleted.'))) return
+            try {
+              await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/account`, {
+                method: 'DELETE',
+                headers: { Authorization: `Bearer ${token}` },
+              })
+              await signOut()
+              window.location.href = '/login'
+            } catch { alert(t('削除に失敗しました', 'Failed to delete account')) }
+          }}
+          className="w-full py-3.5 rounded-2xl text-sm font-semibold text-red-500 bg-white border border-red-100 hover:bg-red-50 transition"
+        >
+          {t('アカウントを削除', 'Delete Account')}
+        </button>
+      </div>
     </div>
   )
 }

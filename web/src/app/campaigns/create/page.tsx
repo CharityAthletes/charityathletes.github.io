@@ -61,7 +61,7 @@ export default function CreateCampaignPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
-      <h1 className="text-xl font-bold text-gray-900 mb-6">キャンペーンを作成</h1>
+      <h1 className="text-xl font-bold text-gray-900 mb-6">イベントを作成</h1>
 
       <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-4">
         {field('タイトル（日本語）', 'titleJa')}
@@ -115,7 +115,7 @@ export default function CreateCampaignPage() {
           disabled={loading}
           className="w-full py-2.5 rounded-lg font-semibold text-white hover:opacity-90 transition disabled:opacity-50" style={{ background: "linear-gradient(135deg, #0D2659, #054738)" }}
         >
-          {loading ? '作成中...' : 'キャンペーンを作成'}
+          {loading ? '作成中...' : 'イベントを作成'}
         </button>
       </form>
     </div>

@@ -6,13 +6,13 @@ import { useLang } from '@/lib/lang-context'
 
 const CATEGORIES = [
   { key: '', ja: 'すべて', en: 'All' },
-  { key: 'health', ja: 'ヘルス', en: 'Health' },
+  { key: 'health', ja: '医療・健康', en: 'Health' },
   { key: 'education', ja: '教育', en: 'Education' },
   { key: 'environment', ja: '環境', en: 'Environment' },
   { key: 'community', ja: 'コミュニティ', en: 'Community' },
-  { key: 'children', ja: '子ども', en: 'Children' },
+  { key: 'children', ja: '子ども・青少年', en: 'Children' },
   { key: 'disaster_relief', ja: '災害支援', en: 'Disaster Relief' },
-  { key: 'animal_welfare', ja: '動物', en: 'Animals' },
+  { key: 'animal_welfare', ja: '動物保護', en: 'Animal Welfare' },
   { key: 'other', ja: 'その他', en: 'Other' },
 ]
 

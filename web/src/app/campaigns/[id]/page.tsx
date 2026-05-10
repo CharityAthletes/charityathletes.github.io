@@ -2,7 +2,7 @@
 import { use, useEffect, useState, useRef } from 'react'
 import {
   getCampaign, getCampaignUpdates, getCampaignParticipants,
-  getCampaignPledges, joinCampaign, unjoinCampaign, postCampaignUpdate,
+  getCampaignPledges, joinCampaign, unjoinCampaign, postCampaignUpdate, sendThankYou,
 } from '@/lib/api'
 import type { Campaign, CampaignUpdate, CampaignParticipant, DonorPledge } from '@/lib/types'
 import { useAuth } from '@/lib/auth-context'
@@ -24,6 +24,72 @@ function relativeTime(s: string, lang: 'ja' | 'en') {
   const hr = Math.floor(min / 60)
   if (hr < 24)  return lang === 'ja' ? `${hr}時間前` : `${hr} hr. ago`
   return lang === 'ja' ? `${Math.floor(hr / 24)}日前` : `${Math.floor(hr / 24)}d ago`
+}
+
+// ── Thank Donors modal ────────────────────────────────────────────────────────
+
+function ThankDonorsModal({ campaignId, token, onClose }: {
+  campaignId: string; token: string; onClose: () => void
+}) {
+  const { t } = useLang()
+  const [message, setMessage] = useState('')
+  const [sending, setSending] = useState(false)
+  const [result, setResult] = useState<{ sentTo: number } | null>(null)
+
+  const submit = async () => {
+    if (!message.trim()) return
+    setSending(true)
+    try {
+      const r = await sendThankYou(campaignId, message.trim(), token)
+      setResult(r)
+    } catch (e: any) { alert(e.message) }
+    setSending(false)
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 px-4 pb-4 sm:pb-0">
+      <div className="bg-white rounded-2xl w-full max-w-lg p-5 space-y-4">
+        {result ? (
+          <div className="text-center py-4">
+            <div className="text-4xl mb-3">💌</div>
+            <p className="font-bold text-gray-900">{t('お礼を送りました', 'Thank you sent!')}</p>
+            <p className="text-sm text-gray-400 mt-1">
+              {result.sentTo}{t('人の寄付者にメッセージを送りました', ' donor(s) notified')}
+            </p>
+            <button onClick={onClose} className="mt-4 px-6 py-2 rounded-xl text-sm font-bold text-white"
+              style={{ background: 'linear-gradient(135deg, #054738, #1A9966)' }}>
+              {t('閉じる', 'Close')}
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-gray-900">{t('寄付者にお礼を送る', 'Thank Your Donors')}</h3>
+              <button onClick={onClose} className="text-gray-400 text-xl leading-none">×</button>
+            </div>
+            <p className="text-xs text-gray-400">
+              {t('寄付してくださった方々に感謝のメッセージを送りましょう', 'Send a message of gratitude to everyone who donated')}
+            </p>
+            <textarea
+              value={message}
+              onChange={e => setMessage(e.target.value)}
+              placeholder={t('お礼のメッセージを入力...', 'Write your thank-you message...')}
+              rows={4}
+              className="w-full border border-gray-200 rounded-xl p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-green-200"
+            />
+            <button
+              onClick={submit}
+              disabled={sending || !message.trim()}
+              className="w-full py-3 rounded-xl text-sm font-bold text-white disabled:opacity-50"
+              style={{ background: 'linear-gradient(135deg, #054738, #1A9966)' }}
+            >
+              {sending ? t('送信中...', 'Sending...') : t('お礼を送る', 'Send Thank You')}
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  )
 }
 
 // ── Post Update modal ─────────────────────────────────────────────────────────
@@ -89,6 +155,7 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
   const [loading, setLoading]         = useState(true)
   const [joining, setJoining]         = useState(false)
   const [showPostModal, setShowPostModal] = useState(false)
+  const [showThankModal, setShowThankModal] = useState(false)
 
   const load = async () => {
     const [c, u, p, pl] = await Promise.all([
@@ -153,7 +220,7 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
     )
   }
   if (!campaign) {
-    return <div className="text-center py-20 text-gray-400">{t('キャンペーンが見つかりません', 'Campaign not found')}</div>
+    return <div className="text-center py-20 text-gray-400">{t('イベントが見つかりません', 'Campaign not found')}</div>
   }
 
   const progress    = campaign.goalKm ? Math.min(100, ((campaign.totalKm ?? 0) / campaign.goalKm) * 100) : 0
@@ -162,6 +229,12 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
 
   return (
     <>
+      {showThankModal && token && (
+        <ThankDonorsModal
+          campaignId={id} token={token}
+          onClose={() => setShowThankModal(false)}
+        />
+      )}
       {showPostModal && token && (
         <PostUpdateModal
           campaignId={id} token={token}
@@ -283,7 +356,7 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
                 className="w-full py-3.5 rounded-2xl text-sm font-bold text-white disabled:opacity-50 transition"
                 style={{ background: 'linear-gradient(135deg, #0D2659, #054738)' }}
               >
-                {joining ? '...' : t('キャンペーンに参加する', 'Join Campaign')}
+                {joining ? '...' : t('イベントに参加する', 'Join Campaign')}
               </button>
             )
           )
@@ -298,7 +371,7 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
           style={{ borderColor: '#1A9966', color: '#1A9966' }}
         >
           <span>❤️</span>
-          {t('このキャンペーンに寄付する', 'Donate to This Campaign')}
+          {t('このイベントに寄付する', 'Donate to This Campaign')}
         </a>
 
         {/* ── Share on Social Media ──────────────────────────── */}
@@ -330,6 +403,17 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
             ))}
           </div>
         </div>
+
+        {/* ── Thank Donors (creator only) ────────────────────── */}
+        {isCreator && token && (
+          <button
+            onClick={() => setShowThankModal(true)}
+            className="w-full py-3.5 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 border-2 transition hover:bg-green-50"
+            style={{ borderColor: '#1A9966', color: '#1A9966' }}
+          >
+            💌 {t('寄付者にお礼メッセージを送る', 'Send Thank-You to Donors')}
+          </button>
+        )}
 
         {/* ── Updates for Donors ─────────────────────────────── */}
         <div className="bg-white rounded-2xl border border-gray-100 p-4 space-y-3">

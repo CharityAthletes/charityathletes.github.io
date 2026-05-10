@@ -134,7 +134,7 @@ export default function CampaignsPage() {
     <div className="max-w-lg mx-auto px-4 pt-4 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">{t('キャンペーン', 'Campaigns')}</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{t('イベント', 'Campaigns')}</h1>
         {me?.role === 'athlete' && (
           <Link href="/campaigns/create"
             className="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-md"
@@ -148,11 +148,11 @@ export default function CampaignsPage() {
       <section>
         <div className="flex items-center gap-2 mb-3">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="#1A9966"><path d="M13 4L6.5 11 3 7.5" stroke="#1A9966" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>
-          <h2 className="text-base font-bold" style={{ color: '#1A9966' }}>{t('参加中のキャンペーン', 'Joined Campaigns')}</h2>
+          <h2 className="text-base font-bold" style={{ color: '#1A9966' }}>{t('参加中のイベント', 'Joined Campaigns')}</h2>
         </div>
         {mine.length === 0 ? (
           <div className="bg-white rounded-2xl p-5 text-center border border-gray-100">
-            <p className="text-sm text-gray-400">{t('まだ参加していません', 'You haven\'t joined any campaigns yet')}</p>
+            <p className="text-sm text-gray-400">{t('まだイベントに参加していません', 'You haven\'t joined any campaigns yet')}</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -164,7 +164,7 @@ export default function CampaignsPage() {
       {/* Explore */}
       {explore.length > 0 && (
         <section>
-          <h2 className="text-base font-bold text-gray-700 mb-3">{t('キャンペーンを探す', 'Explore Campaigns')}</h2>
+          <h2 className="text-base font-bold text-gray-700 mb-3">{t('イベントを探す', 'Explore Campaigns')}</h2>
           <div className="space-y-3">
             {explore.map(c => <CampaignRow key={c.id} campaign={c} />)}
           </div>

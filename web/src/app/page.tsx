@@ -84,14 +84,14 @@ export default function HomePage() {
       {/* My Campaigns */}
       <section>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-bold text-gray-900">{t('マイキャンペーン', 'My Campaigns')}</h2>
+          <h2 className="text-lg font-bold text-gray-900">{t('マイイベント', 'My Campaigns')}</h2>
           <Link href="/dashboard" className="text-xs font-semibold" style={{ color: '#1A9966' }}>
             {t('すべて見る', 'See all')} →
           </Link>
         </div>
         {mine.length === 0 ? (
           <div className="bg-white rounded-2xl p-5 text-center border border-gray-100">
-            <p className="text-gray-400 text-sm">{t('参加中のキャンペーンはありません', 'No campaigns yet')}</p>
+            <p className="text-gray-400 text-sm">{t('参加中のイベントはありません', 'No campaigns yet')}</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3">
@@ -104,7 +104,7 @@ export default function HomePage() {
       {all.length > 0 && (
         <section>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-bold text-gray-900">{t('キャンペーンに参加', 'Join a Campaign')}</h2>
+            <h2 className="text-lg font-bold text-gray-900">{t('イベントに参加', 'Join a Campaign')}</h2>
             <Link href="/campaigns" className="text-xs font-semibold" style={{ color: '#1A9966' }}>
               {t('すべて見る', 'See all')} →
             </Link>
