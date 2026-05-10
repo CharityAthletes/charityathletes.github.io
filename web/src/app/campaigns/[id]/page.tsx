@@ -4,10 +4,12 @@ import {
   getCampaign, getCampaignUpdates, getCampaignParticipants,
   getCampaignPledges, joinCampaign, unjoinCampaign, postCampaignUpdate, sendThankYou,
 } from '@/lib/api'
-import type { Campaign, CampaignUpdate, CampaignParticipant, DonorPledge } from '@/lib/types'
+import type { Campaign, CampaignUpdate, CampaignParticipant, DonorPledge, MeResponse } from '@/lib/types'
 import { useAuth } from '@/lib/auth-context'
 import { useLang } from '@/lib/lang-context'
 import { useRouter } from 'next/navigation'
+
+declare global { interface Window { Stripe: any } }
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -186,6 +188,291 @@ function PostUpdateModal({ campaignId, token, onClose, onPosted }: {
   )
 }
 
+// ── Donate modal ──────────────────────────────────────────────────────────────
+
+function DonateModal({ campaign, campaignId, me, onClose, onSuccess }: {
+  campaign: Campaign; campaignId: string; me: MeResponse
+  onClose: () => void; onSuccess: () => void
+}) {
+  const { t } = useLang()
+  const showFlat  = !!campaign.hasFlatDonation
+  const showPerKm = !!campaign.hasPerKmDonation
+
+  const [tab, setTab]               = useState<'flat' | 'perkm'>(showFlat ? 'flat' : 'perkm')
+  const [amount, setAmount]         = useState<number | null>(null)
+  const [customAmt, setCustomAmt]   = useState('')
+  const [rate, setRate]             = useState<number | null>(null)
+  const [customRate, setCustomRate] = useState('')
+  const [anonymous, setAnonymous]   = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError]           = useState('')
+  const [success, setSuccess]       = useState(false)
+  const [stripeReady, setStripeReady] = useState(false)
+
+  const stripeRef   = useRef<any>(null)
+  const elementsRef = useRef<any>(null)
+  const cardRef     = useRef<HTMLDivElement>(null)
+
+  const FLAT_PRESETS = [500, 1000, 3000, 5000]
+  const KM_RATES     = [10, 20, 50]
+
+  useEffect(() => {
+    const init = async () => {
+      if (!window.Stripe) {
+        await new Promise<void>((res, rej) => {
+          const s = document.createElement('script')
+          s.src = 'https://js.stripe.com/v3/'
+          s.onload = () => res(); s.onerror = () => rej(new Error('Stripe load failed'))
+          document.head.appendChild(s)
+        })
+      }
+      const stripe   = window.Stripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
+      stripeRef.current   = stripe
+      const elements = stripe.elements()
+      elementsRef.current = elements
+      const card = elements.create('card', {
+        style: { base: { fontSize: '16px', color: '#111827', fontFamily: '-apple-system,sans-serif', '::placeholder': { color: '#9ca3af' } }, invalid: { color: '#dc2626' } },
+      })
+      card.mount(cardRef.current!)
+      setStripeReady(true)
+    }
+    init().catch(e => setError(e.message))
+  }, [])
+
+  const handleSubmit = async () => {
+    const finalAmt  = amount  ?? (customAmt  ? parseInt(customAmt)  : null)
+    const finalRate = rate    ?? (customRate ? parseInt(customRate) : null)
+    if (tab === 'flat'  && !finalAmt)  return setError(t('金額を選択してください', 'Please select an amount'))
+    if (tab === 'perkm' && !finalRate) return setError(t('レートを選択してください', 'Please select a rate'))
+    if (!stripeRef.current || !elementsRef.current) return
+
+    setSubmitting(true); setError('')
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/c/${campaignId}/pledge`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            donor_name:       (me as any).displayName || me.email,
+            donor_email:      me.email,
+            flat_amount_jpy:  tab === 'flat'  ? finalAmt  : null,
+            per_km_rate_jpy:  tab === 'perkm' ? finalRate : null,
+            is_anonymous:     anonymous,
+            athlete_user_id:  campaign.createdBy ?? null,
+            currency:         'jpy',
+          }),
+        }
+      )
+      const pledge = await res.json()
+      if (!res.ok) throw new Error(pledge.error ?? 'Pledge failed')
+
+      const card = elementsRef.current.getElement('card')
+      let intentId: string
+      if (pledge.type === 'payment') {
+        const { paymentIntent, error: e } = await stripeRef.current.confirmCardPayment(
+          pledge.client_secret, { payment_method: { card } }
+        )
+        if (e) throw new Error(e.message)
+        intentId = paymentIntent.id
+      } else {
+        const { setupIntent, error: e } = await stripeRef.current.confirmCardSetup(
+          pledge.client_secret, { payment_method: { card } }
+        )
+        if (e) throw new Error(e.message)
+        intentId = setupIntent.id
+      }
+
+      await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/c/${campaignId}/pledge/confirm`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ intent_id: intentId }),
+      })
+
+      setSuccess(true)
+      setTimeout(() => { onSuccess(); onClose() }, 2000)
+    } catch (e: any) { setError(e.message) }
+    setSubmitting(false)
+  }
+
+  const maxKm  = campaign.maxDistanceKm
+  const effRate = rate ?? (customRate ? parseInt(customRate) : 0)
+  const maxCharge = maxKm && effRate ? `¥${(maxKm * effRate).toLocaleString()}` : null
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50">
+      <div className="bg-white rounded-t-3xl w-full max-w-lg max-h-[92vh] overflow-y-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 pt-5 pb-3">
+          <button onClick={onClose} className="text-sm font-semibold" style={{ color: '#1A9966' }}>
+            {t('閉じる', 'Close')}
+          </button>
+          <p className="font-bold text-gray-900 text-base">{t('支援する', 'Support Campaign')}</p>
+          <div className="w-12" />
+        </div>
+
+        {/* Campaign title */}
+        <div className="text-center px-5 pb-4">
+          <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2"
+            style={{ background: 'linear-gradient(135deg, #054738, #1A9966)' }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </div>
+          <p className="font-bold text-gray-900 text-lg leading-snug">
+            {t(campaign.titleJa, campaign.titleEn)}
+          </p>
+        </div>
+
+        {success ? (
+          <div className="text-center py-10 px-5">
+            <div className="text-5xl mb-3">🎉</div>
+            <p className="font-bold text-gray-900 text-lg">{t('ありがとうございます！', 'Thank you!')}</p>
+            <p className="text-sm text-gray-400 mt-1">{t('寄付が確認されました。', 'Your pledge has been confirmed.')}</p>
+          </div>
+        ) : (
+          <div className="px-5 pb-8 space-y-5">
+            {/* Tab switcher */}
+            {showFlat && showPerKm && (
+              <div className="flex gap-1 p-1 rounded-2xl bg-gray-100">
+                <button onClick={() => setTab('flat')}
+                  className="flex-1 py-2 rounded-xl text-sm font-semibold transition"
+                  style={tab === 'flat' ? { background: 'white', color: '#111827', boxShadow: '0 1px 4px rgba(0,0,0,.1)' } : { color: '#6b7280' }}>
+                  {t('活動ごとの寄付', 'One-time')}
+                </button>
+                <button onClick={() => setTab('perkm')}
+                  className="flex-1 py-2 rounded-xl text-sm font-semibold transition"
+                  style={tab === 'perkm' ? { background: 'white', color: '#111827', boxShadow: '0 1px 4px rgba(0,0,0,.1)' } : { color: '#6b7280' }}>
+                  {t('距離に応じた寄付', 'Per-km Pledge')}
+                </button>
+              </div>
+            )}
+
+            {/* ── Flat donation ── */}
+            {tab === 'flat' && (
+              <div className="space-y-4">
+                <div>
+                  <p className="font-bold text-gray-900">{t('金額を選択', 'Choose your amount')}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{t('活動1回ごとに寄付されます', 'Charged once per activity')}</p>
+                </div>
+                <div className="flex gap-2 flex-wrap">
+                  {FLAT_PRESETS.map(v => (
+                    <button key={v} onClick={() => { setAmount(v); setCustomAmt('') }}
+                      className="px-4 py-2 rounded-2xl text-sm font-bold transition"
+                      style={amount === v && !customAmt
+                        ? { background: '#1A9966', color: 'white' }
+                        : { background: '#f3f4f6', color: '#374151' }}>
+                      ¥{v.toLocaleString()}
+                    </button>
+                  ))}
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-gray-500 mb-1.5">{t('カスタム金額', 'Custom amount')}</p>
+                  <div className="flex items-center border border-gray-200 rounded-xl px-3 py-2.5 bg-white">
+                    <span className="text-gray-400 mr-2">¥</span>
+                    <input type="number" min="100" value={customAmt}
+                      onChange={e => { setCustomAmt(e.target.value); setAmount(null) }}
+                      placeholder="0"
+                      className="flex-1 outline-none text-sm text-gray-900" />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── Per-km pledge ── */}
+            {tab === 'perkm' && (
+              <div className="space-y-4">
+                <div>
+                  <p className="font-bold text-gray-900">{t('レートを選択', 'Choose your pledge rate')}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    {t('キャンペーン終了時にアスリートの総走行距離に応じて請求されます', 'Charged based on the athlete\'s total distance when the campaign closes')}
+                  </p>
+                </div>
+                <div className="flex gap-2 flex-wrap">
+                  {KM_RATES.map(v => (
+                    <button key={v} onClick={() => { setRate(v); setCustomRate('') }}
+                      className="px-4 py-2 rounded-2xl text-sm font-bold transition"
+                      style={rate === v && !customRate
+                        ? { background: '#1A9966', color: 'white' }
+                        : { background: '#f3f4f6', color: '#374151' }}>
+                      ¥{v}/km
+                    </button>
+                  ))}
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-gray-500 mb-1.5">{t('カスタムレート', 'Custom rate')}</p>
+                  <div className="flex items-center border border-gray-200 rounded-xl px-3 py-2.5 bg-white">
+                    <span className="text-gray-400 mr-2">¥</span>
+                    <input type="number" min="1" value={customRate}
+                      onChange={e => { setCustomRate(e.target.value); setRate(null) }}
+                      placeholder="0"
+                      className="flex-1 outline-none text-sm text-gray-900" />
+                    <span className="text-gray-400 ml-2">/km</span>
+                  </div>
+                </div>
+                {/* Distance cap + max charge */}
+                {maxKm && (
+                  <div className="flex items-start gap-2 bg-blue-50 rounded-xl px-3 py-2.5">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" className="mt-0.5 shrink-0">
+                      <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
+                    </svg>
+                    <p className="text-xs text-blue-700">
+                      {t(`距離上限 ${maxKm} km`, `Distance cap ${maxKm} km`)}
+                      {maxCharge && ` — ${t('最大請求', 'max charge')} ${maxCharge}`}
+                    </p>
+                  </div>
+                )}
+                <div className="flex items-start gap-2 bg-gray-50 rounded-xl px-3 py-2.5">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" className="mt-0.5 shrink-0">
+                    <rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/>
+                  </svg>
+                  <p className="text-xs text-gray-500">
+                    {t('登録したカードはキャンペーン終了後に請求されます', 'Your saved card will be charged when the campaign ends')}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Card input */}
+            <div className="space-y-1.5">
+              <p className="text-xs font-semibold text-gray-500">{t('カード情報', 'Card Details')}</p>
+              <div ref={cardRef} className="border border-gray-200 rounded-xl px-4 py-3.5 bg-white" style={{ minHeight: '44px' }} />
+              {!stripeReady && <div className="h-11 rounded-xl bg-gray-100 animate-pulse" />}
+            </div>
+
+            {/* Anonymous toggle */}
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-sm font-bold text-gray-900">{t('匿名で寄付する', 'Donate anonymously')}</p>
+                <p className="text-xs text-gray-400 mt-0.5">{t('あなたの名前はアスリートに表示されません', 'Your name won\'t be shown to the campaign creator')}</p>
+              </div>
+              <button onClick={() => setAnonymous(a => !a)}
+                className="shrink-0 w-12 h-7 rounded-full transition-all relative"
+                style={{ background: anonymous ? '#1A9966' : '#d1d5db' }}>
+                <span className="absolute top-1 transition-all rounded-full w-5 h-5 bg-white shadow"
+                  style={{ left: anonymous ? '24px' : '4px' }} />
+              </button>
+            </div>
+
+            {error && (
+              <p className="text-sm text-red-500 flex items-center gap-1.5">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                {error}
+              </p>
+            )}
+
+            <button onClick={handleSubmit} disabled={submitting || !stripeReady}
+              className="w-full py-4 rounded-2xl text-base font-bold text-white disabled:opacity-50 transition"
+              style={{ background: 'linear-gradient(135deg, #054738, #1A9966)' }}>
+              {submitting ? t('処理中...', 'Processing...') : tab === 'flat' ? t('寄付する', 'Donate') : t('誓約する', 'Pledge')}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function CampaignDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -201,8 +488,9 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
   const [joined, setJoined]           = useState(false)
   const [loading, setLoading]         = useState(true)
   const [joining, setJoining]         = useState(false)
-  const [showPostModal, setShowPostModal] = useState(false)
+  const [showPostModal, setShowPostModal]   = useState(false)
   const [showThankModal, setShowThankModal] = useState(false)
+  const [showDonateModal, setShowDonateModal] = useState(false)
 
   const load = async () => {
     const [c, u, p, pl] = await Promise.all([
@@ -284,6 +572,13 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
         <ThankDonorsModal
           campaignId={id} token={token}
           onClose={() => setShowThankModal(false)}
+        />
+      )}
+      {showDonateModal && me && (
+        <DonateModal
+          campaign={campaign} campaignId={id} me={me as any}
+          onClose={() => setShowDonateModal(false)}
+          onSuccess={() => load()}
         />
       )}
       {showPostModal && token && (
@@ -417,16 +712,14 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
         )}
 
         {/* ── Donate button ──────────────────────────────────── */}
-        <a
-          href={donorURL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-center gap-2 w-full py-3.5 rounded-2xl text-sm font-bold border-2 transition hover:bg-green-50"
-          style={{ borderColor: '#1A9966', color: '#1A9966' }}
+        <button
+          onClick={() => me ? setShowDonateModal(true) : router.push('/login')}
+          className="flex items-center justify-center gap-2 w-full py-3.5 rounded-2xl text-sm font-bold transition"
+          style={{ background: 'linear-gradient(135deg, #054738, #1A9966)', color: 'white' }}
         >
-          <span>❤️</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
           {t('このイベントに寄付する', 'Donate to This Campaign')}
-        </a>
+        </button>
 
         {/* ── Share on Social Media ──────────────────────────── */}
         <div className="bg-white rounded-2xl border border-gray-100 p-4 space-y-3">
