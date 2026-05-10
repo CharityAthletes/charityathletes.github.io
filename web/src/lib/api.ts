@@ -73,7 +73,13 @@ function normalizeCampaign(c: any): Campaign {
 // ── Auth ──────────────────────────────────────────────────────────────────────
 
 export const getMe = (token: string) =>
-  request<MeResponse>('/auth/me', {}, token)
+  request<any>('/auth/me', {}, token).then(r => ({
+    ...r,
+    // user_profiles has both id (profile UUID) and user_id (auth UUID).
+    // campaign.created_by and participation.user_id both use the auth UUID,
+    // so we must expose that as me.id for isCreator / joined checks to work.
+    id: r.userId ?? r.id,
+  } as MeResponse))
 
 export const stravaLoginURL = (token: string) =>
   request<{ url: string }>('/auth/strava/login', {}, token).then(r => r.url)

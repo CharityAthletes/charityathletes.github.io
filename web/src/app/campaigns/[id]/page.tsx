@@ -404,17 +404,6 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
           </div>
         </div>
 
-        {/* ── Thank Donors (creator only) ────────────────────── */}
-        {isCreator && token && (
-          <button
-            onClick={() => setShowThankModal(true)}
-            className="w-full py-3.5 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 border-2 transition hover:bg-green-50"
-            style={{ borderColor: '#1A9966', color: '#1A9966' }}
-          >
-            💌 {t('寄付者にお礼メッセージを送る', 'Send Thank-You to Donors')}
-          </button>
-        )}
-
         {/* ── Updates for Donors ─────────────────────────────── */}
         <div className="bg-white rounded-2xl border border-gray-100 p-4 space-y-3">
           <div className="flex items-center gap-2">
@@ -429,7 +418,7 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
               style={{ background: 'linear-gradient(135deg, #054738, #1A9966)' }}
             >
               <span className="text-lg leading-none">+</span>
-              {t('投稿する', 'Post Update')}
+              {t('報告する', 'Post Update')}
             </button>
           )}
 
@@ -504,6 +493,17 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
               </div>
             )}
           </div>
+        )}
+
+        {/* ── Thank Donors — creator only, at bottom like iOS ── */}
+        {isCreator && token && (
+          <button
+            onClick={() => setShowThankModal(true)}
+            className="w-full py-3.5 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 transition hover:opacity-90"
+            style={{ background: 'linear-gradient(135deg, #054738, #1A9966)', color: 'white' }}
+          >
+            ✉️ {t('寄付者にお礼メッセージを送る', 'Send Thank-You to Donors')}
+          </button>
         )}
       </div>
     </>
