@@ -109,6 +109,7 @@ export interface Donation {
 export interface DonationSummary {
   totalJpy: number
   donationCount: number
+  totalDistanceKm?: number
 }
 
 export interface MeResponse {

@@ -167,7 +167,12 @@ export const getDonations = (token: string) =>
   request<Donation[]>('/donations', {}, token)
 
 export const getDonationSummary = (token: string) =>
-  request<DonationSummary>('/donations/summary', {}, token)
+  request<any>('/donations/summary', {}, token).then(r => ({
+    // Backend returns total_donated_jpy / total_distance_km from user_profiles table
+    totalJpy:        r.totalDonatedJpy ?? r.totalJpy ?? 0,
+    donationCount:   r.donationCount ?? 0,
+    totalDistanceKm: r.totalDistanceKm ?? 0,
+  } as DonationSummary))
 
 // ── Activities ────────────────────────────────────────────────────────────────
 

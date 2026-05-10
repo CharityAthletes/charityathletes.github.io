@@ -35,7 +35,8 @@ export default function HomePage() {
     }).catch(console.error).finally(() => setLoading(false))
   }, [token, authLoading, router])
 
-  const totalKm = mine.reduce((s, c) => s + (c.totalKm ?? 0), 0)
+  // Use profile-level total distance (all Strava activities) — matches iOS
+  const totalKm = summary?.totalDistanceKm ?? mine.reduce((s, c) => s + (c.totalKm ?? 0), 0)
 
   if (authLoading || loading) {
     return (

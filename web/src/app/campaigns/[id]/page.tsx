@@ -160,8 +160,8 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
   const load = async () => {
     const [c, u, p, pl] = await Promise.all([
       getCampaign(id, token ?? undefined),
-      getCampaignUpdates(id, token ?? undefined),
-      getCampaignParticipants(id, token ?? undefined),
+      getCampaignUpdates(id, token ?? undefined).catch(() => []),
+      getCampaignParticipants(id, token ?? undefined).catch(() => []),
       token ? getCampaignPledges(id, token).catch(() => []) : Promise.resolve([]),
     ])
     setCampaign(c); setUpdates(u); setParticipants(p); setPledges(pl as DonorPledge[])

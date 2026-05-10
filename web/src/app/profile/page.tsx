@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useLang } from '@/lib/lang-context'
-import { getMyCampaigns, getDonationSummary } from '@/lib/api'
+import { getDonationSummary } from '@/lib/api'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
@@ -17,9 +17,9 @@ export default function ProfilePage() {
   useEffect(() => {
     if (!loading && !me) { router.replace('/login'); return }
     if (!token) return
-    Promise.all([getMyCampaigns(token), getDonationSummary(token)]).then(([campaigns, summary]) => {
-      setTotalKm(campaigns.reduce((s, c) => s + (c.totalKm ?? 0), 0))
-      setTotalJpy(summary.totalJpy)
+    getDonationSummary(token).then(summary => {
+      setTotalKm(summary.totalDistanceKm ?? 0)
+      setTotalJpy(summary.totalJpy ?? 0)
     }).catch(() => {})
   }, [me, loading, token, router])
 
