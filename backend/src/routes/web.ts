@@ -557,6 +557,13 @@ function renderPage(campaign: any, stripeKey: string, apiBase: string, campaignI
   <div class="stat"><div class="val" id="stat-donors">…</div><div class="lbl"><span class="ja">サポーター</span><span class="en">Donors</span></div></div>
   <div class="stat"><div class="val" id="stat-total">…</div><div class="lbl"><span class="ja">寄付見込額</span><span class="en">Est. Total</span></div></div>
 </div>
+<div style="text-align:center;margin:10px 16px 0;padding:6px 12px;background:#fff;border-radius:10px;box-shadow:0 1px 6px rgba(0,0,0,.07);display:inline-flex;align-items:center;gap:6px;width:calc(100% - 32px);justify-content:center">
+  <span style="font-size:12px;color:#86868b"><span class="ja">距離データ提供：</span><span class="en">Distance data provided by</span></span>
+  <a href="https://www.strava.com" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:4px;text-decoration:none">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="#FC4C02"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
+    <span style="font-size:12px;font-weight:700;color:#FC4C02">Strava</span>
+  </a>
+</div>
 
 ${(campaign.description_ja || campaign.description_en) ? `
 <div class="card">

@@ -119,12 +119,19 @@ export default function ActivitiesPage() {
         </button>
       </div>
 
-      {/* Subtitle hint */}
-      <div className="flex items-center gap-2 mb-5">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="12" cy="5" r="2"/><path d="M12 7v6M9 10h6M9 20l3-7 3 7"/>
-        </svg>
-        <p className="text-sm text-gray-400">{t('アクティビティをタップして詳細を見る', 'Tap an activity to see details')}</p>
+      {/* Subtitle hint + Strava attribution */}
+      <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center gap-2">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="5" r="2"/><path d="M12 7v6M9 10h6M9 20l3-7 3 7"/>
+          </svg>
+          <p className="text-sm text-gray-400">{t('アクティビティをタップして詳細を見る', 'Tap an activity to see details')}</p>
+        </div>
+        <a href="https://www.strava.com" target="_blank" rel="noopener noreferrer"
+          className="flex items-center gap-1 text-xs font-semibold" style={{ color: '#FC4C02' }}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="#FC4C02"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
+          Strava
+        </a>
       </div>
 
       {activities.length === 0 ? (
