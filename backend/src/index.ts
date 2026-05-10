@@ -53,6 +53,9 @@ app.use(rateLimit({ windowMs: 15 * 60_000, max: 200, standardHeaders: true, lega
 // Static assets (logo, OG images, etc.)
 app.use('/static', express.static(path.join(__dirname, '../public')));
 
+// Apple Pay domain verification (required for Stripe Apple Pay on Safari)
+app.use('/.well-known', express.static(path.join(__dirname, '../public/.well-known')));
+
 // Stripe webhooks need raw body before JSON parsing
 app.use('/webhooks/stripe', express.raw({ type: 'application/json' }));
 app.use(express.json());
