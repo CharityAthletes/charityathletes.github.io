@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useLang } from '@/lib/lang-context'
-import { getDonationSummary, getPaymentMethod } from '@/lib/api'
+import { getDonationSummary, getPaymentMethod, getMyCampaigns } from '@/lib/api'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
@@ -19,8 +19,10 @@ export default function ProfilePage() {
     if (!loading && !me) { router.replace('/login'); return }
     if (!token) return
     getDonationSummary(token).then(summary => {
-      setTotalKm(summary.totalDistanceKm ?? 0)
       setTotalJpy(summary.totalJpy ?? 0)
+    }).catch(() => {})
+    getMyCampaigns(token).then(campaigns => {
+      setTotalKm(campaigns.reduce((s, c) => s + (c.totalKm ?? 0), 0))
     }).catch(() => {})
     getPaymentMethod(token).then(r => setCard(r.card)).catch(() => {})
   }, [me, loading, token, router])
