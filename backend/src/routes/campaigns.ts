@@ -722,4 +722,78 @@ router.post('/:id/thankyou', requireAuth, async (req: Request, res: Response) =>
   res.json({ ok: true, sentTo: (donors ?? []).filter(d => !d.is_anonymous).length });
 });
 
+// ── Campaign Updates ──────────────────────────────────────────────────────────
+
+// GET /campaigns/:id/updates — public; newest first
+router.get('/:id/updates', async (req: Request, res: Response) => {
+  const { data, error } = await db
+    .from('campaign_updates')
+    .select('id, message, photo_url, created_at, user_profiles(display_name, avatar_url)')
+    .eq('campaign_id', req.params.id)
+    .order('created_at', { ascending: false })
+    .limit(50);
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data ?? []);
+});
+
+// POST /campaigns/:id/updates — athlete must be a participant or creator
+const updatePostSchema = z.object({
+  message: z.string().min(1).max(500),
+});
+
+router.post('/:id/updates', requireAuth, async (req: Request, res: Response) => {
+  const parsed = updatePostSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+
+  // Verify poster is creator or participant
+  const { data: campaign } = await db
+    .from('campaigns').select('created_by').eq('id', req.params.id).single();
+
+  if (!campaign) return res.status(404).json({ error: 'Campaign not found' });
+
+  if (campaign.created_by !== req.userId) {
+    const { count } = await db
+      .from('campaign_participations')
+      .select('*', { count: 'exact', head: true })
+      .eq('campaign_id', req.params.id)
+      .eq('user_id', req.userId!);
+    if ((count ?? 0) === 0) return res.status(403).json({ error: 'Not a participant' });
+  }
+
+  const { data, error } = await db
+    .from('campaign_updates')
+    .insert({
+      campaign_id: req.params.id,
+      user_id:     req.userId!,
+      message:     parsed.data.message,
+    })
+    .select('id, message, photo_url, created_at, user_profiles(display_name, avatar_url)')
+    .single();
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.status(201).json(data);
+});
+
+// DELETE /campaigns/:id/updates/:updateId — own update only
+router.delete('/:id/updates/:updateId', requireAuth, async (req: Request, res: Response) => {
+  const { data: update } = await db
+    .from('campaign_updates')
+    .select('user_id')
+    .eq('id', req.params.updateId)
+    .eq('campaign_id', req.params.id)
+    .single();
+
+  if (!update) return res.status(404).json({ error: 'Update not found' });
+  if (update.user_id !== req.userId) return res.status(403).json({ error: 'Not your update' });
+
+  const { error } = await db
+    .from('campaign_updates')
+    .delete()
+    .eq('id', req.params.updateId);
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ ok: true });
+});
+
 export default router;

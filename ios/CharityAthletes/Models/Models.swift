@@ -474,6 +474,21 @@ struct DonorPledge: Decodable, Identifiable {
     }
 }
 
+// ─── Campaign Update ──────────────────────────────────────────────────────────
+
+struct CampaignUpdate: Decodable, Identifiable {
+    let id: String
+    let message: String
+    let photoUrl: String?
+    let createdAt: Date
+    let userProfiles: AuthorRef?
+
+    struct AuthorRef: Decodable {
+        let displayName: String
+        let avatarUrl: String?
+    }
+}
+
 // ─── Finalize Campaign Result ─────────────────────────────────────────────────
 
 struct FinalizeResult: Decodable {

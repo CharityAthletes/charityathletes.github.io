@@ -7,6 +7,7 @@ enum Endpoint {
     case nonprofits
     case campaigns, myCampaigns, createdCampaigns, createCampaign, campaign(String), leaderboard(String)
     case joinCampaign(String), unjoinCampaign(String), deleteCampaign(String), archiveCampaign(String), updateCampaign(String), donateCampaign(String), finalizeCampaign(String), pledgeCampaign(String), campaignPledges(String), campaignParticipants(String), campaignThankYou(String)
+    case campaignUpdates(String), postCampaignUpdate(String), deleteCampaignUpdate(String, String)
     case registerDeviceToken, unregisterDeviceToken
     case donations, donationSummary, setupPayment, confirmSetup, paymentMethod
     case activities
@@ -58,6 +59,9 @@ enum Endpoint {
         case .campaignPledges(let id):       return "/campaigns/\(id)/pledges"
         case .campaignParticipants(let id):  return "/campaigns/\(id)/participants"
         case .campaignThankYou(let id):      return "/campaigns/\(id)/thankyou"
+        case .campaignUpdates(let id):       return "/campaigns/\(id)/updates"
+        case .postCampaignUpdate(let id):    return "/campaigns/\(id)/updates"
+        case .deleteCampaignUpdate(let id, let uid): return "/campaigns/\(id)/updates/\(uid)"
         case .donations:                     return "/donations"
         case .donationSummary:               return "/donations/summary"
         case .setupPayment:                  return "/donations/setup-payment"
@@ -90,7 +94,8 @@ enum Endpoint {
 
     var method: String {
         switch self {
-        case .unjoinCampaign, .deleteCampaign, .stravaDisconnect, .deleteAccount, .unregisterDeviceToken:
+        case .unjoinCampaign, .deleteCampaign, .stravaDisconnect, .deleteAccount, .unregisterDeviceToken,
+             .deleteCampaignUpdate:
             return "DELETE"
         case .archiveCampaign, .updateCampaign:
             return "PATCH"
@@ -98,7 +103,7 @@ enum Endpoint {
              .registerDeviceToken,
              .createCampaign,
              .joinCampaign, .donateCampaign, .setupPayment, .confirmSetup,
-             .finalizeCampaign, .pledgeCampaign, .campaignThankYou,
+             .finalizeCampaign, .pledgeCampaign, .campaignThankYou, .postCampaignUpdate,
              .adminApproveNonprofit, .adminRejectNonprofit,
              .charityRequest, .stravaSync:
             return "POST"

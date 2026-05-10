@@ -47,9 +47,17 @@ router.get('/:id', async (req: Request, res: Response) => {
     ? process.env.APP_URL
     : `${proto}://${req.headers.host}`;
 
+  // Fetch campaign updates (newest first, max 20 for the page)
+  const { data: updates } = await db
+    .from('campaign_updates')
+    .select('id, message, created_at, user_profiles(display_name)')
+    .eq('campaign_id', req.params.id)
+    .order('created_at', { ascending: false })
+    .limit(20);
+
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.setHeader('Cache-Control', 'no-store');
-  res.send(renderPage(campaign, stripeKey, apiBase, req.params.id, athleteId));
+  res.send(renderPage(campaign, stripeKey, apiBase, req.params.id, athleteId, updates ?? []));
 });
 
 // ── GET /c/:id/data — JSON for the page ──────────────────────────────────────
@@ -361,7 +369,7 @@ export { broadcastToRoom };
 
 // ── HTML renderer ─────────────────────────────────────────────────────────────
 
-function renderPage(campaign: any, stripeKey: string, apiBase: string, campaignId: string, athleteId: string = ''): string {
+function renderPage(campaign: any, stripeKey: string, apiBase: string, campaignId: string, athleteId: string = '', updates: any[] = []): string {
   const np   = campaign.nonprofits;
   const athlete = campaign.user_profiles;
   const endDate   = new Date(campaign.end_date).toLocaleDateString('ja-JP', { year:'numeric', month:'long', day:'numeric', timeZone: 'Asia/Tokyo' });
@@ -421,6 +429,11 @@ function renderPage(campaign: any, stripeKey: string, apiBase: string, campaignI
     .rate-btn.active{background:#007B83;color:#fff}
     .stripe-element{padding:12px 14px;border:1.5px solid #d0d0d0;border-radius:10px;margin-top:8px;min-height:48px;background:#f9f9f9}
     .btn{width:100%;padding:15px;background:linear-gradient(135deg,#007B83,#2E7D32);color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;margin-top:18px;transition:opacity .2s}
+    .update-item{background:#f9f9fb;border-radius:12px;padding:14px;margin-bottom:10px}
+    .update-item:last-child{margin-bottom:0}
+    .update-author{font-size:12px;font-weight:600;color:#007B83;margin-bottom:4px}
+    .update-date{font-size:11px;color:#86868b;float:right}
+    .update-msg{font-size:14px;color:#333;line-height:1.55;white-space:pre-wrap}
     .btn:disabled{opacity:.5;cursor:not-allowed}
     .success-box{background:#e8f9ee;border:1px solid #34c759;border-radius:12px;padding:20px;text-align:center;display:none}
     .success-box h3{color:#1a8736;font-size:18px;margin-bottom:8px}
@@ -527,6 +540,20 @@ ${(campaign.description_ja || campaign.description_en) ? `
   <div class="section-title"><span class="ja">イベントについて</span><span class="en">About</span></div>
   ${campaign.description_ja ? `<p class="ja" style="font-size:14px;line-height:1.6;color:#444">${h(campaign.description_ja)}</p>` : ''}
   ${campaign.description_en ? `<p class="en" style="font-size:14px;line-height:1.6;color:#444">${h(campaign.description_en)}</p>` : ''}
+</div>` : ''}
+
+${updates.length > 0 ? `
+<div class="card">
+  <div class="section-title">📣 <span class="ja">アスリートからの更新</span><span class="en">Athlete Updates</span></div>
+  ${updates.map((u: any) => {
+    const name = h(u.user_profiles?.display_name ?? 'Athlete');
+    const msg  = h(u.message ?? '');
+    const date = new Date(u.created_at).toLocaleDateString('ja-JP', { month:'short', day:'numeric', timeZone:'Asia/Tokyo' });
+    return `<div class="update-item">
+      <div class="update-author">${name} <span class="update-date">${date}</span></div>
+      <div class="update-msg">${msg}</div>
+    </div>`;
+  }).join('')}
 </div>` : ''}
 
 <div class="card" id="how-it-works-card">

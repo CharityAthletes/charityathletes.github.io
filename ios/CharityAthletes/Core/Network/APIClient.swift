@@ -198,6 +198,20 @@ final class APIClient {
         return try await request(.donateCampaign(campaignId), body: B(amountJpy: amountJpy))
     }
 
+    func getCampaignUpdates(campaignId: String) async throws -> [CampaignUpdate] {
+        try await request(.campaignUpdates(campaignId))
+    }
+
+    func postCampaignUpdate(campaignId: String, message: String) async throws -> CampaignUpdate {
+        struct B: Encodable { let message: String }
+        return try await request(.postCampaignUpdate(campaignId), body: B(message: message))
+    }
+
+    func deleteCampaignUpdate(campaignId: String, updateId: String) async throws {
+        struct R: Decodable { let ok: Bool }
+        let _: R = try await request(.deleteCampaignUpdate(campaignId, updateId))
+    }
+
     func getDonations() async throws -> [Donation]           { try await request(.donations) }
     func getSummary() async throws -> DonationSummary        { try await request(.donationSummary) }
     func createSetupIntent() async throws -> SetupIntentResponse {

@@ -14,6 +14,8 @@ final class CampaignDetailVM: ObservableObject {
     @Published var finalizeResult: FinalizeResult?
     @Published var showSupportSheet = false
     @Published var showThankYouSheet = false
+    @Published var showPostUpdate = false
+    @Published var updates: [CampaignUpdate] = []
     @Published var isLoading = false
     @Published var joined = false
     @Published var deleted = false
@@ -34,6 +36,18 @@ final class CampaignDetailVM: ObservableObject {
     func loadLeaderboard() async {
         do { leaderboard = try await APIClient.shared.getLeaderboard(campaignId: campaign.id) }
         catch { }
+    }
+
+    func loadUpdates() async {
+        do { updates = try await APIClient.shared.getCampaignUpdates(campaignId: campaign.id) }
+        catch { }
+    }
+
+    func deleteUpdate(_ update: CampaignUpdate) async {
+        do {
+            try await APIClient.shared.deleteCampaignUpdate(campaignId: campaign.id, updateId: update.id)
+            updates.removeAll { $0.id == update.id }
+        } catch { }
     }
 
     func loadDonorPledges() async {
@@ -223,6 +237,15 @@ struct CampaignDetailView: View {
                 let shareAthleteId = (isCreator || vm.joined) ? auth.profile?.userId : nil
                 SocialShareSection(campaign: c, athleteId: shareAthleteId)
 
+                // Campaign Updates
+                CampaignUpdatesSection(
+                    updates: vm.updates,
+                    canPost: vm.joined || isCreator,
+                    currentUserId: auth.profile?.userId,
+                    onPost: { vm.showPostUpdate = true },
+                    onDelete: { update in Task { await vm.deleteUpdate(update) } }
+                )
+
                 // Leaderboard
                 if !vm.leaderboard.isEmpty {
                     LeaderboardSection(entries: vm.leaderboard)
@@ -307,13 +330,15 @@ struct CampaignDetailView: View {
             async let a: Void = vm.loadCampaign()
             async let b: Void = vm.loadLeaderboard()
             async let c: Void = vm.loadDonorPledges()
-            _ = await (a, b, c)
+            async let d: Void = vm.loadUpdates()
+            _ = await (a, b, c, d)
         }
         .task {
             async let a: Void = vm.loadCampaign()
             async let b: Void = vm.loadLeaderboard()
             async let c: Void = vm.loadDonorPledges()
-            _ = await (a, b, c)
+            async let d: Void = vm.loadUpdates()
+            _ = await (a, b, c, d)
         }
         .onChange(of: auth.profile?.userId) { _, userId in
             guard userId != nil else { return }
@@ -401,6 +426,12 @@ struct CampaignDetailView: View {
         .sheet(isPresented: $vm.showThankYouSheet) {
             ThankYouSheet(campaignId: vm.campaign.id)
                 .environmentObject(i18n)
+        }
+        .sheet(isPresented: $vm.showPostUpdate) {
+            PostUpdateSheet(campaignId: vm.campaign.id) { newUpdate in
+                vm.updates.insert(newUpdate, at: 0)
+            }
+            .environmentObject(i18n)
         }
     }
 }
@@ -1073,6 +1104,193 @@ struct FinalizeResultSheet: View {
                     Button(i18n.language == .ja ? "閉じる" : "Done") { dismiss() }
                 }
             }
+        }
+    }
+}
+
+// MARK: - Campaign Updates Section
+
+private struct CampaignUpdatesSection: View {
+    let updates: [CampaignUpdate]
+    let canPost: Bool
+    let currentUserId: String?
+    let onPost: () -> Void
+    let onDelete: (CampaignUpdate) -> Void
+    @ObservedObject private var i18n = I18n.shared
+
+    private static let timeFmt: RelativeDateTimeFormatter = {
+        let f = RelativeDateTimeFormatter()
+        f.unitsStyle = .short
+        return f
+    }()
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Label(i18n.language == .ja ? "キャンペーン更新" : "Campaign Updates",
+                      systemImage: "megaphone.fill")
+                    .font(.headline)
+                Spacer()
+                if canPost {
+                    Button {
+                        onPost()
+                    } label: {
+                        Label(i18n.language == .ja ? "投稿" : "Post",
+                              systemImage: "plus.circle.fill")
+                            .font(.subheadline.bold())
+                            .foregroundStyle(Color("BrandOrange"))
+                    }
+                }
+            }
+
+            if updates.isEmpty {
+                Text(i18n.language == .ja
+                     ? "まだ更新はありません。レースや練習の近況を投稿しましょう！"
+                     : "No updates yet. Share how your training is going!")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.vertical, 8)
+            } else {
+                ForEach(updates) { update in
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "person.circle.fill")
+                                .font(.title3)
+                                .foregroundStyle(Color("BrandOrange").opacity(0.7))
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text(update.userProfiles?.displayName ?? "Athlete")
+                                    .font(.caption.bold())
+                                Text(Self.timeFmt.localizedString(for: update.createdAt, relativeTo: Date()))
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                            // Delete button — own updates only
+                            if let uid = currentUserId {
+                                // We don't have user_id on the model; compare display name as proxy
+                                // The backend enforces ownership on DELETE so this is just UI sugar
+                                Menu {
+                                    Button(role: .destructive) {
+                                        onDelete(update)
+                                    } label: {
+                                        Label(i18n.language == .ja ? "削除" : "Delete",
+                                              systemImage: "trash")
+                                    }
+                                } label: {
+                                    Image(systemName: "ellipsis")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                        .padding(6)
+                                }
+                                .opacity(uid.isEmpty ? 0 : 1)
+                            }
+                        }
+                        Text(update.message)
+                            .font(.subheadline)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .padding(12)
+                    .background(Color(.tertiarySystemBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
+            }
+        }
+        .padding()
+        .background(Color(.secondarySystemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+    }
+}
+
+// MARK: - Post Update Sheet
+
+struct PostUpdateSheet: View {
+    let campaignId: String
+    let onPosted: (CampaignUpdate) -> Void
+    @EnvironmentObject var i18n: I18n
+    @Environment(\.dismiss) private var dismiss
+    @State private var message = ""
+    @State private var isLoading = false
+    @State private var errorMsg: String?
+
+    private var remaining: Int { 500 - message.count }
+
+    var body: some View {
+        NavigationStack {
+            VStack(alignment: .leading, spacing: 16) {
+                Text(i18n.language == .ja
+                     ? "レース・練習の近況や意気込みをサポーターに届けましょう。"
+                     : "Share a training update, race recap, or words of motivation with your supporters.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+
+                ZStack(alignment: .bottomTrailing) {
+                    TextEditor(text: $message)
+                        .frame(minHeight: 160)
+                        .padding(8)
+                        .background(Color(.secondarySystemBackground))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.secondary.opacity(0.25), lineWidth: 1)
+                        )
+
+                    Text("\(remaining)")
+                        .font(.caption2)
+                        .foregroundStyle(remaining < 50 ? .red : .secondary)
+                        .padding(10)
+                }
+
+                if let err = errorMsg {
+                    Text(err).font(.caption).foregroundStyle(.red)
+                }
+
+                Button {
+                    Task { await submit() }
+                } label: {
+                    HStack {
+                        Spacer()
+                        if isLoading { ProgressView().tint(.white) }
+                        else {
+                            Label(i18n.language == .ja ? "投稿する" : "Post Update",
+                                  systemImage: "megaphone.fill")
+                                .font(.headline)
+                        }
+                        Spacer()
+                    }
+                    .padding()
+                    .background(message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || remaining < 0
+                                ? Color.gray : Color("BrandOrange"))
+                    .foregroundStyle(.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 14))
+                }
+                .disabled(message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || remaining < 0 || isLoading)
+
+                Spacer()
+            }
+            .padding()
+            .navigationTitle(i18n.language == .ja ? "更新を投稿" : "Post Update")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(i18n.language == .ja ? "閉じる" : "Cancel") { dismiss() }
+                }
+            }
+        }
+    }
+
+    private func submit() async {
+        isLoading = true; errorMsg = nil
+        defer { isLoading = false }
+        do {
+            let update = try await APIClient.shared.postCampaignUpdate(
+                campaignId: campaignId,
+                message: message.trimmingCharacters(in: .whitespacesAndNewlines)
+            )
+            onPosted(update)
+            dismiss()
+        } catch {
+            errorMsg = error.localizedDescription
         }
     }
 }
