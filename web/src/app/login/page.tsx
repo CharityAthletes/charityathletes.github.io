@@ -57,7 +57,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         {/* Header */}
         <div className="text-center mb-8 py-8 rounded-2xl" style={{ background: BRAND_GRADIENT }}>
-          <span className="text-5xl">🏃</span>
+          <img src="/icon-1024.png" alt="Charity Athletes" className="w-20 h-20 mx-auto rounded-2xl shadow-lg" />
           <h1 className="text-2xl font-bold mt-3 text-white">Charity Athletes</h1>
           <p className="text-white/70 text-sm mt-1">サインインしてください</p>
         </div>
