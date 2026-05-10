@@ -54,7 +54,7 @@ export default function CallbackPage() {
   return (
     <div className="min-h-[80vh] flex items-center justify-center">
       <div className="text-center">
-        <div className="text-4xl mb-3 animate-pulse">🏃</div>
+        <img src="/icon-1024.png" alt="Charity Athletes" className="w-20 h-20 mx-auto rounded-2xl shadow-lg mb-3 animate-pulse" />
         <p className="text-gray-500 text-sm">サインイン中...</p>
       </div>
     </div>
