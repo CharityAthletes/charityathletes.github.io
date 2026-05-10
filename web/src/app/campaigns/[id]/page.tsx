@@ -235,7 +235,7 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
     setJoining(false)
   }
 
-  const donorURL   = `${process.env.NEXT_PUBLIC_BACKEND_URL}/c/${id}`
+  const donorURL   = `https://donate.charityathletes.org/c/${id}`
   const shareText  = campaign ? `${t(campaign.titleJa, campaign.titleEn)} — Charity Athletes` : ''
   const shareURL   = `https://app.charityathletes.org/campaigns/${id}`
 
@@ -256,7 +256,7 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
 
   const copyShareCard = async () => {
     await navigator.clipboard?.writeText(donorURL)
-    alert(t('寄付者ページのURLをコピーしました', 'Donor page URL copied!'))
+    alert(t('URLをコピーしました！', 'Donor page URL copied!'))
   }
 
   if (loading) {
@@ -437,7 +437,7 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
             style={{ background: 'linear-gradient(135deg, #054738, #1A9966)' }}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-            {t('シェアカードを作成', 'Create Share Card')}
+            {t('寄付ページのURLをコピー', 'Copy Donor Page Link')}
           </button>
           <div className="grid grid-cols-4 gap-2">
             {[

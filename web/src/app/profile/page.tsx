@@ -104,7 +104,17 @@ export default function ProfilePage() {
             </span>
           </div>
           {stravaConnected ? (
-            <button className="flex items-center gap-3 px-4 py-3.5 w-full text-left">
+            <button
+              onClick={async () => {
+                if (!confirm(t('Stravaとの連携を解除しますか？', 'Disconnect Strava? Your activities will no longer sync.'))) return
+                try {
+                  await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/strava/disconnect`, {
+                    method: 'POST', headers: { Authorization: `Bearer ${token}` },
+                  })
+                  window.location.reload()
+                } catch { alert(t('切断に失敗しました', 'Failed to disconnect')) }
+              }}
+              className="flex items-center gap-3 px-4 py-3.5 w-full text-left">
               <div className="w-8 h-8 rounded-full flex items-center justify-center bg-red-50">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#dc2626" strokeWidth="1.5"/><path d="M4 4l8 8M12 4l-8 8" stroke="#dc2626" strokeWidth="1.5" strokeLinecap="round"/></svg>
               </div>

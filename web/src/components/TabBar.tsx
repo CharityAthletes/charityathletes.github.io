@@ -42,7 +42,7 @@ const tabs = [
   },
   {
     href: '/charities',
-    ja: 'チャリティ', en: 'Charities',
+    ja: '団体一覧', en: 'Charities',
     match: (p: string) => p.startsWith('/charities'),
     icon: (active: boolean) => (
       <svg width="22" height="22" viewBox="0 0 24 24" fill={active ? 'currentColor' : 'none'}
