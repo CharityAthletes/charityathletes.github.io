@@ -1281,6 +1281,7 @@ function initPaymentRequestButton() {
     },
     requestPayerName:  true,
     requestPayerEmail: true,
+    disableWallets:    ['link'],
   });
   _prInstance = pr;
 
