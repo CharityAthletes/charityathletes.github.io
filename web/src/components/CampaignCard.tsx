@@ -36,7 +36,7 @@ export default function CampaignCard({ campaign }: { campaign: Campaign }) {
           <div className="mt-3">
             <div className="flex justify-between text-xs text-gray-500 mb-1">
               <span>{fmt(campaign.totalKm ?? 0)} km</span>
-              <span>目標 {fmt(campaign.goalKm)} km</span>
+              <span>目標 {fmt(campaign.goalKm ?? 0)} km</span>
             </div>
             <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
               <div
