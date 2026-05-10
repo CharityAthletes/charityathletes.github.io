@@ -4,6 +4,9 @@ import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 
+const BRAND_GRADIENT = 'linear-gradient(135deg, #0D2659, #054738)'
+const BRAND_GREEN    = '#1A9966'
+
 export default function LoginPage() {
   const { session } = useAuth()
   const router = useRouter()
@@ -17,7 +20,6 @@ export default function LoginPage() {
     if (session) router.replace('/dashboard')
   }, [session, router])
 
-  // ── Google ────────────────────────────────────────────────────────────────────
   const handleGoogle = async () => {
     setLoading('google'); setError('')
     const { error } = await supabase.auth.signInWithOAuth({
@@ -25,27 +27,19 @@ export default function LoginPage() {
       options: { redirectTo: `${window.location.origin}/auth/callback` },
     })
     if (error) { setError(error.message); setLoading(null) }
-    // On success: browser redirects away — no need to reset loading
   }
 
-  // ── Strava ────────────────────────────────────────────────────────────────────
   const handleStrava = async () => {
     setLoading('strava'); setError('')
     try {
       const callbackUrl = encodeURIComponent(`${window.location.origin}/auth/strava-callback`)
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/strava/login?web_redirect=${callbackUrl}`
-      )
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/strava/login?web_redirect=${callbackUrl}`)
       if (!res.ok) throw new Error('Failed to start Strava login')
       const { url } = await res.json()
-      window.location.href = url   // redirect to Strava
-    } catch (e: any) {
-      setError(e.message)
-      setLoading(null)
-    }
+      window.location.href = url
+    } catch (e: any) { setError(e.message); setLoading(null) }
   }
 
-  // ── Magic link ────────────────────────────────────────────────────────────────
   const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading('magic'); setError('')
@@ -61,10 +55,11 @@ export default function LoginPage() {
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
+        {/* Header */}
+        <div className="text-center mb-8 py-8 rounded-2xl" style={{ background: BRAND_GRADIENT }}>
           <span className="text-5xl">🏃</span>
-          <h1 className="text-2xl font-bold mt-3 text-gray-900">Charity Athletes</h1>
-          <p className="text-gray-500 text-sm mt-1">サインインしてください</p>
+          <h1 className="text-2xl font-bold mt-3 text-white">Charity Athletes</h1>
+          <p className="text-white/70 text-sm mt-1">サインインしてください</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-3">
@@ -72,9 +67,7 @@ export default function LoginPage() {
             <div className="text-center py-4">
               <div className="text-4xl mb-3">📧</div>
               <p className="font-semibold text-gray-800">メールを確認してください</p>
-              <p className="text-sm text-gray-500 mt-1">
-                {email} にサインインリンクを送りました。
-              </p>
+              <p className="text-sm text-gray-500 mt-1">{email} にサインインリンクを送りました。</p>
             </div>
           ) : (
             <>
@@ -82,17 +75,10 @@ export default function LoginPage() {
               <button
                 onClick={handleStrava}
                 disabled={!!loading}
-                className="w-full flex items-center justify-center gap-3 py-2.5 rounded-lg font-semibold text-white disabled:opacity-60 transition"
+                className="w-full flex items-center justify-center gap-3 py-2.5 rounded-lg font-semibold text-white disabled:opacity-60 transition hover:opacity-90"
                 style={{ backgroundColor: '#FC4C02' }}
               >
-                {loading === 'strava' ? (
-                  <span className="text-sm">接続中...</span>
-                ) : (
-                  <>
-                    <StravaIcon />
-                    <span className="text-sm">Stravaでサインイン</span>
-                  </>
-                )}
+                {loading === 'strava' ? <span className="text-sm">接続中...</span> : <><StravaIcon /><span className="text-sm">Stravaでサインイン</span></>}
               </button>
 
               {/* Google */}
@@ -101,14 +87,7 @@ export default function LoginPage() {
                 disabled={!!loading}
                 className="w-full flex items-center justify-center gap-3 py-2.5 rounded-lg font-semibold text-gray-700 border border-gray-200 hover:bg-gray-50 disabled:opacity-60 transition"
               >
-                {loading === 'google' ? (
-                  <span className="text-sm">接続中...</span>
-                ) : (
-                  <>
-                    <GoogleIcon />
-                    <span className="text-sm">Googleでサインイン</span>
-                  </>
-                )}
+                {loading === 'google' ? <span className="text-sm">接続中...</span> : <><GoogleIcon /><span className="text-sm">Googleでサインイン</span></>}
               </button>
 
               {/* Divider */}
@@ -126,12 +105,13 @@ export default function LoginPage() {
                   onChange={e => setEmail(e.target.value)}
                   required
                   placeholder="メールアドレス"
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
                 />
                 <button
                   type="submit"
                   disabled={!!loading}
-                  className="w-full py-2.5 rounded-lg font-semibold text-white bg-gradient-to-r from-orange-500 to-red-500 hover:opacity-90 transition disabled:opacity-50"
+                  className="w-full py-2.5 rounded-lg font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
+                  style={{ background: BRAND_GRADIENT }}
                 >
                   {loading === 'magic' ? '送信中...' : 'メールでサインイン'}
                 </button>

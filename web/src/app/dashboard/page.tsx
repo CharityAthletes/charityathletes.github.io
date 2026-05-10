@@ -46,7 +46,7 @@ export default function DashboardPage() {
         </h1>
         <Link
           href="/campaigns/create"
-          className="px-4 py-2 rounded-full text-sm font-semibold text-white bg-gradient-to-r from-orange-500 to-red-500 hover:opacity-90 transition"
+          className="px-4 py-2 rounded-full text-sm font-semibold text-white hover:opacity-90 transition" style={{ background: "linear-gradient(135deg, #0D2659, #054738)" }}
         >
           + キャンペーン作成
         </Link>
@@ -56,7 +56,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-2 gap-4">
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
           <p className="text-xs text-gray-400 mb-1">合計寄付額</p>
-          <p className="text-2xl font-bold text-orange-500">¥{fmt(summary?.totalJpy ?? 0)}</p>
+          <p className="text-2xl font-bold text-[#1A9966]">¥{fmt(summary?.totalJpy ?? 0)}</p>
         </div>
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
           <p className="text-xs text-gray-400 mb-1">参加キャンペーン</p>
@@ -70,7 +70,7 @@ export default function DashboardPage() {
         {joined.length === 0 ? (
           <div className="bg-white rounded-2xl p-6 text-center border border-gray-100">
             <p className="text-gray-400 text-sm mb-3">まだ参加しているキャンペーンがありません。</p>
-            <Link href="/" className="text-orange-500 text-sm font-semibold hover:underline">
+            <Link href="/" className="text-[#1A9966] text-sm font-semibold hover:underline">
               キャンペーンを探す →
             </Link>
           </div>

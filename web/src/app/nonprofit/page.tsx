@@ -64,7 +64,7 @@ export default function NonprofitPage() {
         ].map(s => (
           <div key={s.label} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 text-center">
             <p className="text-xs text-gray-400 mb-1">{s.label}</p>
-            <p className="text-2xl font-bold text-orange-500">{s.value}</p>
+            <p className="text-2xl font-bold text-[#1A9966]">{s.value}</p>
           </div>
         ))}
       </div>
@@ -79,7 +79,7 @@ export default function NonprofitPage() {
                 <span className="text-gray-600">{d.campaignTitleJa}</span>
                 <div className="flex items-center gap-3">
                   <span className="text-gray-400 text-xs">{fmtDate(d.createdAt)}</span>
-                  <span className="font-semibold text-orange-500">¥{fmt(d.amountJpy)}</span>
+                  <span className="font-semibold text-[#1A9966]">¥{fmt(d.amountJpy)}</span>
                 </div>
               </div>
             ))}

@@ -95,7 +95,7 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
       {campaign.coverImageUrl ? (
         <img src={campaign.coverImageUrl} alt={campaign.titleJa} className="w-full h-52 object-cover rounded-2xl" />
       ) : (
-        <div className="w-full h-52 bg-gradient-to-br from-orange-400 to-red-500 rounded-2xl flex items-center justify-center text-6xl">🏃</div>
+        <div className="w-full h-52 rounded-2xl rounded-2xl flex items-center justify-center text-6xl">🏃</div>
       )}
 
       {/* Title & info */}
@@ -129,7 +129,7 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
           </div>
           <div className="flex justify-between text-xs text-gray-400 mt-1">
             <span>👥 {campaign.participantCount ?? participants.length}人参加</span>
-            <span className="text-orange-500 font-semibold">¥{fmt(campaign.totalRaisedJpy ?? 0)} 集まっています</span>
+            <span className="text-[#1A9966] font-semibold">¥{fmt(campaign.totalRaisedJpy ?? 0)} 集まっています</span>
           </div>
         </div>
 
@@ -148,7 +148,7 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
               <button
                 onClick={handleJoin}
                 disabled={joining}
-                className="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-gradient-to-r from-orange-500 to-red-500 hover:opacity-90 transition disabled:opacity-50"
+                className="px-4 py-2 rounded-lg text-sm font-semibold text-white hover:opacity-90 transition disabled:opacity-50" style={{ background: "linear-gradient(135deg, #0D2659, #054738)" }}
               >
                 {joining ? '...' : 'キャンペーンに参加'}
               </button>
@@ -158,7 +158,7 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
             href={donorURL}
             target="_blank"
             rel="noopener noreferrer"
-            className="px-4 py-2 rounded-lg text-sm font-semibold border border-orange-200 text-orange-600 hover:bg-orange-50 transition"
+            className="px-4 py-2 rounded-lg text-sm font-semibold border border-green-200 text-[#1A9966] hover:bg-green-50 transition"
           >
             寄付者ページを見る 🔗
           </a>
@@ -183,11 +183,11 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
                 <span className="w-6 text-center text-sm font-bold text-gray-400">
                   {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}`}
                 </span>
-                <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-xs font-bold text-orange-600 shrink-0">
+                <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-xs font-bold text-[#1A9966] shrink-0">
                   {entry.displayName?.[0]?.toUpperCase() ?? '?'}
                 </div>
                 <span className="flex-1 text-sm text-gray-800">{entry.displayName}</span>
-                <span className="text-sm font-semibold text-orange-500">{fmt(entry.totalKm)} km</span>
+                <span className="text-sm font-semibold text-[#1A9966]">{fmt(entry.totalKm)} km</span>
               </div>
             ))}
           </div>
@@ -204,7 +204,7 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
             {updates.map(u => (
               <div key={u.id} className="border-b border-gray-50 pb-4 last:border-0 last:pb-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <div className="w-7 h-7 rounded-full bg-orange-100 flex items-center justify-center text-xs font-bold text-orange-600">
+                  <div className="w-7 h-7 rounded-full bg-green-100 flex items-center justify-center text-xs font-bold text-[#1A9966]">
                     {u.userProfiles?.displayName?.[0]?.toUpperCase() ?? '?'}
                   </div>
                   <span className="text-xs font-semibold text-gray-700">{u.userProfiles?.displayName ?? 'Athlete'}</span>

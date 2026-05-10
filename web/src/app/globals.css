@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+:root {
+  --brand-navy:  #0D2659;
+  --brand-teal:  #054738;
+  --brand-green: #1A9966;
+}
+
 body {
   background: #f9fafb;
   color: #111827;

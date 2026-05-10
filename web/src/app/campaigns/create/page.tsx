@@ -53,7 +53,7 @@ export default function CreateCampaignPage() {
         value={(form as any)[key]}
         onChange={set(key)}
         required
-        className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
+        className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
         {...opts}
       />
     </div>
@@ -73,7 +73,7 @@ export default function CreateCampaignPage() {
             value={form.descriptionJa}
             onChange={set('descriptionJa')}
             rows={3}
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-300 resize-none"
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-300 resize-none"
           />
         </div>
         <div>
@@ -82,7 +82,7 @@ export default function CreateCampaignPage() {
             value={form.descriptionEn}
             onChange={set('descriptionEn')}
             rows={3}
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-300 resize-none"
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-300 resize-none"
           />
         </div>
 
@@ -99,7 +99,7 @@ export default function CreateCampaignPage() {
             value={form.nonprofitId}
             onChange={set('nonprofitId')}
             required
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
           >
             <option value="">選択してください</option>
             {nonprofits.map(n => (
@@ -113,7 +113,7 @@ export default function CreateCampaignPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-2.5 rounded-lg font-semibold text-white bg-gradient-to-r from-orange-500 to-red-500 hover:opacity-90 transition disabled:opacity-50"
+          className="w-full py-2.5 rounded-lg font-semibold text-white hover:opacity-90 transition disabled:opacity-50" style={{ background: "linear-gradient(135deg, #0D2659, #054738)" }}
         >
           {loading ? '作成中...' : 'キャンペーンを作成'}
         </button>

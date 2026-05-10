@@ -71,7 +71,7 @@ export default function AdminPage() {
         ].map(s => (
           <div key={s.label} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 text-center">
             <p className="text-xs text-gray-400 mb-1">{s.label}</p>
-            <p className="text-lg font-bold text-orange-500">{s.value}</p>
+            <p className="text-lg font-bold text-[#1A9966]">{s.value}</p>
           </div>
         ))}
       </div>
@@ -83,7 +83,7 @@ export default function AdminPage() {
           <select
             value={statusFilter}
             onChange={e => setStatusFilter(e.target.value)}
-            className="text-sm border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-orange-300"
+            className="text-sm border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-green-300"
           >
             <option value="pending">審査中</option>
             <option value="approved">承認済み</option>

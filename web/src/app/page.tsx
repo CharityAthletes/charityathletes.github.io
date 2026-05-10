@@ -12,29 +12,27 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    getCampaigns()
-      .then(setCampaigns)
-      .catch(console.error)
-      .finally(() => setLoading(false))
+    getCampaigns().then(setCampaigns).catch(console.error).finally(() => setLoading(false))
   }, [])
 
   const active = campaigns.filter(c => c.status === 'active')
-  const past = campaigns.filter(c => c.status !== 'active')
+  const past   = campaigns.filter(c => c.status !== 'active')
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       {/* Hero */}
-      <div className="text-center mb-10">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+      <div className="text-center mb-10 py-8 px-4 rounded-2xl" style={{ background: 'linear-gradient(135deg, #0D2659, #054738)' }}>
+        <h1 className="text-3xl font-bold text-white mb-2">
           走ることで、世界を変えよう 🏃
         </h1>
-        <p className="text-gray-500 max-w-xl mx-auto">
+        <p className="text-white/70 max-w-xl mx-auto">
           Charity Athletes は、アスリートの活動を寄付につなげるプラットフォームです。
         </p>
         {me?.role === 'athlete' && (
           <Link
             href="/campaigns/create"
-            className="inline-block mt-4 px-6 py-2.5 rounded-full font-semibold text-white bg-gradient-to-r from-orange-500 to-red-500 hover:opacity-90 transition-opacity"
+            className="inline-block mt-4 px-6 py-2.5 rounded-full font-semibold text-white transition hover:opacity-90"
+            style={{ background: '#1A9966' }}
           >
             キャンペーンを作成
           </Link>
